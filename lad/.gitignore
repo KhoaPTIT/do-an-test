@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+.env
+*.db
+*.db-journal
+backend/data/*.csv
+backend/data/*.db
+backend/ml/models/*.pkl
+docs/figures/*.png
+.pytest_cache/
+.DS_Store

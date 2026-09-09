@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Giám sát đăng nhập bất thường</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="pulse" id="live-dot"></span>
+    <h1>Giám sát đăng nhập</h1>
+  </div>
+  <div class="topbar-right">
+    <label class="key-field">
+      <span>API key</span>
+      <input type="password" id="api-key" value="demo-api-key-doi-truoc-khi-nop" spellcheck="false">
+    </label>
+    <button id="refresh" class="btn">Tải lại</button>
+  </div>
+</header>
+
+<div id="banner" class="banner" hidden></div>
+
+<main>
+  <section class="metrics" id="metrics">
+    <div class="metric"><span class="metric-label">Sự kiện 24 giờ</span><strong id="m-events">—</strong></div>
+    <div class="metric"><span class="metric-label">Bị chặn</span><strong id="m-blocked" class="danger">—</strong></div>
+    <div class="metric"><span class="metric-label">Bắt xác thực 2 lớp</span><strong id="m-challenge" class="warn">—</strong></div>
+    <div class="metric"><span class="metric-label">Cảnh báo đang mở</span><strong id="m-open">—</strong></div>
+    <div class="metric"><span class="metric-label">Rủi ro trung bình</span><strong id="m-risk">—</strong></div>
+    <div class="metric"><span class="metric-label">Mô hình</span><strong id="m-model" class="model-state">—</strong></div>
+  </section>
+
+  <section class="charts">
+    <div class="panel">
+      <h2>Sự kiện theo ngày</h2>
+      <canvas id="chart-timeline" height="150"></canvas>
+    </div>
+    <div class="panel">
+      <h2>Luật kích hoạt nhiều nhất</h2>
+      <canvas id="chart-rules" height="150"></canvas>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Cảnh báo</h2>
+      <div class="filters">
+        <select id="f-status">
+          <option value="open">Đang mở</option>
+          <option value="">Tất cả trạng thái</option>
+          <option value="investigating">Đang điều tra</option>
+          <option value="resolved">Đã xử lý</option>
+          <option value="false_positive">Báo động giả</option>
+        </select>
+        <select id="f-severity">
+          <option value="">Mọi mức độ</option>
+          <option value="critical">Nghiêm trọng</option>
+          <option value="high">Cao</option>
+          <option value="medium">Trung bình</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="alerts-table">
+        <thead>
+          <tr>
+            <th>Thời gian</th><th>Tài khoản</th><th>Địa chỉ IP</th>
+            <th>Vị trí</th><th>Điểm</th><th>Mức độ</th><th>Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody id="alerts-body">
+          <tr><td colspan="7" class="empty">Đang tải…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<aside id="drawer" class="drawer" hidden>
+  <div class="drawer-head">
+    <h2 id="d-title">Chi tiết cảnh báo</h2>
+    <button id="d-close" class="btn-icon" aria-label="Đóng">✕</button>
+  </div>
+  <div class="drawer-body" id="d-body"></div>
+</aside>
+<div id="scrim" class="scrim" hidden></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
