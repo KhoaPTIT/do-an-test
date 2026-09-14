@@ -1,7 +1,9 @@
-"""Fixture dùng chung: DB SQLite in-memory riêng cho mỗi test, tách biệt
-hoàn toàn khỏi Postgres dev — test không cần Docker đang chạy.
+"""Fixture dùng chung: DB SQLite in-memory + Redis giả lập (fakeredis)
+riêng cho mỗi test, tách biệt hoàn toàn khỏi Postgres/Redis dev — test
+không cần Docker đang chạy.
 """
 
+import fakeredis
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -10,6 +12,17 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def fake_redis(monkeypatch):
+    """Thay redis_client thật bằng fakeredis cho MỌI test — brute force,
+    credential stuffing đều dùng chung module app.detection.rate_counter.
+    """
+    client = fakeredis.FakeRedis(decode_responses=True)
+    monkeypatch.setattr("app.detection.rate_counter.redis_client", client)
+    yield client
+    client.flushall()
 
 
 @pytest.fixture()

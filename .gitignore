@@ -18,6 +18,9 @@ dist/
 # GeoIP database (tải riêng, không commit — file lớn + license MaxMind)
 backend/geoip/*.mmdb
 
+# Log runtime (không phải artifact cần commit)
+backend/logs/
+
 # Dữ liệu / model đã train (sinh lại được bằng script, không commit)
 backend/ml/artifacts/
 *.db

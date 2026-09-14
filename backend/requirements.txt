@@ -11,6 +11,11 @@ python-dotenv==1.0.1
 bcrypt==4.2.1
 matplotlib==3.10.0  # chỉ dùng cho script kiểm tra/đánh giá, không dùng trong API
 
+# Tuần 3 — rule-based detection tầng 1
+redis==5.2.1
+geoip2==4.8.0
+
 # Kiểm thử
 pytest==8.3.4
 httpx==0.28.1
+fakeredis==2.26.2  # giả lập Redis trong test, không cần Docker khi chạy pytest

@@ -65,16 +65,24 @@ Mở `http://localhost:5173` — điều hướng được giữa `/login` và `
 - Form đăng nhập frontend gọi API thật, xử lý đúng cả 2 trường hợp, field request/response khớp `docs/api-contract.md` (đã kiểm tra qua tab Network trình duyệt).
 - Script [`backend/scripts/generate_historical_data.py`](backend/scripts/generate_historical_data.py) tạo 20 user + ~580-600 bản ghi lịch sử, mỗi user tập trung quanh 1 khung giờ riêng (stddev ~1-1.3h so với ~6.93h nếu random đều) — xem biểu đồ [`docs/figures/login_hour_distribution.png`](docs/figures/login_hour_distribution.png).
 
-Còn thiếu để chuyển sang Tuần 3: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6).
+✅ **Tuần 3 hoàn thành** — đã kiểm tra thật, kể cả bắt được 1 bug thật (member trùng trong Redis sorted set do `id(object())` bị tái sử dụng — sửa bằng `uuid4`):
+- GeoIP wrapper chạy chế độ mock (chưa có license MaxMind) — không bao giờ crash, có log riêng lookup thất bại. Xem [`docs/geoip-setup.md`](docs/geoip-setup.md) để bật dữ liệu thật.
+- Redis sliding window (sorted set) đếm login fail — test cả bằng curl thật (counter = đúng N) lẫn unit test (TTL, tự reset sau cửa sổ).
+- Rule-based tầng 1 (`brute_force`, `credential_stuffing`, `impossible_travel`) nối thẳng vào `POST /login`, tạo `Alert` khi khớp — đã test **4 ca brute force + 3 ca credential stuffing thật** qua curl (≥ 3 ca/loại theo DoD), xác nhận không false-positive với đăng nhập bình thường.
+- Dashboard 4 khu vực (bản đồ, biểu đồ, log, cảnh báo) — test cả desktop lẫn mobile viewport, không vỡ layout, không lỗi console.
+- Dữ liệu mở rộng: 25 user, 924 bản ghi (88.2% bình thường / 11.8% bất thường có nhãn), nhãn lưu ở [`backend/ml/data/labels.csv`](backend/ml/data/labels.csv) — tách biệt hoàn toàn khỏi `login_events`.
+
+Còn thiếu để chuyển sang Tuần 4: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6) — đặc biệt ngưỡng brute force/credential stuffing hiện là tự giả định.
 
 ### Dữ liệu mẫu
 
 ```bash
 cd backend
-venv\Scripts\python.exe -m scripts.generate_historical_data --reset   # tạo lại 20 user + login_events giả lập
-venv\Scripts\python.exe -m scripts.plot_login_hour_distribution       # vẽ biểu đồ kiểm tra phân bố giờ
+venv\Scripts\python.exe -m scripts.generate_historical_data --reset       # 20 user cơ bản (Tuần 2)
+venv\Scripts\python.exe -m scripts.plot_login_hour_distribution           # biểu đồ kiểm tra phân bố giờ
+venv\Scripts\python.exe -m scripts.generate_labeled_anomalies --reset     # 25 user + nhãn is_anomaly (Tuần 3, thay thế bộ dữ liệu trên)
 ```
 
 Trên Windows, nếu gặp lỗi `UnicodeEncodeError` khi in tiếng Việt ra console, chạy với `set PYTHONIOENCODING=utf-8` trước (cmd) hoặc `$env:PYTHONIOENCODING="utf-8"` (PowerShell).
 
-🚧 Tiếp theo: Tuần 3 — Rule-based tầng 1. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).
+🚧 Tiếp theo: Tuần 4 — Behavioral scoring tầng 2. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).
