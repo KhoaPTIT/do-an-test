@@ -66,7 +66,7 @@ Mở `http://localhost:5173` — điều hướng được giữa `/login` và `
 - Script [`backend/scripts/generate_historical_data.py`](backend/scripts/generate_historical_data.py) tạo 20 user + ~580-600 bản ghi lịch sử, mỗi user tập trung quanh 1 khung giờ riêng (stddev ~1-1.3h so với ~6.93h nếu random đều) — xem biểu đồ [`docs/figures/login_hour_distribution.png`](docs/figures/login_hour_distribution.png).
 
 ✅ **Tuần 3 hoàn thành** — đã kiểm tra thật, kể cả bắt được 1 bug thật (member trùng trong Redis sorted set do `id(object())` bị tái sử dụng — sửa bằng `uuid4`):
-- GeoIP wrapper chạy chế độ mock (chưa có license MaxMind) — không bao giờ crash, có log riêng lookup thất bại. Xem [`docs/geoip-setup.md`](docs/geoip-setup.md) để bật dữ liệu thật.
+- GeoIP wrapper đang dùng dữ liệu **GeoLite2-City thật** (license MaxMind đã cài — xem [`docs/geoip-setup.md`](docs/geoip-setup.md)), không bao giờ crash kể cả khi thiếu file, có log riêng lookup thất bại.
 - Redis sliding window (sorted set) đếm login fail — test cả bằng curl thật (counter = đúng N) lẫn unit test (TTL, tự reset sau cửa sổ).
 - Rule-based tầng 1 (`brute_force`, `credential_stuffing`, `impossible_travel`) nối thẳng vào `POST /login`, tạo `Alert` khi khớp — đã test **4 ca brute force + 3 ca credential stuffing thật** qua curl (≥ 3 ca/loại theo DoD), xác nhận không false-positive với đăng nhập bình thường.
 - Dashboard 4 khu vực (bản đồ, biểu đồ, log, cảnh báo) — test cả desktop lẫn mobile viewport, không vỡ layout, không lỗi console.
