@@ -7,6 +7,10 @@ alembic==1.14.0
 pydantic-settings==2.7.0
 python-dotenv==1.0.1
 
+# Tuần 2 — đăng nhập + dữ liệu giả lập
+bcrypt==4.2.1
+matplotlib==3.10.0  # chỉ dùng cho script kiểm tra/đánh giá, không dùng trong API
+
 # Kiểm thử
 pytest==8.3.4
 httpx==0.28.1

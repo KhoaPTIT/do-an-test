@@ -15,6 +15,7 @@ class Settings(BaseSettings):
 
     app_env: str = "development"
     database_url: str = "postgresql+psycopg2://lad_user:lad_password@localhost:5432/lad_db"
+    frontend_origin: str = "http://localhost:5173"
 
     # Tuần 3+
     redis_url: str = "redis://localhost:6379/0"

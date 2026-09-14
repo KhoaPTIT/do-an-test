@@ -12,9 +12,9 @@ Tick `[x]` khi nhiệm vụ đã qua đủ các mục kiểm tra — không tick
 
 ## Tuần 2 — Đăng nhập & log cơ bản
 
-- [ ] 2.1 API đăng nhập cơ bản + ghi log — A
-- [ ] 2.2 Giao diện đăng nhập web app mẫu — B
-- [ ] 2.3 Sinh dữ liệu đăng nhập lịch sử giả lập ban đầu — Cả hai
+- [x] 2.1 API đăng nhập cơ bản + ghi log — A — `POST /login`, xem [`backend/app/routers/auth.py`](../backend/app/routers/auth.py)
+- [x] 2.2 Giao diện đăng nhập web app mẫu — B — [`frontend/src/pages/LoginPage.jsx`](../frontend/src/pages/LoginPage.jsx)
+- [x] 2.3 Sinh dữ liệu đăng nhập lịch sử giả lập ban đầu — Cả hai — [`backend/scripts/generate_historical_data.py`](../backend/scripts/generate_historical_data.py)
 
 ## Tuần 3 — Rule-based tầng 1
 

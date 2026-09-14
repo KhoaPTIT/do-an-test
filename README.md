@@ -58,12 +58,23 @@ Mở `http://localhost:5173` — điều hướng được giữa `/login` và `
 
 ## Trạng thái
 
-✅ **Tuần 1 hoàn thành** — đã kiểm tra thật (không chỉ viết code):
-- `docker compose up -d` chạy Postgres + Redis, cả hai container `healthy`.
-- Migration Alembic tạo đủ 6 bảng, FK và index đúng như thiết kế (đã test insert vi phạm FK → bị chặn).
-- `GET /health` trả `{"status":"ok","database":"connected"}`, `pytest` pass.
-- Frontend `npm run build` sạch, `npm run dev` điều hướng đúng `/login` ↔ `/dashboard`, không lỗi console.
+✅ **Tuần 1 hoàn thành** — kiến trúc, schema DB (6 bảng), khung backend/frontend. Xem chi tiết ở lịch sử README trước hoặc [`docs/checklist.md`](docs/checklist.md).
 
-Còn thiếu để chuyển sang Tuần 2: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6).
+✅ **Tuần 2 hoàn thành** — đã kiểm tra thật:
+- `POST /login` ghi log mọi lần thử (thành công/thất bại/tài khoản không tồn tại) — test bằng curl + 5 unit test đều pass, mật khẩu không lộ plain text ở đâu (đã grep log server).
+- Form đăng nhập frontend gọi API thật, xử lý đúng cả 2 trường hợp, field request/response khớp `docs/api-contract.md` (đã kiểm tra qua tab Network trình duyệt).
+- Script [`backend/scripts/generate_historical_data.py`](backend/scripts/generate_historical_data.py) tạo 20 user + ~580-600 bản ghi lịch sử, mỗi user tập trung quanh 1 khung giờ riêng (stddev ~1-1.3h so với ~6.93h nếu random đều) — xem biểu đồ [`docs/figures/login_hour_distribution.png`](docs/figures/login_hour_distribution.png).
 
-🚧 Tiếp theo: Tuần 2 — Đăng nhập & log cơ bản. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).
+Còn thiếu để chuyển sang Tuần 3: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6).
+
+### Dữ liệu mẫu
+
+```bash
+cd backend
+venv\Scripts\python.exe -m scripts.generate_historical_data --reset   # tạo lại 20 user + login_events giả lập
+venv\Scripts\python.exe -m scripts.plot_login_hour_distribution       # vẽ biểu đồ kiểm tra phân bố giờ
+```
+
+Trên Windows, nếu gặp lỗi `UnicodeEncodeError` khi in tiếng Việt ra console, chạy với `set PYTHONIOENCODING=utf-8` trước (cmd) hoặc `$env:PYTHONIOENCODING="utf-8"` (PowerShell).
+
+🚧 Tiếp theo: Tuần 3 — Rule-based tầng 1. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).
