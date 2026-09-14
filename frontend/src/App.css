@@ -1,0 +1,12 @@
+nav {
+  padding: 1rem;
+  border-bottom: 1px solid #444;
+}
+
+nav a {
+  margin-right: 0.5rem;
+}
+
+main {
+  padding: 1rem;
+}

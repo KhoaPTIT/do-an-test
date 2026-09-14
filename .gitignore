@@ -1,0 +1,30 @@
+# Môi trường / secrets
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+
+# GeoIP database (tải riêng, không commit — file lớn + license MaxMind)
+backend/geoip/*.mmdb
+
+# Dữ liệu / model đã train (sinh lại được bằng script, không commit)
+backend/ml/artifacts/
+*.db
+*.sqlite3
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
