@@ -1,0 +1,40 @@
+.log-table {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  padding: 0.5rem;
+}
+
+.log-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.log-table__table th,
+.log-table__table td {
+  padding: 0.25rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.risk-row--low {
+  background: #f0fff4;
+}
+
+.risk-row--medium {
+  background: #fffbea;
+}
+
+.risk-row--high {
+  background: #fff1f0;
+}
+
+.log-table__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+}

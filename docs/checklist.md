@@ -26,9 +26,9 @@ Tick `[x]` khi nhiệm vụ đã qua đủ các mục kiểm tra — không tick
 
 ## Tuần 4 — Behavioral scoring tầng 2
 
-- [ ] 4.1 Xây baseline hành vi user — A
-- [ ] 4.2 Cài đặt chấm điểm risk score tầng 2 — A
-- [ ] 4.3 Bảng log & biểu đồ tĩnh trên dashboard — B
+- [x] 4.1 Xây baseline hành vi user — A — [`backend/app/detection/baseline.py`](../backend/app/detection/baseline.py)
+- [x] 4.2 Cài đặt chấm điểm risk score tầng 2 — A — [`backend/app/detection/scoring.py`](../backend/app/detection/scoring.py)
+- [x] 4.3 Bảng log & biểu đồ tĩnh trên dashboard — B — `GET /login-events`, `GET /alerts` + [`frontend/src/components/LogTablePanel.jsx`](../frontend/src/components/LogTablePanel.jsx), [`RiskChartPanel.jsx`](../frontend/src/components/RiskChartPanel.jsx)
 
 ## Tuần 5 — Bảo mật & real-time
 

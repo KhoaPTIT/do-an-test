@@ -72,7 +72,13 @@ Mở `http://localhost:5173` — điều hướng được giữa `/login` và `
 - Dashboard 4 khu vực (bản đồ, biểu đồ, log, cảnh báo) — test cả desktop lẫn mobile viewport, không vỡ layout, không lỗi console.
 - Dữ liệu mở rộng: 25 user, 924 bản ghi (88.2% bình thường / 11.8% bất thường có nhãn), nhãn lưu ở [`backend/ml/data/labels.csv`](backend/ml/data/labels.csv) — tách biệt hoàn toàn khỏi `login_events`.
 
-Còn thiếu để chuyển sang Tuần 4: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6) — đặc biệt ngưỡng brute force/credential stuffing hiện là tự giả định.
+✅ **Tuần 4 hoàn thành** — đã kiểm tra thật qua API, kể cả bắt được 1 bug thật khác (xem bên dưới):
+- Baseline hành vi (`avg_login_hour`, `stddev_login_hour`) cập nhật realtime sau mỗi lần đăng nhập thành công + script batch [`backend/scripts/backfill_baseline.py`](backend/scripts/backfill_baseline.py) tính lại cho dữ liệu lịch sử đã nạp thẳng vào DB. **Bug thật bắt được**: session `autoflush=False` khiến vòng lặp tạo `UserBaseline`/`KnownDevice`/`KnownLocation` bị trùng khoá chính — sửa bằng `db.flush()` tường minh sau mỗi lần tạo mới.
+- Chế độ học (< 10 lần đăng nhập hoặc < 7 ngày) hoạt động đúng — user mới không bị tính `unusual_hour`/`unknown_location` dù lệch giờ rất xa.
+- Risk score tầng 2 (0-100, trọng số theo mục 4.2) test qua API thật: đăng nhập lệch giờ → đúng 20 điểm; thành công ngay sau 3 fail → đúng 50 điểm, tạo alert `medium` ngay lập tức; đăng nhập bình thường → 0 điểm, không alert nhầm.
+- `GET /login-events` + `GET /alerts` (phân trang, **chưa có JWT** — thêm ở Tuần 5) nối vào dashboard thật: bảng log tô màu đúng ngưỡng risk, biểu đồ Recharts vẽ risk score theo thời gian, test phân trang với 1001 bản ghi (67 trang), đối chiếu dữ liệu UI khớp DB.
+
+Còn thiếu để chuyển sang Tuần 5: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6) — đặc biệt ngưỡng brute force/credential stuffing và "chuỗi fail" ở risk score hiện là tự giả định.
 
 ### Dữ liệu mẫu
 
@@ -81,8 +87,9 @@ cd backend
 venv\Scripts\python.exe -m scripts.generate_historical_data --reset       # 20 user cơ bản (Tuần 2)
 venv\Scripts\python.exe -m scripts.plot_login_hour_distribution           # biểu đồ kiểm tra phân bố giờ
 venv\Scripts\python.exe -m scripts.generate_labeled_anomalies --reset     # 25 user + nhãn is_anomaly (Tuần 3, thay thế bộ dữ liệu trên)
+venv\Scripts\python.exe -m scripts.backfill_baseline                      # tính lại baseline cho dữ liệu đã nạp thẳng (Tuần 4)
 ```
 
 Trên Windows, nếu gặp lỗi `UnicodeEncodeError` khi in tiếng Việt ra console, chạy với `set PYTHONIOENCODING=utf-8` trước (cmd) hoặc `$env:PYTHONIOENCODING="utf-8"` (PowerShell).
 
-🚧 Tiếp theo: Tuần 4 — Behavioral scoring tầng 2. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).
+🚧 Tiếp theo: Tuần 5 — Bảo mật & real-time. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).

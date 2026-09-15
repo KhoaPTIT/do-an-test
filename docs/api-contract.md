@@ -50,8 +50,8 @@ Web app mẫu (React)                Attack-sim scripts
 | `GET /health` | 1 | Kiểm tra service + kết nối DB |
 | `POST /login` | 2 | Đăng nhập web app mẫu, ghi `login_events` |
 | `POST /admin/login` | 5 | Đăng nhập admin, trả JWT |
-| `GET /login-events` | 4 | Danh sách log, phân trang, JWT bắt buộc |
-| `GET /alerts` | 4 | Danh sách cảnh báo, phân trang, JWT bắt buộc |
+| `GET /login-events` | 4 | Danh sách log, phân trang. ⚠️ **Chưa có JWT** — mở tạm, bảo vệ ở Tuần 5 (5.1) |
+| `GET /alerts` | 4 | Danh sách cảnh báo, phân trang. ⚠️ **Chưa có JWT** — mở tạm, bảo vệ ở Tuần 5 (5.1) |
 | `WS /ws/alerts` | 5 | Đẩy cảnh báo real-time, xác thực bằng JWT qua query param `?token=` |
 
 ### `POST /login` (nhiệm vụ 2.1 — chưa triển khai ở Tuần 1)

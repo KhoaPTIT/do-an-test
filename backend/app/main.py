@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.database import SessionLocal
-from app.routers import auth
+from app.routers import alerts, auth, events
 
 settings = get_settings()
 
@@ -19,6 +19,8 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(events.router)
+app.include_router(alerts.router)
 
 
 @app.get("/health")
