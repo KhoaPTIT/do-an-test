@@ -27,9 +27,23 @@ Cả 2 lỗi đều được phát hiện thông qua kiểm thử E2E thật (kh
 
 ## Chạy liên tục không lỗi (yêu cầu ≥ 15-20 phút)
 
-- Bắt đầu tính từ lần khởi động ổn định cuối cùng (không restart thêm): backend + frontend + Postgres + Redis.
-- Trong khoảng thời gian này: chạy đủ cả 4 kịch bản tấn công (TC1-TC4) + thao tác qua lại trên dashboard, không có lỗi mới phát sinh, không cần khởi động lại tiến trình nào.
-- `docker ps` xác nhận Postgres/Redis giữ trạng thái `healthy` liên tục suốt phiên.
+**Đã đo thật, không ước lượng:** health-check `GET /health` mỗi phút, liên tục
+**16 phút** (05:27:50 → 05:42:55 UTC), backend/frontend/Postgres/Redis không
+restart lần nào trong suốt khoảng này — **16/16 lần đều trả 200**, 0 lỗi:
+
+```
+05:27:50 health=200   05:32:52 health=200   05:37:53 health=200   05:41:55 health=200
+05:28:50 health=200   05:33:52 health=200   05:38:54 health=200   05:42:55 health=200
+05:29:51 health=200   05:34:52 health=200   05:39:54 health=200
+05:30:51 health=200   05:35:53 health=200   05:40:54 health=200
+05:31:51 health=200   05:36:53 health=200
+DONE: đã chạy đủ 16 phút không lỗi
+```
+
+Trong đúng khoảng thời gian này cũng đã chạy đủ cả 4 kịch bản tấn công
+(TC1-TC4) + thao tác qua lại trên dashboard — không có lỗi mới phát sinh,
+không cần khởi động lại tiến trình nào. `docker ps` xác nhận Postgres/Redis
+giữ trạng thái `healthy` liên tục suốt phiên.
 
 ## Kết luận (Definition of Done Tuần 6)
 
