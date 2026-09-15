@@ -18,6 +18,7 @@ from app.detection.pipeline import run_detection_pipeline
 from app.models import User
 from app.schemas import LoginRequest, LoginResponse
 from app.security import verify_password
+from app.utils.network import resolve_client_ip
 
 router = APIRouter()
 
@@ -34,7 +35,7 @@ def login(payload: LoginRequest, request: Request, background_tasks: BackgroundT
         username=payload.username,
         user_id=user.id if user else None,
         success=success,
-        ip=request.client.host if request.client else "unknown",
+        ip=resolve_client_ip(request),
         user_agent=request.headers.get("user-agent"),
         timestamp=datetime.now(timezone.utc),
     )

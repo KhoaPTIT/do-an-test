@@ -61,6 +61,14 @@ Checklist gốc mục 5.1 cho phép "qua query param hoặc header khi handshake
 chọn query param vì `WebSocket` API của trình duyệt không hỗ trợ set custom
 header khi handshake. Giảm thiểu bằng JWT hết hạn sau 60 phút.
 
+⚠️ **Rủi ro đã biết khác (Tuần 6, `TRUST_FORWARDED_FOR`):** `POST /login`
+đọc IP nguồn từ header `X-Forwarded-For` thay vì IP TCP thật khi biến môi
+trường `TRUST_FORWARDED_FOR=true` — chỉ để script `attack-sim/impossible_travel.py`
+giả lập vị trí đăng nhập khi demo cục bộ. Mặc định **TẮT**. Bật cờ này khi
+backend expose thật ra ngoài (không qua reverse proxy đáng tin cậy) cho
+phép BẤT KỲ ai tự khai IP nguồn tuỳ ý, né được toàn bộ rule theo IP (brute
+force theo IP, credential stuffing, GeoIP) — xem `backend/app/config.py`.
+
 ### `POST /login` (nhiệm vụ 2.1 — chưa triển khai ở Tuần 1)
 
 Request:

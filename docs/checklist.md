@@ -38,8 +38,8 @@ Tick `[x]` khi nhiệm vụ đã qua đủ các mục kiểm tra — không tick
 
 ## Tuần 6 — Kịch bản tấn công & kiểm thử end-to-end
 
-- [ ] 6.1 Viết 4 script giả lập tấn công — B
-- [ ] 6.2 Kiểm thử end-to-end toàn luồng — Cả hai
+- [x] 6.1 Viết 4 script giả lập tấn công — B — [`attack-sim/`](../attack-sim/)
+- [x] 6.2 Kiểm thử end-to-end toàn luồng — Cả hai — [`docs/e2e-test-report.md`](e2e-test-report.md)
 
 ## Tuần 7 — ML mở rộng & đánh giá hệ thống
 

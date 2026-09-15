@@ -90,7 +90,13 @@ Mở `http://localhost:5173` — `/login` là web app mẫu, `/admin/login` là 
 - Dashboard nối WebSocket real-time thật: bắn alert từ backend → popup + bảng log/biểu đồ tự làm mới trong < 1s không cần reload; kill backend rồi bật lại → tự reconnect, không cần reload trang; mô phỏng `impossible_travel` → bản đồ vẽ đúng 2 điểm + đường nối (ảnh minh chứng đã xem trực tiếp qua trình duyệt).
 - Phát hiện rủi ro bảo mật nhỏ đã biết: JWT qua query param WebSocket có thể lộ trong console log — ghi rõ trong [`docs/api-contract.md`](docs/api-contract.md) mục 3, giảm thiểu bằng JWT hết hạn 60 phút.
 
-Còn thiếu để chuyển sang Tuần 6: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6).
+✅ **Tuần 6 hoàn thành** — 4 script giả lập tấn công (`attack-sim/`) + kiểm thử end-to-end thật, bắt và sửa đúng 2 lỗi mức "chặn demo" trước khi coi tuần này xong:
+- `brute_force.py`, `credential_stuffing.py`, `success_after_fail.py`, `impossible_travel.py` — mỗi script test độc lập qua dashboard thật, đúng alert tương ứng xuất hiện real-time, không cần thao tác thủ công.
+- **Lỗi 1 (đã sửa):** IP mẫu ban đầu cho `impossible_travel.py` (`203.0.113.10`, dải TEST-NET) không có trong GeoLite2 thật → lookup luôn thất bại có kiểm soát → alert không kích hoạt được. Đổi sang IP thật (`203.119.101.100`, Brisbane/AU).
+- **Lỗi 2 (đã sửa):** bản đồ vẽ đúng marker + đường nối nhưng nằm ngoài khung nhìn mặc định (center Việt Nam) khi toạ độ ở xa — trông như không vẽ gì. `MapPanel.jsx` thêm tự động `fitBounds()`.
+- Bảng test case đầy đủ + phân loại lỗi: [`docs/e2e-test-report.md`](docs/e2e-test-report.md). Hệ thống chạy liên tục không lỗi suốt phiên kiểm thử.
+
+Còn thiếu để chuyển sang Tuần 7: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6).
 
 ### Dữ liệu mẫu
 
@@ -105,4 +111,4 @@ venv\Scripts\python.exe -m scripts.create_admin --username admin --password "Mat
 
 Trên Windows, nếu gặp lỗi `UnicodeEncodeError` khi in tiếng Việt ra console, chạy với `set PYTHONIOENCODING=utf-8` trước (cmd) hoặc `$env:PYTHONIOENCODING="utf-8"` (PowerShell).
 
-🚧 Tiếp theo: Tuần 6 — Kịch bản tấn công & kiểm thử end-to-end. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).
+🚧 Tiếp theo: Tuần 7 — ML mở rộng & đánh giá hệ thống. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).

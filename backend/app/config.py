@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
 
+    # Tuần 6 — CHỈ bật khi demo cục bộ để script impossible_travel.py giả
+    # lập IP nguồn qua header X-Forwarded-For. TUYỆT ĐỐI KHÔNG bật nếu
+    # backend expose ra internet không qua reverse proxy đáng tin cậy —
+    # bật sai chỗ cho phép BẤT KỲ ai tự khai IP nguồn tuỳ ý, né được toàn
+    # bộ rule theo IP (brute force theo IP, credential stuffing, GeoIP).
+    trust_forwarded_for: bool = False
+
 
 @lru_cache
 def get_settings() -> Settings:
