@@ -15,8 +15,9 @@ function riskClassName(riskScore) {
 }
 
 // Khu vực bảng log đăng nhập (nhiệm vụ 4.3) — nối GET /login-events thật,
-// có phân trang.
-export default function LogTablePanel() {
+// có phân trang. `refreshKey` tăng lên mỗi khi có cảnh báo mới qua
+// WebSocket (nhiệm vụ 5.3) để bảng tự làm mới mà không cần reload trang.
+export default function LogTablePanel({ refreshKey = 0 }) {
   const [page, setPage] = useState(1);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +43,7 @@ export default function LogTablePanel() {
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, [page, refreshKey]);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 

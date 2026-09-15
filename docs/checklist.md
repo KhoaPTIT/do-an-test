@@ -32,9 +32,9 @@ Tick `[x]` khi nhiệm vụ đã qua đủ các mục kiểm tra — không tick
 
 ## Tuần 5 — Bảo mật & real-time
 
-- [ ] 5.1 Xác thực JWT cho admin & WebSocket — A
-- [ ] 5.2 Tối ưu tốc độ detection engine — A
-- [ ] 5.3 Kết nối WebSocket thật & bản đồ real-time — B
+- [x] 5.1 Xác thực JWT cho admin & WebSocket — A — [`backend/app/dependencies.py`](../backend/app/dependencies.py), [`backend/app/routers/admin.py`](../backend/app/routers/admin.py)
+- [x] 5.2 Tối ưu tốc độ detection engine — A — [`backend/app/detection/pipeline.py`](../backend/app/detection/pipeline.py) (BackgroundTasks), xem [`docs/performance.md`](performance.md)
+- [x] 5.3 Kết nối WebSocket thật & bản đồ real-time — B — [`frontend/src/services/useAlertsSocket.js`](../frontend/src/services/useAlertsSocket.js)
 
 ## Tuần 6 — Kịch bản tấn công & kiểm thử end-to-end
 

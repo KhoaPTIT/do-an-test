@@ -49,10 +49,17 @@ Web app mẫu (React)                Attack-sim scripts
 |---|---|---|
 | `GET /health` | 1 | Kiểm tra service + kết nối DB |
 | `POST /login` | 2 | Đăng nhập web app mẫu, ghi `login_events` |
-| `POST /admin/login` | 5 | Đăng nhập admin, trả JWT |
-| `GET /login-events` | 4 | Danh sách log, phân trang. ⚠️ **Chưa có JWT** — mở tạm, bảo vệ ở Tuần 5 (5.1) |
-| `GET /alerts` | 4 | Danh sách cảnh báo, phân trang. ⚠️ **Chưa có JWT** — mở tạm, bảo vệ ở Tuần 5 (5.1) |
+| `POST /admin/login` | 5 | Đăng nhập admin (bảng `admins` riêng), trả JWT (`jwt_expire_minutes` = 60) |
+| `GET /login-events` | 4→5 | Danh sách log, phân trang. **Có JWT bắt buộc từ Tuần 5** (`Authorization: Bearer <token>`) |
+| `GET /alerts` | 4→5 | Danh sách cảnh báo, phân trang. **Có JWT bắt buộc từ Tuần 5** |
 | `WS /ws/alerts` | 5 | Đẩy cảnh báo real-time, xác thực bằng JWT qua query param `?token=` |
+
+⚠️ **Rủi ro đã biết (chấp nhận có chủ đích):** JWT qua query param của WebSocket
+có thể lộ ra trong console log lỗi trình duyệt, access log phía server, và
+đôi khi lịch sử trình duyệt — khác với header (không bị log theo cách này).
+Checklist gốc mục 5.1 cho phép "qua query param hoặc header khi handshake";
+chọn query param vì `WebSocket` API của trình duyệt không hỗ trợ set custom
+header khi handshake. Giảm thiểu bằng JWT hết hạn sau 60 phút.
 
 ### `POST /login` (nhiệm vụ 2.1 — chưa triển khai ở Tuần 1)
 

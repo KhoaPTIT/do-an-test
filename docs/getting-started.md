@@ -50,8 +50,26 @@ sinh dữ liệu tạo — xem Bước 5):
 - Username: `user001` đến `user025`
 - Password: `Demo@12345` (giống nhau cho tất cả)
 
-Đăng nhập đúng sẽ chuyển sang `/dashboard` (hiện mới có khung 4 khu vực,
-chưa nối dữ liệu thật — sẽ làm ở Tuần 4).
+Đăng nhập đúng sẽ chuyển sang `/dashboard` của **web app mẫu** — trang này
+không phải dashboard giám sát.
+
+## Bước 4b — Vào Dashboard giám sát (cần tài khoản admin riêng)
+
+`/dashboard` (giám sát, real-time) **khác** `/login` ở Bước 4 — đây là khu
+vực quản trị, yêu cầu đăng nhập admin riêng ở `http://localhost:5173/admin/login`
+(Tuần 5, tách biệt hoàn toàn khỏi tài khoản web app mẫu). Nếu chưa có tài
+khoản admin, tạo bằng:
+
+```bash
+cd D:\github\phat-hien-dang-nhap-bat-thuong\backend
+venv\Scripts\activate
+python -m scripts.create_admin --username admin --password "MatKhauManh123!"
+```
+
+Đăng nhập ở `/admin/login` bằng tài khoản vừa tạo, hệ thống tự chuyển sang
+`/dashboard` — góc trên bên phải tiêu đề hiện `● real-time` nghĩa là
+WebSocket đã kết nối, cảnh báo mới sẽ hiện popup + cập nhật bảng/biểu đồ
+ngay lập tức, không cần reload trang.
 
 ## Bước 5 — (Tuỳ chọn) Sinh lại dữ liệu mẫu
 

@@ -5,7 +5,8 @@ import { apiClient } from "../services/api";
 
 // Khu vực biểu đồ risk score theo thời gian (nhiệm vụ 4.3) — nối dữ liệu
 // thật từ GET /login-events (lấy 100 bản ghi gần nhất, vẽ theo thời gian).
-export default function RiskChartPanel() {
+// `refreshKey` tăng lên khi có cảnh báo mới qua WebSocket (nhiệm vụ 5.3).
+export default function RiskChartPanel({ refreshKey = 0 }) {
   const [points, setPoints] = useState(null);
   const [error, setError] = useState(null);
 
@@ -31,7 +32,7 @@ export default function RiskChartPanel() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   return (
     <section className="dashboard-panel" aria-label="Biểu đồ risk score">

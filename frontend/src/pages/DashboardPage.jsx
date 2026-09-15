@@ -1,22 +1,59 @@
 import "leaflet/dist/leaflet.css";
 import "./DashboardPage.css";
 
+import { useCallback, useEffect, useState } from "react";
+
 import AlertListPanel from "../components/AlertListPanel";
 import LogTablePanel from "../components/LogTablePanel";
 import MapPanel from "../components/MapPanel";
 import RiskChartPanel from "../components/RiskChartPanel";
+import { useAlertsSocket } from "../services/useAlertsSocket";
 
-// Dashboard admin — bố cục 4 khu vực (nhiệm vụ 3.4): bản đồ, biểu đồ, bảng
-// log, danh sách cảnh báo. Dữ liệu thật + real-time nối ở Tuần 4-5.
+const TOAST_DURATION_MS = 6000;
+
+// Dashboard admin — bố cục 4 khu vực (nhiệm vụ 3.4), nối dữ liệu thật
+// (nhiệm vụ 4.3) và cập nhật real-time qua WebSocket (nhiệm vụ 5.3): khi
+// có cảnh báo mới, bảng log/biểu đồ tự làm mới + hiện popup, bản đồ vẽ
+// đường nối nếu là impossible travel.
 export default function DashboardPage() {
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [latestAlert, setLatestAlert] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const handleAlert = useCallback((alert) => {
+    setLatestAlert(alert);
+    setRefreshKey((key) => key + 1);
+    setToast(alert);
+  }, []);
+
+  const connected = useAlertsSocket(handleAlert);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = setTimeout(() => setToast(null), TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   return (
     <main>
-      <h1>Dashboard</h1>
+      <h1>
+        Dashboard{" "}
+        <span className={connected ? "ws-status ws-status--connected" : "ws-status ws-status--disconnected"}>
+          {connected ? "● real-time" : "○ mất kết nối, đang thử kết nối lại..."}
+        </span>
+      </h1>
+
+      {toast && (
+        <div className="alert-toast" role="alert">
+          🚨 <strong>{toast.alert_type}</strong> — {toast.message}
+        </div>
+      )}
+
       <div className="dashboard-grid">
-        <MapPanel />
-        <RiskChartPanel />
-        <LogTablePanel />
-        <AlertListPanel />
+        <MapPanel latestAlert={latestAlert} />
+        <RiskChartPanel refreshKey={refreshKey} />
+        <LogTablePanel refreshKey={refreshKey} />
+        <AlertListPanel latestAlert={latestAlert} />
       </div>
     </main>
   );

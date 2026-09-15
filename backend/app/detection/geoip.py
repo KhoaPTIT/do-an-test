@@ -16,6 +16,7 @@ from __future__ import annotations
 import ipaddress
 import logging
 import os
+import time
 from dataclasses import dataclass
 from typing import Optional
 
@@ -85,8 +86,29 @@ def _record_failure(ip: str, reason: str) -> None:
     logger.warning(f"lookup thất bại ip={ip} reason={reason}")
 
 
+# Cache kết quả lookup trong thời gian ngắn (nhiệm vụ 5.2) — cùng 1 IP gọi
+# liên tiếp (VD brute force/credential stuffing từ 1 địa chỉ) không phải
+# tra file .mmdb lại mỗi lần. reader.city() của geoip2 vốn đã rất nhanh
+# (memory-mapped), cache này chủ yếu có giá trị khi sau này đổi sang một
+# provider GeoIP qua mạng (HTTP) chậm hơn nhiều.
+_CACHE_TTL_SECONDS = 300
+_lookup_cache: dict[str, tuple[float, Optional[GeoResult]]] = {}
+
+
 def lookup_ip(ip: str) -> Optional[GeoResult]:
-    """Tra vị trí theo IP. Trả None nếu thất bại — không bao giờ raise."""
+    """Tra vị trí theo IP (có cache TTL). Trả None nếu thất bại — không bao giờ raise."""
+    cached = _lookup_cache.get(ip)
+    if cached is not None:
+        cached_at, cached_result = cached
+        if time.time() - cached_at < _CACHE_TTL_SECONDS:
+            return cached_result
+
+    result = _lookup_ip_uncached(ip)
+    _lookup_cache[ip] = (time.time(), result)
+    return result
+
+
+def _lookup_ip_uncached(ip: str) -> Optional[GeoResult]:
     try:
         addr = ipaddress.ip_address(ip)
     except ValueError:

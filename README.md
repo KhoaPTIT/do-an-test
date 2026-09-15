@@ -39,12 +39,18 @@ python -m venv venv
 venv\Scripts\activate      # Windows — macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
 
-alembic upgrade head       # tạo schema 6 bảng
+alembic upgrade head       # tạo schema 6 bảng + admins (Tuần 5)
 uvicorn app.main:app --reload --port 8000
 ```
 
 Kiểm tra: `http://localhost:8000/health` phải trả `{"status": "ok", "database": "connected"}`.
 Tài liệu API tự sinh: `http://localhost:8000/docs`.
+
+Tạo tài khoản admin (bắt buộc để vào được `/dashboard` từ Tuần 5):
+
+```bash
+venv\Scripts\python.exe -m scripts.create_admin --username admin --password "MatKhauManh123!"
+```
 
 ### Frontend
 
@@ -54,7 +60,7 @@ npm install
 npm run dev
 ```
 
-Mở `http://localhost:5173` — điều hướng được giữa `/login` và `/dashboard` (chưa có logic, chỉ khung).
+Mở `http://localhost:5173` — `/login` là web app mẫu, `/admin/login` là đăng nhập quản trị (bắt buộc trước khi vào `/dashboard`).
 
 ## Trạng thái
 
@@ -78,7 +84,13 @@ Mở `http://localhost:5173` — điều hướng được giữa `/login` và `
 - Risk score tầng 2 (0-100, trọng số theo mục 4.2) test qua API thật: đăng nhập lệch giờ → đúng 20 điểm; thành công ngay sau 3 fail → đúng 50 điểm, tạo alert `medium` ngay lập tức; đăng nhập bình thường → 0 điểm, không alert nhầm.
 - `GET /login-events` + `GET /alerts` (phân trang, **chưa có JWT** — thêm ở Tuần 5) nối vào dashboard thật: bảng log tô màu đúng ngưỡng risk, biểu đồ Recharts vẽ risk score theo thời gian, test phân trang với 1001 bản ghi (67 trang), đối chiếu dữ liệu UI khớp DB.
 
-Còn thiếu để chuyển sang Tuần 5: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6) — đặc biệt ngưỡng brute force/credential stuffing và "chuỗi fail" ở risk score hiện là tự giả định.
+✅ **Tuần 5 hoàn thành** — đã kiểm tra thật, kể cả một phát hiện đo lường trung thực (không phải cải thiện "đẹp"):
+- JWT admin (`POST /admin/login`, bảng `admins` tách biệt hoàn toàn khỏi `users`) bảo vệ `GET /login-events`, `GET /alerts` và WebSocket `/ws/alerts` — test qua request thật cả 2 chiều (không token → 401, có token → 200/kết nối được) và WebSocket thật (`websockets` client Python: không token bị từ chối, có token kết nối thành công).
+- Detection engine (GeoIP, rule tầng 1, risk score tầng 2, baseline...) chuyển sang chạy nền qua `BackgroundTasks` (`POST /login` giờ chỉ verify password rồi trả response ngay). **Benchmark thật trước/sau** (xem [`docs/performance.md`](docs/performance.md)): **không cải thiện đáng kể** vì bcrypt chiếm ~227ms/tổng ~250-260ms — đây là kết quả trung thực kèm phân tích, không chỉnh sửa số liệu cho đẹp.
+- Dashboard nối WebSocket real-time thật: bắn alert từ backend → popup + bảng log/biểu đồ tự làm mới trong < 1s không cần reload; kill backend rồi bật lại → tự reconnect, không cần reload trang; mô phỏng `impossible_travel` → bản đồ vẽ đúng 2 điểm + đường nối (ảnh minh chứng đã xem trực tiếp qua trình duyệt).
+- Phát hiện rủi ro bảo mật nhỏ đã biết: JWT qua query param WebSocket có thể lộ trong console log — ghi rõ trong [`docs/api-contract.md`](docs/api-contract.md) mục 3, giảm thiểu bằng JWT hết hạn 60 phút.
+
+Còn thiếu để chuyển sang Tuần 6: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6).
 
 ### Dữ liệu mẫu
 
@@ -88,8 +100,9 @@ venv\Scripts\python.exe -m scripts.generate_historical_data --reset       # 20 u
 venv\Scripts\python.exe -m scripts.plot_login_hour_distribution           # biểu đồ kiểm tra phân bố giờ
 venv\Scripts\python.exe -m scripts.generate_labeled_anomalies --reset     # 25 user + nhãn is_anomaly (Tuần 3, thay thế bộ dữ liệu trên)
 venv\Scripts\python.exe -m scripts.backfill_baseline                      # tính lại baseline cho dữ liệu đã nạp thẳng (Tuần 4)
+venv\Scripts\python.exe -m scripts.create_admin --username admin --password "MatKhauManh123!"   # tạo tài khoản admin (Tuần 5)
 ```
 
 Trên Windows, nếu gặp lỗi `UnicodeEncodeError` khi in tiếng Việt ra console, chạy với `set PYTHONIOENCODING=utf-8` trước (cmd) hoặc `$env:PYTHONIOENCODING="utf-8"` (PowerShell).
 
-🚧 Tiếp theo: Tuần 5 — Bảo mật & real-time. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).
+🚧 Tiếp theo: Tuần 6 — Kịch bản tấn công & kiểm thử end-to-end. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).

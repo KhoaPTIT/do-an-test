@@ -26,7 +26,7 @@ def fake_redis(monkeypatch):
 
 
 @pytest.fixture()
-def db_session():
+def db_session(monkeypatch):
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -34,6 +34,14 @@ def db_session():
     )
     Base.metadata.create_all(bind=engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    # app/detection/pipeline.py (background task của POST /login, nhiệm vụ
+    # 5.2) mở SESSION RIÊNG qua app.database.SessionLocal — KHÔNG đi qua
+    # Depends(get_db) nên override ở dưới không đụng tới nó. Không patch
+    # chỗ này thì test sẽ âm thầm ghi vào Postgres dev thật (hoặc lỗi nếu
+    # Postgres không chạy) thay vì SQLite in-memory của test.
+    monkeypatch.setattr("app.detection.pipeline.SessionLocal", TestingSessionLocal)
+
     session = TestingSessionLocal()
     try:
         yield session

@@ -1,7 +1,9 @@
-# Schema cơ sở dữ liệu (nhiệm vụ 1.2)
+# Schema cơ sở dữ liệu (nhiệm vụ 1.2 + bảng `admins` bổ sung Tuần 5)
 
-6 bảng PostgreSQL, định nghĩa bằng SQLAlchemy ở [`backend/app/models.py`](../backend/app/models.py),
-tạo bằng Alembic migration [`backend/alembic/versions/0001_initial_schema.py`](../backend/alembic/versions/0001_initial_schema.py).
+6 bảng gốc PostgreSQL (nhiệm vụ 1.2) + bảng `admins` (nhiệm vụ 5.1), định
+nghĩa bằng SQLAlchemy ở [`backend/app/models.py`](../backend/app/models.py),
+tạo bằng Alembic migration trong [`backend/alembic/versions/`](../backend/alembic/versions/)
+(`..._initial_schema.py` cho 6 bảng gốc, `..._add_admins_table.py` cho Tuần 5).
 
 ## users
 
@@ -85,8 +87,23 @@ Hồ sơ hành vi "bình thường" theo user (Tuần 4). Quan hệ 1-1 với `u
 | resolved_at | TIMESTAMPTZ | nullable |
 | created_at | TIMESTAMPTZ | indexed — dùng để sort mới nhất trước |
 
+## admins (bổ sung Tuần 5 — nhiệm vụ 5.1)
+
+Tài khoản quản trị. **Tách biệt hoàn toàn** khỏi `users` — không có khóa
+ngoại nào liên kết 2 bảng này. Không nằm trong 6 bảng gốc mục 1.2 vì JWT
+admin chỉ phát sinh nhu cầu từ Tuần 5.
+
+| Cột | Kiểu | Ghi chú |
+|---|---|---|
+| id | INTEGER PK | |
+| username | VARCHAR(64) | UNIQUE, indexed |
+| password_hash | VARCHAR(255) | bcrypt |
+| created_at | TIMESTAMPTZ | default now() |
+
+Tạo tài khoản admin qua script (chưa có UI): `python -m scripts.create_admin --username admin --password "..."`.
+
 ## Kiểm tra sau khi hoàn thành (checklist gốc mục 1.2)
 
 - [x] Cả 6 bảng đúng tên, đúng kiểu dữ liệu — xem migration.
-- [ ] Khoá ngoại `login_events.user_id → users.id` hoạt động đúng — kiểm tra bằng test `test_foreign_key_violation` (xem [Tuần 1 — trạng thái](../README.md#trạng-thái)).
-- [ ] Index xác nhận bằng `\di` hoặc `EXPLAIN` — làm khi chạy migration thật.
+- [x] Khoá ngoại `login_events.user_id → users.id` hoạt động đúng — đã test insert `user_id` không tồn tại → bị chặn (`UniqueViolation`/`ForeignKeyViolation` xác nhận qua psql), xem [`README.md`](../README.md).
+- [x] Index xác nhận bằng `\di` — xác nhận khi chạy migration thật (Tuần 1).

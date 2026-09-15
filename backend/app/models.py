@@ -1,4 +1,5 @@
-"""Schema 6 bảng — xem mô tả đầy đủ ở docs/db-schema.md.
+"""Schema 6 bảng gốc (Tuần 1) + bảng `admins` bổ sung ở Tuần 5 — xem mô tả
+đầy đủ ở docs/db-schema.md.
 
 Quy ước: tên bảng số nhiều snake_case, PK luôn là `id` (trừ user_baseline
 dùng user_id vì quan hệ 1-1), FK đặt tên `<bảng_số_ít>_id`, mọi timestamp
@@ -161,3 +162,16 @@ class Alert(Base):
 
     login_event: Mapped["LoginEvent"] = relationship(back_populates="alerts")
     user: Mapped["User | None"] = relationship(back_populates="alerts")
+
+
+class Admin(Base):
+    """Tài khoản quản trị (nhiệm vụ 5.1) — TÁCH BIỆT HOÀN TOÀN khỏi `users`
+    (web app mẫu). Không liên kết FK với users/login_events/alerts.
+    """
+
+    __tablename__ = "admins"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

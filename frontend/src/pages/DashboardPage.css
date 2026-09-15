@@ -43,3 +43,26 @@
   text-align: center;
   padding: 1rem;
 }
+
+.ws-status {
+  font-size: 0.5em;
+  vertical-align: middle;
+}
+
+.ws-status--connected {
+  color: #52c41a;
+}
+
+.ws-status--disconnected {
+  color: #d9363e;
+}
+
+.alert-toast {
+  margin: 0 1rem;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #a8071a;
+  font-size: 0.9rem;
+}

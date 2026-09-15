@@ -15,6 +15,9 @@ matplotlib==3.10.0  # chỉ dùng cho script kiểm tra/đánh giá, không dùn
 redis==5.2.1
 geoip2==4.8.0
 
+# Tuần 5 — JWT admin & WebSocket
+pyjwt==2.10.1
+
 # Kiểm thử
 pytest==8.3.4
 httpx==0.28.1
