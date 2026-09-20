@@ -30,6 +30,9 @@ TRAIN_END = pd.Timestamp("2020-08-01")
 VAL_END = pd.Timestamp("2020-09-01")
 TEST_END = pd.Timestamp("2020-12-01")
 
+# 14 ngày đầu: đếm toàn cục lũy kế còn quá ít nên độ hiếm/LLR chưa có nghĩa -> không dùng làm dòng huấn luyện/đánh giá
+WARMUP_END = pd.Timestamp("2020-02-17")
+
 IP_GROUP_TRAIN_PERCENT = 70
 IP_GROUP_VAL_PERCENT = 15  # phần còn lại (15%) là nhóm test
 

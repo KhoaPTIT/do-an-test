@@ -79,15 +79,16 @@ Ba nguồn bằng chứng: (1) **RBA** — mô hình tần suất/mới lạ, so
 
 ## Giai đoạn B — AI lõi
 
-- [ ] **MR3 [Lõi, L] Đặc trưng v2, dùng chung train và realtime** — Xong khi: test rò rỉ và test tương đương offline/online đều pass
-  - [ ] Mới lạ theo user: country/ASN/IP/browser/OS/device type mới (so với lịch sử đăng nhập thành công)
-  - [ ] Kiểu Freeman: log-ratio p_user/p_global từng thuộc tính (có làm mịn), đưa từng thành phần vào model
-  - [ ] Độ hiếm toàn cục (−log p_global): country, ASN, UA family, OS
-  - [ ] Nhịp/tần suất: số lần thử theo user/IP/ASN trong 1h/24h, chuỗi fail, thời gian từ lần thành công gần nhất, số IP/quốc gia khác nhau 24h/7d
-  - [ ] Cấp hạ tầng: số user bị thử từ cùng IP/ASN, tỉ lệ thành công của IP/ASN, đa dạng UA
-  - [ ] Đặc trưng cold-start cho user ít lịch sử
-  - [ ] Đặc trưng cấp IP/ASN tính bằng DuckDB trên toàn bộ dữ liệu, kèm test tương đương với đường online Python
-  - [ ] Test không rò rỉ: thêm sự kiện tương lai thì đặc trưng không đổi
+- [x] **MR3 [Lõi, L] Đặc trưng v2, dùng chung train và realtime** — Xong khi: test rò rỉ và test tương đương offline/online đều pass (29 test: `test_rba_features*.py`, `test_rba_model_table.py`). Chi tiết: [`rba-features.md`](rba-features.md)
+  - [x] Mới lạ theo user: country/ASN/IP/UA/browser/OS/device + họ trình duyệt/OS (9 cờ, so với lịch sử đăng nhập thành công)
+  - [x] Kiểu Freeman: log-tỉ-số p_user/p_global cho 7 thuộc tính (làm mịn α = 1), đưa từng thành phần + tổng vào model
+  - [x] Độ hiếm toàn cục (−ln p_global) cho 7 thuộc tính
+  - [x] Nhịp/tần suất theo tài khoản: số lần thử 1h/24h, chuỗi fail, thời gian từ lần thử/thành công gần nhất, số IP 24h và quốc gia 7d
+  - [x] Cấp hạ tầng: 7 đặc trưng theo IP và 6 theo ASN (số lần thử, tỉ lệ thất bại, số user/UA/IP khác nhau, số lần thử vào tài khoản không tồn tại)
+  - [x] Cold-start: nhóm `history` (số lần thử/thành công, tuổi tài khoản) + độ hiếm toàn cục; 39,7% user RBA chỉ có 1 lần đăng nhập
+  - [x] Tính cấp IP/ASN bằng DuckDB trên toàn bộ 31,27 triệu dòng ([`features_sql.py`](../backend/ml/rba/features_sql.py)), đặc tả Python ([`features.py`](../backend/ml/rba/features.py)) dùng cho luồng realtime; test tương đương trên ~1.270 sự kiện ngẫu nhiên có cố ý trùng micro-giây và sát biên cửa sổ, đã kiểm tra test bắt được lỗi cố ý
+  - [x] Test không rò rỉ: thêm sự kiện tương lai không đổi đặc trưng cũ (dữ liệu ngẫu nhiên và dữ liệu RBA thật)
+  - ⚠️ Điều chỉnh so với kế hoạch: cửa sổ và "trước đó" định nghĩa theo micro-giây strictly trước; thêm cờ `in_warmup` (14 ngày đầu); giai đoạn hạ tầng chia khối thời gian vì tính một lượt chạy siêu tuyến tính (30+ phút, treo do thiếu RAM); tránh `COUNT(*) FILTER` trong window DuckDB (chậm ~30 lần trên partition lớn)
 - [ ] **MR4 [Lõi, M] Khung đánh giá nghiêm ngặt** — Xong khi: một lệnh sinh bảng kết quả chuẩn cho mọi model
   - [ ] Chỉ số: PR-AUC, recall tại FPR 1% và 0,1%, số cảnh báo/ngày ở recall cố định, tỉ lệ yêu cầu xác thực lại tại TPR 99%/99,9%
   - [ ] Mô phỏng kẻ tấn công Naive / VPN / Targeted chèn vào lịch sử user hợp lệ
