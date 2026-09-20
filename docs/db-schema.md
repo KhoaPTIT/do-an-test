@@ -34,6 +34,7 @@ Bảng quan trọng nhất — mọi lần thử đăng nhập, thành công l�
 | city | VARCHAR(128) | nullable |
 | latitude / longitude | FLOAT | nullable |
 | risk_score | INTEGER | nullable — điền bởi detection engine Tuần 4 |
+| ml_anomaly_score | FLOAT | nullable — điền bởi ML tầng 3 Tuần 7, CHẠY SONG SONG risk_score, không thay thế |
 | is_synthetic | BOOLEAN | default false — phân biệt dữ liệu giả lập (nhiệm vụ 2.3) |
 | created_at | TIMESTAMPTZ | default now() |
 

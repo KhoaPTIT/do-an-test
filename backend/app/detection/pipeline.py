@@ -31,6 +31,8 @@ from app.detection.scoring import SUCCESS_AFTER_FAIL_STREAK_MIN_FAILS, classify_
 from app.models import Alert, LoginEvent, User, UserBaseline
 from app.utils.device import compute_device_fingerprint
 from app.ws_manager import ws_manager
+from app.detection import ml_model
+from ml.features import compute_realtime_features
 
 _RULE_TIER1_RISK_SCORE = 80
 _RULE_TIER1_SEVERITY = "high"
@@ -151,6 +153,38 @@ async def run_detection_pipeline(
                 )
                 db.add(alert_obj)
                 alert_records.append((alert_obj, {}))
+
+            # --- Tầng 3: ML, THAM KHẢO — chạy SONG SONG, không thay thế tầng 1-2 (nhiệm vụ 7.1) ---
+            # Đọc is_known_*/lịch sử TRƯỚC khi record_known_*_if_new() cập nhật
+            # bên dưới, cho đúng ý nghĩa "chưa từng thấy" (giống lúc train offline).
+            ml_features = compute_realtime_features(
+                db,
+                user_id=user.id,
+                baseline=baseline,
+                country=event.country,
+                city=event.city,
+                latitude=event.latitude,
+                longitude=event.longitude,
+                device_fingerprint=device_fingerprint,
+                created_at=event.created_at,
+            )
+            ml_result = ml_model.predict(ml_features)
+            if ml_result is not None:
+                event.ml_anomaly_score = ml_result["anomaly_score"]
+                if ml_result["is_anomaly"]:
+                    alert_obj = Alert(
+                        login_event_id=event.id,
+                        user_id=user.id,
+                        alert_type="ml_anomaly",
+                        severity="medium",
+                        risk_score=risk_score,
+                        message=(
+                            f"Mô hình ML (Isolation Forest) đánh giá lần đăng nhập này bất thường "
+                            f"(điểm {ml_result['anomaly_score']:.2f}) — tham khảo, xem docs/ml-evaluation.md."
+                        ),
+                    )
+                    db.add(alert_obj)
+                    alert_records.append((alert_obj, {}))
 
             if success:
                 update_baseline_after_successful_login(db, user, event)

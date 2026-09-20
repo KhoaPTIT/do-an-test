@@ -18,6 +18,12 @@ geoip2==4.8.0
 # Tuần 5 — JWT admin & WebSocket
 pyjwt==2.10.1
 
+# Tuần 7 — ML tầng 3 (Isolation Forest, Local Outlier Factor, Autoencoder-MLP)
+scikit-learn==1.6.0
+joblib==1.4.2
+pandas==2.2.3
+numpy==2.2.1
+
 # Kiểm thử
 pytest==8.3.4
 httpx==0.28.1

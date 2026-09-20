@@ -74,6 +74,9 @@ class LoginEvent(Base):
 
     # Điền bởi detection engine (Tuần 4)
     risk_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Điểm bất thường từ ML tầng 3 (Tuần 7) — CHẠY SONG SONG risk_score, không
+    # thay thế. Càng cao càng bất thường theo Isolation Forest, thang không cố định.
+    ml_anomaly_score: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Đánh dấu dữ liệu giả lập để tách khỏi dữ liệu demo thật (nhiệm vụ 2.3)
     is_synthetic: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -147,7 +150,7 @@ class Alert(Base):
     login_event_id: Mapped[int] = mapped_column(ForeignKey("login_events.id"), nullable=False, index=True)
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
-    # brute_force | credential_stuffing | impossible_travel | high_risk_score
+    # brute_force | credential_stuffing | impossible_travel | high_risk_score | ml_anomaly (Tuần 7)
     alert_type: Mapped[str] = mapped_column(String(32), nullable=False)
     # low | medium | high — ánh xạ từ risk_score theo mục 4.2 (<40 / 40-70 / >70)
     severity: Mapped[str] = mapped_column(String(16), nullable=False)

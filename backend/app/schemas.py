@@ -38,6 +38,7 @@ class LoginEventOut(BaseModel):
     country: str | None
     city: str | None
     risk_score: int | None
+    ml_anomaly_score: float | None
     is_synthetic: bool
     created_at: datetime
 

@@ -65,6 +65,9 @@ export default function LogTablePanel({ refreshKey = 0 }) {
                   <th>Username</th>
                   <th>Kết quả</th>
                   <th>Risk</th>
+                  <th title="Điểm bất thường từ ML tầng 3 (Isolation Forest) — tham khảo, xem docs/ml-evaluation.md">
+                    ML
+                  </th>
                   <th>Vị trí</th>
                 </tr>
               </thead>
@@ -75,6 +78,7 @@ export default function LogTablePanel({ refreshKey = 0 }) {
                     <td>{event.attempted_username}</td>
                     <td>{event.success ? "✅" : "❌"}</td>
                     <td>{event.risk_score ?? "-"}</td>
+                    <td>{event.ml_anomaly_score != null ? event.ml_anomaly_score.toFixed(2) : "-"}</td>
                     <td>{event.city ? `${event.city}, ${event.country}` : "-"}</td>
                   </tr>
                 ))}
