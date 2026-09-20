@@ -89,15 +89,17 @@ Ba nguồn bằng chứng: (1) **RBA** — mô hình tần suất/mới lạ, so
   - [x] Tính cấp IP/ASN bằng DuckDB trên toàn bộ 31,27 triệu dòng ([`features_sql.py`](../backend/ml/rba/features_sql.py)), đặc tả Python ([`features.py`](../backend/ml/rba/features.py)) dùng cho luồng realtime; test tương đương trên ~1.270 sự kiện ngẫu nhiên có cố ý trùng micro-giây và sát biên cửa sổ, đã kiểm tra test bắt được lỗi cố ý
   - [x] Test không rò rỉ: thêm sự kiện tương lai không đổi đặc trưng cũ (dữ liệu ngẫu nhiên và dữ liệu RBA thật)
   - ⚠️ Điều chỉnh so với kế hoạch: cửa sổ và "trước đó" định nghĩa theo micro-giây strictly trước; thêm cờ `in_warmup` (14 ngày đầu); giai đoạn hạ tầng chia khối thời gian vì tính một lượt chạy siêu tuyến tính (30+ phút, treo do thiếu RAM); tránh `COUNT(*) FILTER` trong window DuckDB (chậm ~30 lần trên partition lớn)
-- [ ] **MR4 [Lõi, M] Khung đánh giá nghiêm ngặt** — Xong khi: một lệnh sinh bảng kết quả chuẩn cho mọi model
-  - [ ] Chỉ số: PR-AUC, recall tại FPR 1% và 0,1%, số cảnh báo/ngày ở recall cố định, tỉ lệ yêu cầu xác thực lại tại TPR 99%/99,9%
-  - [ ] Mô phỏng kẻ tấn công Naive / VPN / Targeted chèn vào lịch sử user hợp lệ
-  - [ ] Khoảng tin cậy bootstrap (bắt buộc cho ATO chỉ có 141 mẫu)
-  - [ ] Báo cáo tách riêng user cold-start và user nhiều lịch sử
-- [ ] **MR5 [Lõi, M] Baseline (CP1)** — Xong khi: có bảng baseline và kết luận dữ liệu thật sự chứa tín hiệu gì
-  - [ ] Cài lại mô hình Freeman et al. 2016 làm baseline học thuật
-  - [ ] Rule Tier 2 hiện tại và rule đã tinh chỉnh ngưỡng trên train
-  - [ ] Isolation Forest hiện tại chạy trên đặc trưng mới
+- [x] **MR4 [Lõi, M] Khung đánh giá nghiêm ngặt** — Xong khi: một lệnh sinh bảng kết quả chuẩn cho mọi model (`python -m ml.rba.report <mô hình|all>`). Chi tiết: [`rba-evaluation.md`](rba-evaluation.md)
+  - [x] Chỉ số có trọng số: ROC-AUC, PR-AUC, recall tại FPR 1% và 0,1%, tỉ lệ xác thực lại tại TPR 90%/99%, cảnh báo/1.000 đăng nhập và cảnh báo/ngày ở recall 90%/99% (quy về toàn dân số) — khớp `scikit-learn` (18 test)
+  - [x] Mô phỏng kẻ tấn công Naive / VPN / Targeted chèn vào lịch sử user hợp lệ: 5.966 đăng nhập giả, tính đặc trưng bằng đúng pipeline MR3 ([`attackers.py`](../backend/ml/rba/attackers.py))
+  - [x] Khoảng tin cậy bootstrap theo cụm dương tính (IP cho bài IP tấn công, user cho ATO)
+  - [x] Báo cáo tách riêng user chưa có lịch sử / mỏng (1–4) / dày (≥5) tại một ngưỡng chung cho FPR 1%
+  - ⚠️ Điều chỉnh: bootstrap chỉ lấy mẫu lại phía dương tính (tập âm tính hàng trăm nghìn dòng giữ cố định) để mỗi lần lấy mẫu O(P log P); nhóm "chưa có lịch sử" không có ở bài `attacker/*` vì nạn nhân luôn có ≥ 1 lần thành công; hồ sơ nạn nhân chọn tất định (hoà thì lấy giá trị nhỏ nhất) vì `mode()` của DuckDB không xác định khi đồng tần
+- [x] **MR5 [Lõi, M] Baseline (CP1)** — Xong khi: có bảng baseline và kết luận dữ liệu thật sự chứa tín hiệu gì. Kết quả và phân tích: [`ml-evaluation-v2.md`](ml-evaluation-v2.md), bảng đầy đủ [`rba-baseline-comparison.md`](rba-baseline-comparison.md)
+  - [x] Cài lại mô hình Freeman et al. 2016 làm baseline học thuật (`freeman_all`, `freeman_no_ip`)
+  - [x] Rule Tier 2 hiện tại (`tier2_current`, xấp xỉ bằng đặc trưng RBA) và luật đã tinh chỉnh ngưỡng trên train (`rules_tuned`: 18 luật, hồi quy logistic)
+  - [x] Isolation Forest chạy trên đặc trưng mới, không dùng nhãn (`isolation_forest`)
+  - **Kết luận CP1:** dữ liệu chứa tín hiệu vượt xa Freeman và Tier 2 (ATO thật tương lai: Isolation Forest 0,95, Freeman 0,77, Tier 2 hiện tại 0,53 ≈ ngẫu nhiên); kẻ tấn công Targeted đánh bại mọi mô hình (ROC-AUC ≤ 0,62); 35% ATO nhắm vào tài khoản chưa có lịch sử nhưng độ hiếm quốc gia/ASN phân biệt được chúng (AUC 0,95–0,97)
 - [ ] **MR6 [Lõi, L] Mô hình và hybrid** — Xong khi: model card và bảng so với baseline MR5
   - [ ] Unsupervised chỉ học từ đăng nhập hợp lệ: Isolation Forest, LOF/kNN-distance, Autoencoder
   - [ ] Supervised gradient boosting (LightGBM) trên nhãn Attack IP, chia theo IP, class weight
