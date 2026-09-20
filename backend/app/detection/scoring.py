@@ -73,31 +73,27 @@ def is_unusual_hour(baseline: UserBaseline | None, login_hour: float) -> bool:
 
 
 def explain_factors(factors: RiskFactors, *, baseline: UserBaseline | None, login_hour: float) -> str:
-    """Sinh câu giải thích NGƯỜI ĐỌC ĐƯỢC cho các yếu tố đã kích hoạt — dùng
-    cho message của Alert 'high_risk_score' (nâng cấp sau Tuần 7: thay vì
-    chỉ nói con số tổng, giải thích rõ VÌ SAO ra con số đó, giống 1 admin
-    thật cần biết "gặp tình trạng gì" chứ không chỉ "điểm bao nhiêu").
+    """Sinh chuỗi NGẮN GỌN, kiểu gạch đầu dòng, cho các yếu tố đã kích hoạt —
+    dùng cho message của Alert 'high_risk_score'. Chỉ đủ chi tiết để đọc
+    lướt hiểu ngay (số giờ lệch, không kèm câu văn dài) — chi tiết đầy đủ
+    hơn (avg/stddev) đã có sẵn trong tooltip/trang chi tiết nếu cần tra lại.
     """
     parts: list[str] = []
 
     if factors.unusual_hour and baseline is not None and baseline.avg_login_hour is not None:
         diff = abs(login_hour - baseline.avg_login_hour)
         diff = min(diff, 24 - diff)
-        parts.append(
-            f"lệch giờ đăng nhập (+{UNUSUAL_HOUR_WEIGHT}đ): đăng nhập lúc {login_hour:.1f}h, "
-            f"thường quen lúc {baseline.avg_login_hour:.1f}h ± {(baseline.stddev_login_hour or 0):.1f}h "
-            f"(lệch {diff:.1f}h)"
-        )
+        parts.append(f"lệch giờ {diff:.1f}h (+{UNUSUAL_HOUR_WEIGHT}đ)")
     if factors.unknown_location:
-        parts.append(f"vị trí lạ (+{UNKNOWN_LOCATION_WEIGHT}đ): chưa từng đăng nhập từ vị trí này trước đây")
+        parts.append(f"vị trí lạ (+{UNKNOWN_LOCATION_WEIGHT}đ)")
     if factors.consecutive_fail:
-        parts.append(f"đang trong chuỗi dò mật khẩu (+{CONSECUTIVE_FAIL_WEIGHT}đ)")
+        parts.append(f"đang bị dò mật khẩu (+{CONSECUTIVE_FAIL_WEIGHT}đ)")
     if factors.success_after_fail_streak:
-        parts.append(f"đăng nhập thành công ngay sau chuỗi fail (+{SUCCESS_AFTER_FAIL_STREAK_WEIGHT}đ) — đáng ngờ")
+        parts.append(f"thành công sau chuỗi fail (+{SUCCESS_AFTER_FAIL_STREAK_WEIGHT}đ)")
 
     if not parts:
-        return "không có yếu tố cụ thể nào vượt ngưỡng (điểm nền)"
-    return "; ".join(parts)
+        return "điểm nền, không yếu tố nổi bật"
+    return ", ".join(parts)
 
 
 def compute_risk_score(

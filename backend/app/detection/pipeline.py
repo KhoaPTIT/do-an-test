@@ -48,25 +48,18 @@ _RULE_TIER1_SEVERITY = "high"
 
 
 def _brute_force_message(username: str, fail_count: int) -> str:
-    return (
-        f"Phát hiện dò mật khẩu liên tiếp cho tài khoản '{username}': "
-        f"{fail_count} lần sai trong 5 phút gần đây (ngưỡng: {BRUTE_FORCE_THRESHOLD} lần)."
-    )
+    return f"Dò mật khẩu '{username}': {fail_count} lần sai/5 phút (ngưỡng {BRUTE_FORCE_THRESHOLD})."
 
 
 def _credential_stuffing_message(ip: str, distinct_usernames: int, fail_count: int) -> str:
     return (
-        f"Phát hiện thử nhiều tài khoản khác nhau từ cùng IP {ip}: "
-        f"{distinct_usernames} username khác nhau, {fail_count} lần fail trong 5 phút gần đây "
-        f"(ngưỡng: {CREDENTIAL_STUFFING_MIN_DISTINCT_USERNAMES} username / {CREDENTIAL_STUFFING_FAIL_THRESHOLD} fail)."
+        f"IP {ip} thử {distinct_usernames} tài khoản khác nhau, {fail_count} lần sai/5 phút "
+        f"(ngưỡng {CREDENTIAL_STUFFING_MIN_DISTINCT_USERNAMES} TK / {CREDENTIAL_STUFFING_FAIL_THRESHOLD} lần)."
     )
 
 
 def _impossible_travel_message(distance_km: float, elapsed_minutes: float, speed_kmh: float) -> str:
-    return (
-        f"Đăng nhập cách vị trí lần trước {distance_km:.0f}km, chỉ {elapsed_minutes:.1f} phút sau đó "
-        f"(~{speed_kmh:,.0f} km/h — vượt ngưỡng {IMPOSSIBLE_TRAVEL_SPEED_KMH:.0f} km/h)."
-    )
+    return f"Cách {distance_km:.0f}km chỉ sau {elapsed_minutes:.1f} phút (~{speed_kmh:,.0f} km/h, ngưỡng {IMPOSSIBLE_TRAVEL_SPEED_KMH:.0f})."
 
 
 async def run_detection_pipeline(
@@ -185,7 +178,7 @@ async def run_detection_pipeline(
                     alert_type="high_risk_score",
                     severity=severity,
                     risk_score=risk_score,
-                    message=f"Risk score {risk_score}/100 ({severity}) cho tài khoản '{user.username}'. {explanation}.",
+                    message=f"'{user.username}' — risk {risk_score}/100 ({severity}): {explanation}.",
                 )
                 db.add(alert_obj)
                 alert_records.append((alert_obj, {}))
@@ -215,11 +208,7 @@ async def run_detection_pipeline(
                         alert_type="ml_anomaly",
                         severity="medium",
                         risk_score=risk_score,
-                        message=(
-                            f"Mô hình ML (Isolation Forest) đánh giá lần đăng nhập này bất thường "
-                            f"(điểm {ml_result['anomaly_score']:.2f}). {ml_explanation} "
-                            f"Đây là gợi ý tham khảo, xem docs/ml-evaluation.md."
-                        ),
+                        message=f"ML bất thường (điểm {ml_result['anomaly_score']:.2f}, tham khảo): {ml_explanation}.",
                     )
                     db.add(alert_obj)
                     alert_records.append((alert_obj, {}))

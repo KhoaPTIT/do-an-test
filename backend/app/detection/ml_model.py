@@ -29,12 +29,12 @@ logger = logging.getLogger("ml_model")
 # giác của giờ, một mình chúng không có ý nghĩa để báo cho admin đọc.
 _FEATURE_LABELS_VI = {
     "day_of_week": "thứ trong tuần",
-    "hour_deviation_from_avg": "độ lệch giờ so với thói quen",
-    "is_new_location": "vị trí mới (chưa từng thấy)",
-    "is_new_device": "thiết bị mới (chưa từng thấy)",
-    "minutes_since_last_login": "thời gian kể từ lần đăng nhập trước",
-    "logins_last_24h": "số lần đăng nhập trong 24h qua",
-    "distance_km_from_home": "khoảng cách so với vị trí quen thuộc",
+    "hour_deviation_from_avg": "lệch giờ quen thuộc",
+    "is_new_location": "vị trí mới",
+    "is_new_device": "thiết bị mới",
+    "minutes_since_last_login": "khoảng cách lần đăng nhập trước",
+    "logins_last_24h": "tần suất đăng nhập 24h",
+    "distance_km_from_home": "khoảng cách xa nhà",
 }
 
 _ARTIFACTS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "ml", "artifacts")
@@ -125,12 +125,12 @@ def explain(features: dict, top_n: int = 3) -> str:
         for _abs_z, z, name in top:
             if abs(z) < 0.5:
                 continue  # gần mức trung bình, không đáng nhắc tới
-            direction = "cao hơn" if z > 0 else "thấp hơn"
-            parts.append(f"{_FEATURE_LABELS_VI[name]} ({direction} bình thường rõ rệt)")
+            arrow = "↑" if z > 0 else "↓"
+            parts.append(f"{_FEATURE_LABELS_VI[name]} {arrow}")
 
         if not parts:
-            return "không có đặc trưng nào lệch rõ rệt so với thói quen"
-        return "Yếu tố khác thường nhất: " + "; ".join(parts) + "."
+            return "không có yếu tố nổi bật"
+        return ", ".join(parts)
     except Exception:  # noqa: BLE001
         logger.exception("Lỗi khi giải thích kết quả ML — bỏ qua.")
         return ""
