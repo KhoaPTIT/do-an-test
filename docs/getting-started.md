@@ -47,8 +47,11 @@ Mở `http://localhost:5173` trên trình duyệt.
 Web app mẫu ở `http://localhost:5173/login`. Tài khoản có sẵn (do script
 sinh dữ liệu tạo — xem Bước 5):
 
-- Username: `user001` đến `user025`
+- Username: `user001` đến `user030` (dữ liệu demo dashboard, Tuần 2-3)
 - Password: `Demo@12345` (giống nhau cho tất cả)
+
+> Riêng `user101`-`user140` là dữ liệu HUẤN LUYỆN ML (Tuần 7, xem Bước 5b)
+> — không dùng để demo web app mẫu, chỉ tồn tại trong DB để chấm điểm mô hình.
 
 Đăng nhập đúng sẽ chuyển sang `/dashboard` của **web app mẫu** — trang này
 không phải dashboard giám sát.
@@ -83,6 +86,39 @@ venv\Scripts\activate
 set PYTHONIOENCODING=utf-8
 python -m scripts.generate_labeled_anomalies --reset
 ```
+
+## Bước 5b — (Tuỳ chọn) Chạy lại pipeline ML tầng 3
+
+Model đã train sẵn (`backend/ml/artifacts/`, không commit lên git — máy
+mới cần chạy lại 3 lệnh dưới trước khi tầng 3 hoạt động; nếu thiếu, hệ
+thống tự tắt tầng 3 một cách an toàn, không lỗi):
+
+```bash
+cd D:\github\phat-hien-dang-nhap-bat-thuong\backend
+venv\Scripts\activate
+set PYTHONIOENCODING=utf-8
+python -m ml.generate_dataset --reset    # 40 user + 5 kiểu bất thường (nếu chưa có)
+python -m ml.extract_features             # trích đặc trưng
+python -m ml.train                        # huấn luyện 3 mô hình -> backend/ml/artifacts/
+python -m ml.evaluate                     # (tuỳ chọn) xuất lại biểu đồ so sánh
+```
+
+## Bước 6 — Thử kịch bản tấn công (attack-sim)
+
+Mở dashboard (Bước 4b) trước để xem cảnh báo hiện real-time, rồi ở
+terminal khác:
+
+```bash
+cd D:\github\phat-hien-dang-nhap-bat-thuong\attack-sim
+set PYTHONIOENCODING=utf-8
+"..\backend\venv\Scripts\python.exe" brute_force.py --target user001
+"..\backend\venv\Scripts\python.exe" credential_stuffing.py
+"..\backend\venv\Scripts\python.exe" success_after_fail.py --target user001 --correct-password Demo@12345
+```
+
+`impossible_travel.py` cần thêm `TRUST_FORWARDED_FOR=true` trong `.env`
+(mặc định tắt — chỉ bật khi demo cục bộ, xem cảnh báo trong
+`backend/app/config.py`) rồi khởi động lại backend.
 
 ## Dừng hệ thống khi xong việc
 
