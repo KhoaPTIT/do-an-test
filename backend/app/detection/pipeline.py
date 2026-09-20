@@ -5,6 +5,10 @@ Alert mới được broadcast qua WebSocket ngay sau khi commit (nhiệm vụ 5
 
 Mở SESSION DB RIÊNG (không dùng session được inject qua Depends(get_db) của
 request — session đó đã đóng khi response được trả về, dùng lại sẽ lỗi).
+
+Message của Alert đều được DIỄN GIẢI CỤ THỂ (không chỉ nói "bất thường" hay
+1 con số điểm) — nâng cấp sau Tuần 7: admin đọc alert phải hiểu ngay tình
+huống là gì mà không cần vào tra log riêng.
 """
 
 from __future__ import annotations
@@ -12,6 +16,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from app.database import SessionLocal
+from app.detection import ml_model
 from app.detection.baseline import (
     is_known_location,
     record_known_device_if_new,
@@ -19,29 +24,49 @@ from app.detection.baseline import (
     update_baseline_after_successful_login,
 )
 from app.detection.geoip import lookup_ip
-from app.detection.rate_counter import check_fail_count
+from app.detection.rate_counter import check_fail_count, redis_client
 from app.detection.rules import (
+    CREDENTIAL_STUFFING_FAIL_THRESHOLD,
+    CREDENTIAL_STUFFING_MIN_DISTINCT_USERNAMES,
+    IMPOSSIBLE_TRAVEL_SPEED_KMH,
+    BRUTE_FORCE_THRESHOLD,
     GeoPoint,
+    haversine_distance,
     is_brute_force,
     is_credential_stuffing,
     is_impossible_travel,
     register_login_failure,
 )
-from app.detection.scoring import SUCCESS_AFTER_FAIL_STREAK_MIN_FAILS, classify_severity, compute_risk_score
+from app.detection.scoring import SUCCESS_AFTER_FAIL_STREAK_MIN_FAILS, classify_severity, compute_risk_score, explain_factors
 from app.models import Alert, LoginEvent, User, UserBaseline
 from app.utils.device import compute_device_fingerprint
 from app.ws_manager import ws_manager
-from app.detection import ml_model
 from ml.features import compute_realtime_features
 
 _RULE_TIER1_RISK_SCORE = 80
 _RULE_TIER1_SEVERITY = "high"
 
-_ALERT_MESSAGES = {
-    "brute_force": "Phát hiện dò mật khẩu liên tiếp cho tài khoản '{target}'.",
-    "credential_stuffing": "Phát hiện thử nhiều tài khoản khác nhau từ cùng IP {target}.",
-    "impossible_travel": "Đăng nhập từ vị trí cách xa bất thường so với lần trước trong thời gian quá ngắn.",
-}
+
+def _brute_force_message(username: str, fail_count: int) -> str:
+    return (
+        f"Phát hiện dò mật khẩu liên tiếp cho tài khoản '{username}': "
+        f"{fail_count} lần sai trong 5 phút gần đây (ngưỡng: {BRUTE_FORCE_THRESHOLD} lần)."
+    )
+
+
+def _credential_stuffing_message(ip: str, distinct_usernames: int, fail_count: int) -> str:
+    return (
+        f"Phát hiện thử nhiều tài khoản khác nhau từ cùng IP {ip}: "
+        f"{distinct_usernames} username khác nhau, {fail_count} lần fail trong 5 phút gần đây "
+        f"(ngưỡng: {CREDENTIAL_STUFFING_MIN_DISTINCT_USERNAMES} username / {CREDENTIAL_STUFFING_FAIL_THRESHOLD} fail)."
+    )
+
+
+def _impossible_travel_message(distance_km: float, elapsed_minutes: float, speed_kmh: float) -> str:
+    return (
+        f"Đăng nhập cách vị trí lần trước {distance_km:.0f}km, chỉ {elapsed_minutes:.1f} phút sau đó "
+        f"(~{speed_kmh:,.0f} km/h — vượt ngưỡng {IMPOSSIBLE_TRAVEL_SPEED_KMH:.0f} km/h)."
+    )
 
 
 async def run_detection_pipeline(
@@ -81,7 +106,7 @@ async def run_detection_pipeline(
         db.add(event)
         db.flush()
 
-        # (alert_type, target hiển thị trong message, extra field cho payload WebSocket)
+        # (alert_type, message, extra field cho payload WebSocket)
         triggered: list[tuple[str, str, dict]] = []
 
         if user is not None:
@@ -95,11 +120,16 @@ async def run_detection_pipeline(
                 previous_point = GeoPoint(previous_event.latitude, previous_event.longitude, previous_event.created_at)
                 current_point = GeoPoint(event.latitude, event.longitude, event.created_at)
                 if is_impossible_travel(previous_point, current_point):
+                    distance_km = haversine_distance(
+                        previous_event.latitude, previous_event.longitude, event.latitude, event.longitude
+                    )
+                    elapsed_minutes = (event.created_at - previous_event.created_at).total_seconds() / 60
+                    speed_kmh = distance_km / (elapsed_minutes / 60) if elapsed_minutes > 0 else float("inf")
                     # Kèm toạ độ điểm TRƯỚC để frontend vẽ đường nối 2 điểm trên bản đồ (nhiệm vụ 5.3).
                     triggered.append(
                         (
                             "impossible_travel",
-                            "",
+                            _impossible_travel_message(distance_km, elapsed_minutes, speed_kmh),
                             {"previous_latitude": previous_event.latitude, "previous_longitude": previous_event.longitude},
                         )
                     )
@@ -109,19 +139,24 @@ async def run_detection_pipeline(
             register_login_failure(username, ip)
             is_brute_force_flag = is_brute_force(username)
             if is_brute_force_flag:
-                triggered.append(("brute_force", username, {}))
+                fail_count = check_fail_count(f"fail:{username}")
+                triggered.append(("brute_force", _brute_force_message(username, fail_count), {}))
             if is_credential_stuffing(ip):
-                triggered.append(("credential_stuffing", ip, {}))
+                distinct_usernames = redis_client.zcard(f"cred_stuffing:{ip}")
+                fail_count_ip = check_fail_count(f"fail_ip:{ip}")
+                triggered.append(
+                    ("credential_stuffing", _credential_stuffing_message(ip, distinct_usernames, fail_count_ip), {})
+                )
 
         alert_records: list[tuple[Alert, dict]] = []
-        for alert_type, target, extra in triggered:
+        for alert_type, message, extra in triggered:
             alert_obj = Alert(
                 login_event_id=event.id,
                 user_id=user_id,
                 alert_type=alert_type,
                 severity=_RULE_TIER1_SEVERITY,
                 risk_score=_RULE_TIER1_RISK_SCORE,
-                message=_ALERT_MESSAGES[alert_type].format(target=target),
+                message=message,
             )
             db.add(alert_obj)
             alert_records.append((alert_obj, extra))
@@ -132,7 +167,7 @@ async def run_detection_pipeline(
             known_location = is_known_location(db, user.id, event.country, event.city)
             had_fail_streak = recent_fail_count >= SUCCESS_AFTER_FAIL_STREAK_MIN_FAILS
 
-            risk_score, _factors = compute_risk_score(
+            risk_score, factors = compute_risk_score(
                 baseline=baseline,
                 login_hour=login_hour,
                 is_new_location=not known_location,
@@ -143,13 +178,14 @@ async def run_detection_pipeline(
 
             severity = classify_severity(risk_score)
             if severity != "low":
+                explanation = explain_factors(factors, baseline=baseline, login_hour=login_hour)
                 alert_obj = Alert(
                     login_event_id=event.id,
                     user_id=user.id,
                     alert_type="high_risk_score",
                     severity=severity,
                     risk_score=risk_score,
-                    message=f"Risk score {risk_score}/100 ({severity}) cho tài khoản '{user.username}'.",
+                    message=f"Risk score {risk_score}/100 ({severity}) cho tài khoản '{user.username}'. {explanation}.",
                 )
                 db.add(alert_obj)
                 alert_records.append((alert_obj, {}))
@@ -172,6 +208,7 @@ async def run_detection_pipeline(
             if ml_result is not None:
                 event.ml_anomaly_score = ml_result["anomaly_score"]
                 if ml_result["is_anomaly"]:
+                    ml_explanation = ml_model.explain(ml_features)
                     alert_obj = Alert(
                         login_event_id=event.id,
                         user_id=user.id,
@@ -180,7 +217,8 @@ async def run_detection_pipeline(
                         risk_score=risk_score,
                         message=(
                             f"Mô hình ML (Isolation Forest) đánh giá lần đăng nhập này bất thường "
-                            f"(điểm {ml_result['anomaly_score']:.2f}) — tham khảo, xem docs/ml-evaluation.md."
+                            f"(điểm {ml_result['anomaly_score']:.2f}). {ml_explanation} "
+                            f"Đây là gợi ý tham khảo, xem docs/ml-evaluation.md."
                         ),
                     )
                     db.add(alert_obj)

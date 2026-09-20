@@ -54,3 +54,30 @@ def test_predict_never_raises_on_malformed_features():
 
     assert result is None
     _reset_module_cache()
+
+
+def test_explain_returns_empty_string_when_model_not_trained(monkeypatch):
+    _reset_module_cache()
+    monkeypatch.setattr(ml_model, "_ARTIFACTS_DIR", "duong-dan-khong-ton-tai")
+
+    assert ml_model.explain(_SAMPLE_FEATURES) == ""
+    _reset_module_cache()
+
+
+def test_explain_highlights_most_deviated_feature_if_trained():
+    _reset_module_cache()
+    if not ml_model.is_available():
+        import pytest
+
+        pytest.skip("Chưa train model ML")
+
+    # Đặc trưng bình thường (mọi giá trị = 0) -> không có gì đáng nói.
+    normal_explanation = ml_model.explain(_SAMPLE_FEATURES)
+    assert isinstance(normal_explanation, str)
+
+    # Khoảng cách nhà cực lớn -> phải được nêu ra là bất thường.
+    far_features = dict(_SAMPLE_FEATURES)
+    far_features["distance_km_from_home"] = 20000.0
+    far_explanation = ml_model.explain(far_features)
+    assert "khoảng cách" in far_explanation.lower()
+    _reset_module_cache()

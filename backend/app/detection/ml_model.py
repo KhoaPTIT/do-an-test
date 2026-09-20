@@ -24,6 +24,19 @@ from ml.features import FEATURE_NAMES
 
 logger = logging.getLogger("ml_model")
 
+# Tên tiếng Việt dễ hiểu cho từng đặc trưng — dùng khi giải thích (explain()).
+# hour_sin/hour_cos cố tình KHÔNG có trong bảng này: chỉ là mã hoá lượng
+# giác của giờ, một mình chúng không có ý nghĩa để báo cho admin đọc.
+_FEATURE_LABELS_VI = {
+    "day_of_week": "thứ trong tuần",
+    "hour_deviation_from_avg": "độ lệch giờ so với thói quen",
+    "is_new_location": "vị trí mới (chưa từng thấy)",
+    "is_new_device": "thiết bị mới (chưa từng thấy)",
+    "minutes_since_last_login": "thời gian kể từ lần đăng nhập trước",
+    "logins_last_24h": "số lần đăng nhập trong 24h qua",
+    "distance_km_from_home": "khoảng cách so với vị trí quen thuộc",
+}
+
 _ARTIFACTS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "ml", "artifacts")
 
 _scaler = None
@@ -80,3 +93,44 @@ def predict(features: dict) -> dict | None:
     except Exception:  # noqa: BLE001
         logger.exception("Lỗi khi suy luận ML tầng 3 cho 1 lần đăng nhập — bỏ qua, không chặn luồng.")
         return None
+
+
+def explain(features: dict, top_n: int = 3) -> str:
+    """Giải thích NGƯỜI ĐỌC ĐƯỢC: đặc trưng nào lệch nhiều nhất so với phân
+    phối "bình thường" đã học (mean/std của tập train, lưu ở meta.json).
+    Dùng cho message của Alert 'ml_anomaly' — thay vì chỉ đưa 1 điểm số,
+    chỉ ra CỤ THỂ điều gì khiến lần đăng nhập này bị coi là lạ.
+
+    Trả chuỗi rỗng nếu model/thống kê chưa sẵn sàng (không raise).
+    """
+    _load()
+    if _meta is None or "feature_mean" not in _meta:
+        return ""
+
+    try:
+        means = _meta["feature_mean"]
+        stds = _meta["feature_std"]
+        deviations = []
+        for i, name in enumerate(FEATURE_NAMES):
+            if name not in _FEATURE_LABELS_VI:
+                continue
+            std = stds[i] if stds[i] > 1e-6 else 1.0
+            z = (features[name] - means[i]) / std
+            deviations.append((abs(z), z, name))
+
+        deviations.sort(key=lambda item: item[0], reverse=True)
+        top = deviations[:top_n]
+
+        parts = []
+        for _abs_z, z, name in top:
+            if abs(z) < 0.5:
+                continue  # gần mức trung bình, không đáng nhắc tới
+            direction = "cao hơn" if z > 0 else "thấp hơn"
+            parts.append(f"{_FEATURE_LABELS_VI[name]} ({direction} bình thường rõ rệt)")
+
+        if not parts:
+            return "không có đặc trưng nào lệch rõ rệt so với thói quen"
+        return "Yếu tố khác thường nhất: " + "; ".join(parts) + "."
+    except Exception:  # noqa: BLE001
+        logger.exception("Lỗi khi giải thích kết quả ML — bỏ qua.")
+        return ""

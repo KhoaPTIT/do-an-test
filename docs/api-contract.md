@@ -50,7 +50,7 @@ Web app mẫu (React)                Attack-sim scripts
 | `GET /health` | 1 | Kiểm tra service + kết nối DB |
 | `POST /login` | 2 | Đăng nhập web app mẫu, ghi `login_events` |
 | `POST /admin/login` | 5 | Đăng nhập admin (bảng `admins` riêng), trả JWT (`jwt_expire_minutes` = 60) |
-| `GET /login-events` | 4→5 | Danh sách log, phân trang. **Có JWT bắt buộc từ Tuần 5** (`Authorization: Bearer <token>`) |
+| `GET /login-events` | 4→5→8 | Danh sách log, phân trang + lọc (`username`, `success`, `risk_level`, `is_synthetic` — nâng cấp sau Tuần 7). **Có JWT bắt buộc từ Tuần 5** |
 | `GET /alerts` | 4→5 | Danh sách cảnh báo, phân trang. **Có JWT bắt buộc từ Tuần 5** |
 | `WS /ws/alerts` | 5 | Đẩy cảnh báo real-time, xác thực bằng JWT qua query param `?token=` |
 

@@ -112,6 +112,12 @@ def main() -> None:
         "test_rows": len(test_df),
         "train_anomaly_rows": int(train_df["is_anomaly"].sum()),
         "test_anomaly_rows": int(test_df["is_anomaly"].sum()),
+        # Thống kê THÔ (chưa scale) của tập train — dùng để GIẢI THÍCH lúc
+        # suy luận real-time (app/detection/ml_model.py): so đặc trưng của
+        # 1 lần đăng nhập với phân phối "bình thường" đã học, chỉ ra đặc
+        # trưng nào lệch nhiều nhất thay vì chỉ đưa 1 con số điểm bất thường.
+        "feature_mean": X_train.mean(axis=0).tolist(),
+        "feature_std": X_train.std(axis=0).tolist(),
     }
     with open(os.path.join(ARTIFACTS_DIR, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)

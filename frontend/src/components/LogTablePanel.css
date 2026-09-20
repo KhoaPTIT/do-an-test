@@ -1,3 +1,37 @@
+.log-table__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: #fafbfc;
+}
+
+.log-table__filters input,
+.log-table__filters select {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.log-table__filters input {
+  flex: 1;
+  min-width: 100px;
+}
+
+.log-table__clear-filters {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.3rem 0.6rem;
+}
+
+.log-table__clear-filters:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
 .log-table {
   display: flex;
   flex-direction: column;
