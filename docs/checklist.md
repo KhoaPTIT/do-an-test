@@ -70,11 +70,12 @@ Ba nguồn bằng chứng: (1) **RBA** — mô hình tần suất/mới lạ, so
   - [x] Cài lightgbm, shap, pyarrow, duckdb, user-agents; cập nhật [`requirements.txt`](../backend/requirements.txt)
   - [x] `lookup_asn()` ([`geoip.py`](../backend/app/detection/geoip.py)) và `parse_user_agent()` ([`device.py`](../backend/app/utils/device.py)) cho luồng realtime; file `GeoLite2-ASN.mmdb` chưa tải (chỉ cần từ MR12), xem [`geoip-setup.md`](geoip-setup.md)
   - [x] Danh sách Tor / datacenter / VPN công khai — [`backend/scripts/update_threat_feeds.py`](../backend/scripts/update_threat_feeds.py)
-- [ ] **MR2 [Lõi, M] Pipeline dữ liệu RBA** — Xong khi: test chứng minh không IP tấn công nào trùng giữa train và test
-  - [ ] ETL theo chunk từ zip sang Parquet; đối chiếu số dòng với cột `index` (README >33M, đếm được 31,27M)
-  - [ ] Đánh dấu artifact (IP 10.x, ASN ≥ 500000, 1.526 UA lỗi); loại/tách user 14 triệu sự kiện
-  - [ ] Lấy mẫu theo user giữ nguyên lịch sử: đủ 138 user ATO + mẫu phân tầng theo mức hoạt động (1 / 2–9 / ≥10 lần)
-  - [ ] Chia theo thời gian (train/val/test tương lai); nhãn Attack IP chia theo **IP**; ATO làm tập kiểm chứng + CV theo user
+- [x] **MR2 [Lõi, M] Pipeline dữ liệu RBA** — Xong khi: test chứng minh không IP tấn công nào trùng giữa train và test (`tests/test_rba_real_data.py` trên mẫu thật + `tests/test_rba_splits.py`, `test_rba_sample.py`). Chi tiết: [`rba-data-card.md`](rba-data-card.md) mục 8
+  - [x] ETL theo chunk từ zip sang Parquet ([`etl.py`](../backend/ml/rba/etl.py)); đối chiếu cột `index`: 31.269.264 dòng, liên tục, không mất dòng (README ghi >33M, nguyên nhân chênh chưa rõ)
+  - [x] Đánh dấu artifact (IP 10.x, ASN ≥ 500000, 1.526 UA lỗi); loại 2 "user" khổng lồ (thùng chứa tài khoản không tồn tại 14 triệu sự kiện; client tự thử lại 70 nghìn sự kiện)
+  - [x] Lấy mẫu theo user giữ nguyên lịch sử ([`sample.py`](../backend/ml/rba/sample.py)): đủ 138 user ATO + mẫu phân tầng 5%/10%/25% → 2.707.021 dòng, 401.092 user
+  - [x] Chia theo thời gian + nhóm IP ([`splits.py`](../backend/ml/rba/splits.py)): train 02–07/2020, val 08/2020, test 09–11/2020, **late 12/2020–02/2021 (kiểm tra trôi phân phối)**; nhãn Attack IP chia theo **IP**; ATO (141) chỉ để đánh giá, 38 ca ở giai đoạn tương lai
+  - ⚠️ Điều chỉnh so với kế hoạch: cả 141 ATO nằm trong 02–11/2020 (không có ca nào từ 12/2020) nên test phải phủ hết 11/2020; thêm cột `weight` để phục hồi tỉ lệ tấn công tự nhiên (val/test chỉ giữ 15% IP tấn công); bỏ "CV theo user cho ATO" vì ATO không bao giờ vào huấn luyện
 
 ## Giai đoạn B — AI lõi
 
