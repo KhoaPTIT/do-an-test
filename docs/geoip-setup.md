@@ -29,4 +29,21 @@ cd backend
 venv\Scripts\python.exe -c "from app.detection.geoip import lookup_ip; print(lookup_ip('8.8.8.8'))"
 ```
 
+## GeoLite2-ASN (giai đoạn mở rộng, cần từ MR12)
+
+Đặc trưng ASN (nhà mạng/hạ tầng của IP) dùng file **riêng** `GeoLite2-ASN.mmdb`, không nằm trong GeoLite2-City. Chưa có file này thì `lookup_asn()` trả `None` (không lỗi) — làm việc với dữ liệu RBA (MR2–MR8) không cần file này vì RBA đã có sẵn cột ASN; chỉ luồng đăng nhập thật (MR12) mới cần.
+
+Tải giống bước 4 ở trên, đổi `edition_id`:
+
+```bash
+cd /path/to/repo
+set -a && source .env && set +a
+curl -sS -L "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN&license_key=${MAXMIND_LICENSE_KEY}&suffix=tar.gz" -o /tmp/GeoLite2-ASN.tar.gz
+tar -xzf /tmp/GeoLite2-ASN.tar.gz -C /tmp
+cp /tmp/GeoLite2-ASN_*/GeoLite2-ASN.mmdb backend/geoip/GeoLite2-ASN.mmdb
+rm -rf /tmp/GeoLite2-ASN*
+```
+
+Hoặc tải thủ công trên trang MaxMind (**Download Files → GeoLite2 ASN**) rồi chép `GeoLite2-ASN.mmdb` vào `backend/geoip/`. Đường dẫn cấu hình bằng `GEOIP_ASN_DB_PATH` (mặc định `./geoip/GeoLite2-ASN.mmdb`). Kiểm tra: `python -m ml.check_env`.
+
 Kết quả thật (đã xác nhận): `GeoResult(country='US', city=None, latitude=37.751, longitude=-97.822)` — khác giá trị mock cứng (`Mountain View`), tức là đang đọc từ file `.mmdb` thật. Lưu ý một số IP (VD `1.1.1.1`) trả về đủ trường `None` dù lookup "thành công" — GeoLite2 free không có dữ liệu cho mọi IP, đây là hành vi bình thường, không phải lỗi.

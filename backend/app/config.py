@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     # Tuần 3+
     redis_url: str = "redis://localhost:6379/0"
     geoip_db_path: str = "./geoip/GeoLite2-City.mmdb"
+    geoip_asn_db_path: str = "./geoip/GeoLite2-ASN.mmdb"
 
     # Tuần 5+
     jwt_secret_key: str = "change-me-to-a-random-secret"

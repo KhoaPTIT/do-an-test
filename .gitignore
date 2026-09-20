@@ -23,6 +23,9 @@ backend/logs/
 
 # Dữ liệu / model đã train (sinh lại được bằng script, không commit)
 backend/ml/artifacts/
+# Bộ dữ liệu RBA (mẫu Parquet sinh từ file zip ~9GB) và danh sách threat-intel tải về
+backend/ml/data/rba/
+backend/threat_intel/
 *.db
 *.sqlite3
 

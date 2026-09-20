@@ -142,3 +142,84 @@ def _lookup_ip_uncached(ip: str) -> Optional[GeoResult]:
 
     _record_failure(ip, "mock mode: ip khong nam trong tap mau")
     return None
+
+
+# --- ASN (giai đoạn mở rộng MR1) -------------------------------------------
+# File GeoLite2-ASN.mmdb là DB riêng, không nằm trong GeoLite2-City. Thiếu file
+# thì lookup_asn() trả None (đặc trưng ASN coi như "không rõ"), không raise.
+
+
+@dataclass
+class AsnResult:
+    asn: int
+    organization: str | None
+
+
+_MOCK_ASN: dict[str, AsnResult] = {
+    "8.8.8.8": AsnResult(15169, "GOOGLE"),
+    "1.1.1.1": AsnResult(13335, "CLOUDFLARENET"),
+}
+
+_asn_reader: Optional["geoip2.database.Reader"] = None
+_asn_reader_loaded = False
+_asn_cache: dict[str, tuple[float, Optional[AsnResult]]] = {}
+
+
+def _get_asn_reader():
+    global _asn_reader, _asn_reader_loaded
+    if _asn_reader_loaded:
+        return _asn_reader
+    _asn_reader_loaded = True
+
+    db_path = get_settings().geoip_asn_db_path
+    if os.path.exists(db_path):
+        try:
+            _asn_reader = geoip2.database.Reader(db_path)
+            logger.info(f"Đã tải GeoLite2-ASN database thật từ {db_path}")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"Không mở được file GeoLite2-ASN tại {db_path}: {exc}")
+            _asn_reader = None
+    else:
+        logger.warning(f"Không tìm thấy file GeoLite2-ASN tại {db_path} — lookup_asn() dùng chế độ mock")
+        _asn_reader = None
+    return _asn_reader
+
+
+def lookup_asn(ip: str) -> Optional[AsnResult]:
+    """Tra ASN theo IP (có cache TTL). Trả None nếu không có dữ liệu — không bao giờ raise."""
+    cached = _asn_cache.get(ip)
+    if cached is not None:
+        cached_at, cached_result = cached
+        if time.time() - cached_at < _CACHE_TTL_SECONDS:
+            return cached_result
+
+    result = _lookup_asn_uncached(ip)
+    _asn_cache[ip] = (time.time(), result)
+    return result
+
+
+def _lookup_asn_uncached(ip: str) -> Optional[AsnResult]:
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return None
+    if addr.is_private or addr.is_loopback or addr.is_reserved or addr.is_link_local:
+        return None
+
+    reader = _get_asn_reader()
+    if reader is not None:
+        try:
+            response = reader.asn(ip)
+            if response.autonomous_system_number is None:
+                return None
+            return AsnResult(
+                asn=int(response.autonomous_system_number),
+                organization=response.autonomous_system_organization,
+            )
+        except geoip2.errors.AddressNotFoundError:
+            return None
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"lookup_asn lỗi ip={ip}: {exc}")
+            return None
+
+    return _MOCK_ASN.get(ip)

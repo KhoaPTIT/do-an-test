@@ -24,6 +24,13 @@ joblib==1.4.2
 pandas==2.2.3
 numpy==2.2.1
 
+# Giai đoạn mở rộng (MR) — AI trên bộ dữ liệu RBA, giải thích, phân tích UA
+lightgbm==4.7.0
+shap==0.51.0
+pyarrow==25.0.1
+duckdb==1.5.5
+user-agents==2.2.0
+
 # Kiểm thử
 pytest==8.3.4
 httpx==0.28.1
