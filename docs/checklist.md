@@ -44,7 +44,7 @@ Tick `[x]` khi nhiệm vụ đã qua đủ các mục kiểm tra — không tick
 ## Tuần 7 — ML mở rộng & đánh giá hệ thống
 
 - [x] 7.1 Thử nghiệm mô hình ML tầng 3 — A — **đầu tư sâu, không chỉ "tuỳ chọn"**: 3 thuật toán (Isolation Forest, LOF, Autoencoder), 5 kiểu bất thường, so sánh với tầng 2 thật — xem [`docs/ml-evaluation.md`](ml-evaluation.md)
-- [ ] 7.2 Hoàn thiện giao diện & đo precision/recall — B
+- [x] 7.2 Hoàn thiện giao diện & đo precision/recall — B — hệ thống thiết kế (CSS variables), nav/form/dashboard viết lại, responsive mobile/tablet đã test; precision/recall đo xong ở 7.1
 
 ## Tuần 8 — Báo cáo, slide & diễn tập demo
 

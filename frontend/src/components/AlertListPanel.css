@@ -1,6 +1,6 @@
 .alert-list {
   overflow: auto;
-  padding: 0.5rem;
+  padding: 0.65rem;
 }
 
 .alert-list__items {
@@ -9,27 +9,32 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
 .alert-list__item {
-  padding: 0.4rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
   font-size: 0.82rem;
-  border-left: 4px solid #ccc;
+  border-left: 3px solid var(--border);
+  line-height: 1.4;
+}
+
+.alert-list__item strong {
+  color: var(--text-h);
 }
 
 .alert-list__item--low {
-  border-left-color: #52c41a;
-  background: #f6ffed;
+  border-left-color: var(--success);
+  background: var(--success-bg);
 }
 
 .alert-list__item--medium {
-  border-left-color: #faad14;
-  background: #fffbea;
+  border-left-color: var(--warning);
+  background: var(--warning-bg);
 }
 
 .alert-list__item--high {
-  border-left-color: #f5222d;
-  background: #fff1f0;
+  border-left-color: var(--danger);
+  background: var(--danger-bg);
 }

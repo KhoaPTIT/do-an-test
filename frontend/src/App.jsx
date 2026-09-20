@@ -17,26 +17,40 @@ function RequireAdmin({ children }) {
   return children;
 }
 
+function navLinkClass({ isActive }) {
+  return isActive ? "active" : undefined;
+}
+
 export default function App() {
   return (
     <div>
-      <nav>
-        <NavLink to="/login">Login</NavLink> | <NavLink to="/admin/login">Admin</NavLink> |{" "}
-        <NavLink to="/dashboard">Dashboard</NavLink>
+      <nav className="app-nav">
+        <span className="app-nav__brand">🛡️ Anomaly Login Detection</span>
+        <NavLink to="/login" className={navLinkClass}>
+          Web app mẫu
+        </NavLink>
+        <NavLink to="/admin/login" className={navLinkClass}>
+          Đăng nhập quản trị
+        </NavLink>
+        <NavLink to="/dashboard" className={navLinkClass}>
+          Dashboard
+        </NavLink>
       </nav>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route
-          path="/dashboard"
-          element={
-            <RequireAdmin>
-              <DashboardPage />
-            </RequireAdmin>
-          }
-        />
-      </Routes>
+      <div className="app-main">
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <RequireAdmin>
+                <DashboardPage />
+              </RequireAdmin>
+            }
+          />
+        </Routes>
+      </div>
     </div>
   );
 }

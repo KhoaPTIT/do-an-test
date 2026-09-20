@@ -39,7 +39,12 @@ export default function RiskChartPanel({ refreshKey = 0 }) {
       <h2>Biểu đồ risk score</h2>
       <div className="dashboard-panel__body">
         {error && <p className="dashboard-panel__placeholder">{error}</p>}
-        {!error && points === null && <p className="dashboard-panel__placeholder">Đang tải...</p>}
+        {!error && points === null && (
+          <p className="dashboard-panel__placeholder">
+            <span className="spinner" />
+            Đang tải...
+          </p>
+        )}
         {!error && points !== null && points.length === 0 && (
           <p className="dashboard-panel__placeholder">Chưa có dữ liệu đăng nhập.</p>
         )}

@@ -1,33 +1,48 @@
 .log-table {
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: auto; /* bảng rộng cuộn ngang trong khung, không đẩy vỡ layout trang */
   padding: 0.5rem;
 }
 
 .log-table__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 
-.log-table__table th,
-.log-table__table td {
-  padding: 0.25rem 0.5rem;
+.log-table__table th {
+  padding: 0.4rem 0.6rem;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.log-table__table td {
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.log-table__table tbody tr:hover {
+  filter: brightness(0.97);
 }
 
 .risk-row--low {
-  background: #f0fff4;
+  background: var(--success-bg);
 }
 
 .risk-row--medium {
-  background: #fffbea;
+  background: var(--warning-bg);
 }
 
 .risk-row--high {
-  background: #fff1f0;
+  background: var(--danger-bg);
 }
 
 .log-table__pagination {
@@ -35,6 +50,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.5rem;
-  font-size: 0.85rem;
+  padding: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+
+.log-table__pagination button {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 500;
 }

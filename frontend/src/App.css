@@ -1,12 +1,57 @@
-nav {
-  padding: 1rem;
-  border-bottom: 1px solid #444;
+.app-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-nav a {
+.app-nav__brand {
+  font-weight: 700;
+  color: var(--text-h);
   margin-right: 0.5rem;
+  white-space: nowrap;
 }
 
-main {
-  padding: 1rem;
+.app-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  white-space: nowrap; /* mỗi link tự xuống dòng nguyên cụm khi hẹp, không vỡ chữ giữa từ */
+}
+
+@media (max-width: 480px) {
+  .app-nav {
+    padding: 0.6rem 0.85rem;
+  }
+
+  .app-nav__brand {
+    font-size: 0.9rem;
+    flex-basis: 100%; /* thương hiệu chiếm trọn dòng đầu, các link xuống dòng dưới */
+  }
+}
+
+.app-nav a:hover {
+  color: var(--text-h);
+  background: var(--accent-bg);
+}
+
+.app-nav a.active {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }

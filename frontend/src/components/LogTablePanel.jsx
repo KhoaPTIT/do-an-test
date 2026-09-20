@@ -25,7 +25,10 @@ export default function LogTablePanel({ refreshKey = 0 }) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    // Chỉ hiện spinner toàn khung khi CHƯA có dữ liệu gì (lần đầu). Khi
+    // refetch ngầm do có alert mới (refreshKey đổi), giữ nguyên bảng cũ
+    // trên màn hình cho tới khi có dữ liệu mới — tránh giật hình lúc demo.
+    if (data === null) setLoading(true);
     setError(null);
 
     apiClient
@@ -43,6 +46,7 @@ export default function LogTablePanel({ refreshKey = 0 }) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, refreshKey]);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
@@ -51,12 +55,17 @@ export default function LogTablePanel({ refreshKey = 0 }) {
     <section className="dashboard-panel" aria-label="Bảng log đăng nhập">
       <h2>Log đăng nhập</h2>
       <div className="dashboard-panel__body log-table">
-        {loading && <p className="dashboard-panel__placeholder">Đang tải...</p>}
+        {loading && data === null && (
+          <p className="dashboard-panel__placeholder">
+            <span className="spinner" />
+            Đang tải...
+          </p>
+        )}
         {error && <p className="dashboard-panel__placeholder">{error}</p>}
-        {!loading && !error && data && data.items.length === 0 && (
+        {!error && data && data.items.length === 0 && (
           <p className="dashboard-panel__placeholder">Chưa có dữ liệu đăng nhập.</p>
         )}
-        {!loading && !error && data && data.items.length > 0 && (
+        {!error && data && data.items.length > 0 && (
           <>
             <table className="log-table__table">
               <thead>

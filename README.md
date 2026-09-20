@@ -96,14 +96,15 @@ Mở `http://localhost:5173` — `/login` là web app mẫu, `/admin/login` là 
 - **Lỗi 2 (đã sửa):** bản đồ vẽ đúng marker + đường nối nhưng nằm ngoài khung nhìn mặc định (center Việt Nam) khi toạ độ ở xa — trông như không vẽ gì. `MapPanel.jsx` thêm tự động `fitBounds()`.
 - Bảng test case đầy đủ + phân loại lỗi: [`docs/e2e-test-report.md`](docs/e2e-test-report.md). Hệ thống chạy liên tục không lỗi suốt phiên kiểm thử.
 
-✅ **Tuần 7 (7.1) hoàn thành — ĐIỂM NHẤN CHÍNH của đồ án**, đầu tư sâu hơn hẳn "tuỳ chọn" ban đầu:
+✅ **Tuần 7 hoàn thành (7.1 + 7.2) — ĐIỂM NHẤN CHÍNH của đồ án**, đầu tư sâu hơn hẳn "tuỳ chọn" ban đầu:
 - **5 kiểu bất thường** (không chỉ 2 như Tuần 3): giờ lạ, vị trí lạ, thiết bị lạ, tốc độ đăng nhập bất thường, kết hợp nhiều tín hiệu — 40 user riêng, 1846 bản ghi, 15.2% có nhãn bất thường.
 - **3 thuật toán ML** so sánh công bằng trên cùng tập test tách theo thời gian (không rò rỉ dữ liệu tương lai): Isolation Forest (F1=0.751, ROC-AUC=0.882), Local Outlier Factor (F1=0.717), Autoencoder (F1=0.612) — cả 3 **vượt xa** tầng 2 hành vi cũ (F1=0.070, gần như "im lặng hoàn toàn", chỉ bắt 3/83 ca).
 - **So sánh trên chính hàm sản xuất thật** (`compute_risk_score()`), không viết lại song song — phát hiện nguyên nhân gốc rễ: tầng 2 không có trọng số cho thiết bị lạ/tốc độ bất thường, và baseline giờ bị "pha loãng" theo thời gian (hạn chế thật trong production, không phải lỗi đánh giá).
 - **Tích hợp real-time thật** — tầng 3 chạy song song tầng 1-2, không thay thế: test trực tiếp trên server sống, bắt được ca mà tầng 2 bỏ sót (risk_score=30, dưới ngưỡng 40, nhưng ML đúng phát hiện bất thường).
 - Phân tích đầy đủ + giới hạn thật (dữ liệu tự sinh, không phải tấn công thật ngoài đời) — nói thẳng để không overclaim khi bảo vệ: [`docs/ml-evaluation.md`](docs/ml-evaluation.md).
+- **7.2 — giao diện viết lại hoàn chỉnh**: hệ thống thiết kế riêng (CSS variables, bỏ template Vite mặc định), nav bar + form đăng nhập + dashboard đều polish lại, trạng thái loading có spinner (không giật bảng khi có alert mới), test responsive thật trên desktop/tablet/mobile (bắt và sửa 1 lỗi thật: nav bar vỡ chữ giữa từ trên màn hình hẹp).
 
-Còn thiếu để hoàn tất Tuần 7: 7.2 (polish giao diện dashboard, responsive khi trình chiếu — phần đo precision/recall đã làm xong trong 7.1). Và đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6).
+Còn thiếu: đối chiếu lại với tài liệu **"Kế hoạch đồ án"** gốc khi có (xem cảnh báo ⚠️ trong [`docs/api-contract.md`](docs/api-contract.md) mục 6).
 
 ### Dữ liệu mẫu
 
@@ -124,4 +125,4 @@ venv\Scripts\python.exe -m ml.evaluate                      # so sánh + xuất 
 
 Trên Windows, nếu gặp lỗi `UnicodeEncodeError` khi in tiếng Việt ra console, chạy với `set PYTHONIOENCODING=utf-8` trước (cmd) hoặc `$env:PYTHONIOENCODING="utf-8"` (PowerShell).
 
-🚧 Tiếp theo: Tuần 7.2 — hoàn thiện giao diện dashboard. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).
+🚧 Tiếp theo: Tuần 8 — Báo cáo, slide & diễn tập demo. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).

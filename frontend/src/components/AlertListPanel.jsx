@@ -36,7 +36,12 @@ export default function AlertListPanel({ latestAlert }) {
       <h2>Cảnh báo</h2>
       <div className="dashboard-panel__body alert-list">
         {error && <p className="dashboard-panel__placeholder">{error}</p>}
-        {!error && alerts === null && <p className="dashboard-panel__placeholder">Đang tải...</p>}
+        {!error && alerts === null && (
+          <p className="dashboard-panel__placeholder">
+            <span className="spinner" />
+            Đang tải...
+          </p>
+        )}
         {!error && alerts !== null && alerts.length === 0 && (
           <p className="dashboard-panel__placeholder">Chưa có cảnh báo nào.</p>
         )}

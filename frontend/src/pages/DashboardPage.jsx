@@ -36,12 +36,13 @@ export default function DashboardPage() {
 
   return (
     <main>
-      <h1>
-        Dashboard{" "}
+      <div className="dashboard-page__header">
+        <h1>📊 Dashboard giám sát</h1>
         <span className={connected ? "ws-status ws-status--connected" : "ws-status ws-status--disconnected"}>
-          {connected ? "● real-time" : "○ mất kết nối, đang thử kết nối lại..."}
+          <span className="ws-status__dot" />
+          {connected ? "Real-time" : "Mất kết nối, đang thử lại..."}
         </span>
-      </h1>
+      </div>
 
       {toast && (
         <div className="alert-toast" role="alert">
