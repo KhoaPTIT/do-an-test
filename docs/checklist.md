@@ -115,10 +115,20 @@ Ba nguồn bằng chứng: (1) **RBA** — mô hình tần suất/mới lạ, so
   - [x] Phân tích lỗi ([`errors.py`](../backend/ml/rba/errors.py)): 103/130 ATO bị bỏ sót (0/46 tài khoản chưa có lịch sử) nhưng một luật `rare_asn` không học bắt 65,8% ATO tương lai; báo nhầm dồn vào đăng nhập từ quốc gia/nhà mạng mới (gấp 3,5 lần mức chung)
   - [x] Ghi thẳng giới hạn với Targeted: bắt 58,9% khi đăng nhập trong 1 phút sau lần trước, 6,5% khi cách > 30 ngày; sàn lý thuyết khi kẻ tấn công dùng cả IP của nạn nhân
   - ⚠️ Phát hiện cần quyết ở CP2: chọn lại nhóm đặc trưng cho từng thành phần trên val hoặc trên 92 ca ATO quá khứ (cần đồng ý vì trái quy tắc "ATO không dùng để chọn"); thêm rule "nhà mạng cực hiếm" ở MR9
-- [ ] **MR8 [Lõi, M] Giải thích và model card (CP2)**
-  - [ ] SHAP cho LightGBM; z-score fallback cho unsupervised
-  - [ ] Câu tiếng Việt ngắn từ top-3 yếu tố, kèm so sánh "thường … hôm nay …" (giữ định dạng rút gọn hiện tại)
-  - [ ] Model card: dữ liệu, chỉ số, giới hạn, phiên bản đặc trưng, ngưỡng
+- [x] **MR8 [Lõi, M] Giải thích và model card (CP2)** — Xong khi: mỗi cảnh báo có giải thích ngắn kèm "thường … nay …" và đo được độ trung thực của nó. Kết quả: [`ml-explanations.md`](ml-explanations.md); model card cuối: [`model-card-rba.md`](model-card-rba.md)
+  - [x] SHAP cho LightGBM (TreeSHAP có sẵn của LightGBM, trùng thư viện `shap` từng chữ số); z-score fallback cho unsupervised ([`explain.py`](../backend/ml/rba/explain.py)). Đo độ trung thực bằng phép thử xoá/giữ yếu tố ([`explain_eval.py`](../backend/ml/rba/explain_eval.py)): xoá các yếu tố nêu ra làm mất 99–100% cảnh báo (xoá ngẫu nhiên 49–90%). ⚠️ Ba yếu tố chỉ là phần **chủ đạo**: chỉ giữ chúng thì bộ không giám sát còn khoảng 68% điểm, `ip_tan_cong` 66%
+  - [x] Câu tiếng Việt ngắn từ top-3 yếu tố (50 đặc trưng gộp thành 9 yếu tố), kèm "thường … → nay …" từ lịch sử thành công của tài khoản (`build_context`): trung vị 57–118 ký tự, dài nhất 151; số thập phân giữ dấu chấm như chuỗi cảnh báo hiện có. ⚠️ Chưa nối vào cảnh báo thật — việc của MR12 (nạp mô hình, ngữ cảnh từ `login_events`) và MR13 (định dạng trong `alerts`)
+  - [x] Model card: dữ liệu, chỉ số, giới hạn, phiên bản đặc trưng (`v2`, chữ ký `2e54756a441c`), ngưỡng vận hành (hybrid 2,410 và 3,365: ~102 và ~10 cảnh báo nhầm trên 10 nghìn đăng nhập hợp lệ thành công; độ chính xác của cảnh báo theo tỉ lệ tấn công: 0,26% nếu 1 trên 10.000)
+  - ⚠️ Phát hiện MR8: kiểm định dấu vân tay **có điều kiện** (thêm `python -m ml.rba.audit conditional`: chỉ so với đăng nhập hợp lệ cũng dùng IP mới) cho thấy kẻ tấn công mô phỏng còn tách được ở nhóm IP (AUC 0,67–0,72) và độ hiếm (0,67–0,71) mà kiểm định tổng thể ở MR6 bỏ sót → recall trên kẻ tấn công mô phỏng là **cận trên** (tối đa khoảng 6–12 điểm); ATO thật không bị ảnh hưởng
+
+### CP2 — quyết định cần chủ dự án trước khi làm MR9
+
+MR8 không đổi mô hình; các mục dưới đây đổi mô hình hoặc quy tắc nên cần đồng ý. Mỗi mục ghi đề xuất của tôi.
+
+- [ ] **D1. Xử lý dấu vân tay có điều kiện của kẻ tấn công mô phỏng.** (a) *Đề xuất, rẻ:* huấn luyện lại `gbm_attacker_sim` chỉ với đặc trưng quan hệ với lịch sử tài khoản (`novelty`, `freeman`, `rhythm`, `history`), chọn trên val, rồi đo lại hybrid; chi phí ~1 phiên. Lý do có sẵn ở MR7 (ablation: 47,7 / 37,7 / 16,2%) và MR8 (kiểm định có điều kiện), không dùng ATO để chọn. (b) *Triệt để, sau:* sinh lại kẻ tấn công với IP mượn chỉ từ đăng nhập mà chính chủ cũng dùng IP mới, huấn luyện và đo lại MR6–MR7 (~2–3 phiên) — gộp vào MR18 (thư viện tấn công v2). (c) Không làm gì, ghi "cận trên" (đã ghi).
+- [ ] **D2. Dùng 92 ca ATO quá khứ (`ato/all` trừ `ato/future`) làm tập chọn ngoài** để chọn nhóm đặc trưng cho từng thành phần, giữ 38 ca tương lai để báo cáo cuối. Trái quy tắc hiện tại "ATO không bao giờ dùng để chọn", nên cần đồng ý. Cần vì ablation MR7 cho Isolation Forest bỏ nhóm `infra_ip` (recall ATO 31,6% → 60,5%) đo ngay trên 38 ca tương lai — không thể dùng làm căn cứ chọn; lưu ý 38 ca đó đã bị nhìn ở MR7 nên vẫn cần ghi rõ khi báo cáo. Đề xuất: đồng ý, chỉ để chọn nhóm đặc trưng của Isolation Forest (mô hình không nhãn, không có tập chọn nào tốt hơn vì kẻ tấn công mô phỏng còn dấu vân tay, D1); `gbm_attack_ip` chọn trên val bằng nhãn IP tấn công, không cần ATO.
+- [ ] **D3. Thêm luật "nhà mạng cực hiếm" ở MR9** (đăng nhập thành công từ ASN gần như chưa từng thấy). Luật một đặc trưng `rare_asn` bắt 65,8% ATO tương lai ở MR7; ⚠️ đánh giá trên ATO của RBA là **vòng tròn** (bộ dữ liệu tổng hợp cho ATO dùng nhà mạng hiếm), nên số đó không được dùng để tuyên bố luật hay hơn AI; giá trị thật của luật đo bằng kịch bản mô phỏng ở MR18. Đề xuất: thêm.
+- [ ] **D4. Độ dài giải thích trong danh sách cảnh báo** (MR13): giữ top-3 (tối đa 151 ký tự) hay rút còn top-2 kèm chi tiết mở rộng. Có thể quyết sau.
 
 ## Giai đoạn C — Rule engine v2
 

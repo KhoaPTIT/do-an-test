@@ -15,6 +15,7 @@ Tài khoản không tồn tại (`user_id = None`; trong RBA là "thùng chứa"
 
 from __future__ import annotations
 
+import hashlib
 import math
 import re
 from collections import Counter
@@ -59,6 +60,13 @@ FEATURE_GROUPS: dict[str, list[str]] = {
     ],
 }
 FEATURE_NAMES: list[str] = [name for names in FEATURE_GROUPS.values() for name in names]
+FEATURE_VERSION = "v2"
+
+
+def feature_signature() -> str:
+    """Dấu vân tay của danh sách + thứ tự đặc trưng: đổi tên/thêm/bớt/đổi thứ tự thì đổi. Mô hình và bảng "thường thấy"
+    lưu chữ ký lúc huấn luyện để phát hiện lệch phiên bản đặc trưng khi nạp."""
+    return hashlib.sha1(",".join(FEATURE_NAMES).encode("utf-8")).hexdigest()[:12]
 
 
 def strip_version(name: str) -> str:

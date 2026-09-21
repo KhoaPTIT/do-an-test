@@ -20,6 +20,11 @@ Kết quả mong đợi (mọi kiểu):
     (thuộc tính đúng bằng đăng nhập gốc, chỉ IP mới) chỉ còn các đặc trưng liên quan đến IP (`new_ip`, `llr_ip`) và tương tác
     "IP mới × khoảng cách ngắn từ lần thành công trước": AUC vừa phải, recall ở FPR 1% chủ yếu đến từ tương tác đó.
 Kiểm định TÁCH RIÊNG từng giai đoạn (`trainval` in train rồi val): dương tính và âm tính phải cùng giai đoạn.
+
+Kiểm định CÓ ĐIỀU KIỆN (`conditional`, MR8): kẻ tấn công mô phỏng LUÔN dùng IP mới với tài khoản, còn chỉ ~40% đăng nhập hợp lệ như vậy. So với toàn bộ
+đăng nhập hợp lệ thì hai bên trông giống nhau ở nhóm `infra_ip`/`rarity` (AUC ≈ 0,5), nhưng so với đăng nhập hợp lệ CŨNG dùng IP mới thì lộ chênh lệch
+(IP mượn từ đăng nhập của người khác nên hay đã có lịch sử hơn IP mới thật) — kiểm định tổng thể bỏ sót loại dấu vân tay này. Cột `n` là số đăng nhập giả
+có IP mới. Xem docs/ml-explanations.md mục 6.
 Cột `top` liệt kê 3 đặc trưng quan trọng nhất của mô hình `all` — nếu là đặc trưng hạ tầng/nhịp thì nghi có dấu vân tay.
 """
 
@@ -61,12 +66,15 @@ def separability(pos: pd.DataFrame, neg: pd.DataFrame, features: list[str], seed
     return {"auc": float(roc_auc_score(held, score)), "recall": float((score[held == 1] > threshold).mean()), "top": top}
 
 
-def audit(df: pd.DataFrame, attackers: pd.DataFrame, partitions: tuple[str, ...], negatives: int = 150_000, seed: int = 0) -> dict:
-    """{"auc": bảng, "recall": bảng, "top": {kiểu: [(đặc trưng, tỉ trọng)]}}; hàng = kiểu kẻ tấn công, cột = `all` và từng nhóm."""
+def audit(df: pd.DataFrame, attackers: pd.DataFrame, partitions: tuple[str, ...], negatives: int = 150_000, seed: int = 0, condition: str | None = None) -> dict:
+    """{"auc": bảng, "recall": bảng, "top": {kiểu: [(đặc trưng, tỉ trọng)]}}; hàng = kiểu kẻ tấn công, cột = `all` và từng nhóm.
+    `condition` (tên cột 0/1, ví dụ "new_ip"): chỉ so các đăng nhập có cột đó = 1 ở CẢ HAI phía (kiểm định có điều kiện)."""
     legit = df[
         df["partition"].isin(partitions) & ~df["in_warmup"] & (df["cur_success"] == 1) & ~df["is_attack_ip"] & ~df["is_ato"]
         & (df["u_n_success"] >= 1)  # kẻ tấn công mô phỏng chỉ nhắm vào tài khoản đã có lịch sử
     ]
+    if condition:
+        legit, attackers = legit[legit[condition] == 1], attackers[attackers[condition] == 1]
     legit = legit.sample(min(negatives, len(legit)), random_state=seed)
     auc_rows, recall_rows, top = {}, {}, {}
     for kind in ATTACKER_KINDS:
@@ -94,10 +102,12 @@ def top_markdown(top: dict) -> str:
 
 
 def main() -> int:
-    """`test`: bộ đánh giá. `trainval`: bộ huấn luyện và chọn mô hình, kiểm định TÁCH RIÊNG từng giai đoạn (train, val) — gộp
+    """`test`: bộ đánh giá. `trainval`: bộ huấn luyện và chọn mô hình, kiểm định TÁCH RIÊNG từng giai đoạn (train, val); thêm `conditional`
+    để so riêng với đăng nhập hợp lệ cũng dùng IP mới. Gộp
     chung sẽ làm lệch tỉ lệ giai đoạn giữa dương và âm tính (dương tính val chiếm 27%, âm tính val chỉ ~17%) và hiện ra
     "dấu vân tay" giả ở nhóm lịch sử/hạ tầng."""
     which = "trainval" if "trainval" in sys.argv else "test"
+    condition = "new_ip" if "conditional" in sys.argv else None
     df = eval_tasks.add_population_weights(eval_tasks.load_model_table())
     if which == "test":
         runs = [("test", pd.read_parquet(eval_tasks.ATTACKERS_PARQUET), ("test",))]
@@ -105,8 +115,9 @@ def main() -> int:
         both = pd.read_parquet(eval_tasks.ATTACKERS_TRAINVAL_PARQUET)
         runs = [(period, both[both["period"] == period], (period,)) for period in ("train", "val")]
     for name, attackers, partitions in runs:
-        result = audit(df, attackers, partitions)
-        print(f"Kiểm định dấu vân tay — giai đoạn {name} (tách đăng nhập giả khỏi đăng nhập thật, user chưa dùng khi học):\n")
+        result = audit(df, attackers, partitions, condition=condition)
+        note = " — CÓ ĐIỀU KIỆN: chỉ so với đăng nhập hợp lệ cũng dùng IP mới" if condition else ""
+        print(f"Kiểm định dấu vân tay — giai đoạn {name}{note} (tách đăng nhập giả khỏi đăng nhập thật, user chưa dùng khi học):\n")
         print("ROC-AUC (≈ 0,5 = không tách được):\n")
         print(to_markdown(result["auc"]))
         print("\nRecall khi báo nhầm 1% đăng nhập hợp lệ (≈ 1% = không tách được):\n")

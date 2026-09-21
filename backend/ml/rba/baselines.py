@@ -163,6 +163,14 @@ class IsolationForestScorer:
         x = np.where(np.isnan(x), self.medians_, x)
         return self.scaler_.transform(x)
 
+    def feature_names(self) -> list[str]:
+        return list(self._names())
+
+    def standardize(self, frame: pd.DataFrame) -> np.ndarray:
+        """Đặc trưng ở đúng không gian rừng nhìn thấy (log1p cho đặc trưng đếm, điền thiếu, chuẩn hoá theo tập huấn luyện):
+        mỗi giá trị là z-score so với đăng nhập bình thường — dùng để giải thích (ml/rba/explain.py)."""
+        return self._prepare(frame)
+
     def fit(self, df: pd.DataFrame) -> "IsolationForestScorer":
         train = training_rows(df)
         legit = train[~train["is_attack_ip"] & ~train["is_ato"]]

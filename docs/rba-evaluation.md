@@ -115,6 +115,8 @@ Sáu nhóm "không được phép tách" đều có AUC 0,48–0,56 và recall �
 
 Tín hiệu còn lại của Targeted (recall 33% ở mô hình `tất cả`, đến chủ yếu từ nhóm Freeman 15,4%) là tương tác thật giữa IP mới và khoảng cách thời gian, không phải dấu vân tay — xem mục 5.3.
 
+**Kiểm định có điều kiện (MR8, `python -m ml.rba.audit conditional` — thêm `trainval` cho train/val).** Kẻ tấn công mô phỏng luôn dùng IP mới với tài khoản, còn chỉ ~41% đăng nhập hợp lệ như vậy; kiểm định trên chỉ so với *mọi* đăng nhập hợp lệ nên có thể bỏ sót chênh lệch chỉ lộ **trong số đăng nhập dùng IP mới**. Chế độ có điều kiện giữ lại ở cả hai phía chỉ các đăng nhập `new_ip = 1`. Kết quả (test; train và val tương tự): nhóm `infra_ip` AUC 0,67–0,72 (recall 10–13% ở FPR 1%), `rarity` 0,67–0,70 (7–8%), `rhythm` 0,65–0,67 (8–10%), `history` 0,57–0,59, `infra_asn` 0,57–0,59, `cur` 0,55. Theo tiêu chí ở trên (AUC ≥ 0,6 hoặc recall ≥ 10%), **bộ mô phỏng không đạt** ở `infra_ip` và `rarity` — lỗi thứ tám: IP mượn từ đăng nhập thật của người khác có lịch sử hoạt động nhiều hơn IP mới thật của người dùng hợp lệ (39–45% có lượt thử khác trong 24h so với 29%). `rhythm` chủ yếu là tương tác thật "IP mới × khoảng cách ngắn" (mục 5.3). Chi tiết, ảnh hưởng đến recall (tối đa khoảng 6–12 điểm) và cách sửa: [`ml-explanations.md`](ml-explanations.md) mục 6. **Bài học:** kiểm định tổng thể có thể ≈ 0,5 trong khi kiểm định có điều kiện vào đặc điểm xác định của kẻ tấn công lộ ra dấu vân tay — luôn kiểm cả hai.
+
 
 ### 5.3 Giả định và giới hạn thẳng thắn
 
@@ -123,6 +125,7 @@ Tín hiệu còn lại của Targeted (recall 33% ở mô hình `tất cả`, đ
 - **Targeted là cận trên sức mạnh**: kẻ tấn công biết trọn hồ sơ phiên nhưng không biết IP. Kẻ tấn công bắt chước cả IP (proxy trên máy nạn nhân, đánh cắp phiên) là giới hạn đã biết của mọi hệ thống chấm điểm rủi ro theo thuộc tính đăng nhập.
 - Kết quả trên kẻ tấn công mô phỏng dùng để **so sánh các mô hình với nhau**, không phải bảo đảm ngoài đời. Bằng chứng ngoài duy nhất là 38 ca ATO thật của bộ dữ liệu (`ato/future`).
 - Hai đăng nhập giả có thể chung ASN/IP nên ảnh hưởng nhẹ lên đặc trưng của nhau (vài nghìn dòng chèn trên 22 triệu sự kiện).
+- **Dấu vân tay có điều kiện chưa sửa** (MR8, mục 5.2): kẻ tấn công mô phỏng luôn dùng IP mới và IP đó có lịch sử hoạt động nhiều hơn IP mới thật của người dùng hợp lệ; mọi recall trên kẻ tấn công mô phỏng là cận trên.
 
 ## 6. Tự kiểm chứng khung đánh giá
 

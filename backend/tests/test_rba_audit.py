@@ -67,3 +67,31 @@ def test_markdown_renderers_cover_every_group_and_the_top_features():
     assert all(group in table for group in ("all", *FEATURE_GROUPS))
     assert "%" in Au.to_markdown(result["recall"], percent=True)
     assert "`" in Au.top_markdown(result["top"]) and "naive" in Au.top_markdown(result["top"])
+
+
+def test_conditional_audit_finds_a_fingerprint_that_only_shows_among_new_ip_logins():
+    """Kẻ tấn công luôn dùng IP mới; đăng nhập hợp lệ chỉ 40% dùng IP mới và có lịch sử IP KHÁC hẳn — trộn hai nhóm hợp lệ thì trông giống kẻ tấn công."""
+    legit, attackers = make_world(seed=5, n_legit=8000, per_type=400)
+    rng = np.random.default_rng(5)
+    legit["new_ip"] = (rng.random(len(legit)) < 0.4).astype("float32")
+    legit["ip_prior_attempts_all"] = np.where(legit["new_ip"] == 1, rng.normal(-1.0, 1.0, len(legit)), rng.normal(0.7, 1.0, len(legit)))
+    attackers["new_ip"] = 1.0
+    attackers["ip_prior_attempts_all"] = rng.normal(0.0, 1.0, len(attackers))  # cùng phân phối với đăng nhập hợp lệ nói chung, khác đăng nhập hợp lệ dùng IP mới
+    attackers = attackers[attackers["attacker_type"] == "targeted"]  # kiểu hoàn toàn giống người thật ở mọi đặc trưng khác
+
+    marginal = Au.audit(legit, attackers, ("test",), negatives=8000)
+    conditional = Au.audit(legit, attackers, ("test",), negatives=8000, condition="new_ip")
+    assert marginal["auc"].loc["targeted", "infra_ip"] < 0.6  # kiểm định tổng thể không thấy gì
+    assert conditional["auc"].loc["targeted", "infra_ip"] > 0.65  # so với đăng nhập cùng dùng IP mới thì lộ (lý thuyết ≈ 0,76; mẫu nhỏ, chấm trên user giữ lại)
+    assert conditional["top"]["targeted"][0][0] == "ip_prior_attempts_all"
+    assert conditional["auc"].loc["targeted", "n"] == 400 == marginal["auc"].loc["targeted", "n"]  # mọi đăng nhập giả đều dùng IP mới
+    for group in set(Au.GROUPS) - {"infra_ip"}:
+        assert conditional["auc"].loc["targeted", group] < 0.62, group  # nhóm khác vẫn sạch
+
+
+def test_conditional_audit_drops_attackers_without_the_condition():
+    legit, attackers = make_world(seed=6, n_legit=3000, per_type=150)
+    legit["new_ip"], attackers["new_ip"] = 1.0, 1.0
+    attackers.loc[attackers.index[:60], "new_ip"] = 0.0  # 60 đăng nhập giả không dùng IP mới bị loại khỏi phép so
+    result = Au.audit(legit, attackers, ("test",), negatives=3000, condition="new_ip")
+    assert result["auc"]["n"].sum() == len(attackers) - 60
