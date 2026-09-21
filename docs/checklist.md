@@ -91,22 +91,24 @@ Ba nguồn bằng chứng: (1) **RBA** — mô hình tần suất/mới lạ, so
   - ⚠️ Điều chỉnh so với kế hoạch: cửa sổ và "trước đó" định nghĩa theo micro-giây strictly trước; thêm cờ `in_warmup` (14 ngày đầu); giai đoạn hạ tầng chia khối thời gian vì tính một lượt chạy siêu tuyến tính (30+ phút, treo do thiếu RAM); tránh `COUNT(*) FILTER` trong window DuckDB (chậm ~30 lần trên partition lớn)
 - [x] **MR4 [Lõi, M] Khung đánh giá nghiêm ngặt** — Xong khi: một lệnh sinh bảng kết quả chuẩn cho mọi model (`python -m ml.rba.report <mô hình|all>`). Chi tiết: [`rba-evaluation.md`](rba-evaluation.md)
   - [x] Chỉ số có trọng số: ROC-AUC, PR-AUC, recall tại FPR 1% và 0,1%, tỉ lệ xác thực lại tại TPR 90%/99%, cảnh báo/1.000 đăng nhập và cảnh báo/ngày ở recall 90%/99% (quy về toàn dân số) — khớp `scikit-learn` (18 test)
-  - [x] Mô phỏng kẻ tấn công Naive / VPN / Targeted chèn vào lịch sử user hợp lệ: 5.966 đăng nhập giả, tính đặc trưng bằng đúng pipeline MR3 ([`attackers.py`](../backend/ml/rba/attackers.py))
+  - [x] Mô phỏng kẻ tấn công Naive / VPN / Targeted thay thế đăng nhập thật của user hợp lệ, tính đặc trưng bằng đúng pipeline MR3 ([`attackers.py`](../backend/ml/rba/attackers.py)). ⚠️ **Đính chính ở MR6:** bản MR4 (5.966 đăng nhập giả) để lại "dấu vân tay" nên số liệu kẻ tấn công của CP1 sai; bản hiện tại (5.911 test + 16.162 train/val) sau bảy lần sửa và có công cụ kiểm định `ml/rba/audit.py` — [`rba-evaluation.md`](rba-evaluation.md) mục 5
   - [x] Khoảng tin cậy bootstrap theo cụm dương tính (IP cho bài IP tấn công, user cho ATO)
   - [x] Báo cáo tách riêng user chưa có lịch sử / mỏng (1–4) / dày (≥5) tại một ngưỡng chung cho FPR 1%
+  - [x] (MR6) Trọng số dân số `pop_weight` cho mọi chỉ số: mẫu user phân tầng nghiêng về user hoạt động nhiều nên tỉ lệ báo nhầm đo trên mẫu thô chưa đúng cho toàn dân số
   - ⚠️ Điều chỉnh: bootstrap chỉ lấy mẫu lại phía dương tính (tập âm tính hàng trăm nghìn dòng giữ cố định) để mỗi lần lấy mẫu O(P log P); nhóm "chưa có lịch sử" không có ở bài `attacker/*` vì nạn nhân luôn có ≥ 1 lần thành công; hồ sơ nạn nhân chọn tất định (hoà thì lấy giá trị nhỏ nhất) vì `mode()` của DuckDB không xác định khi đồng tần
 - [x] **MR5 [Lõi, M] Baseline (CP1)** — Xong khi: có bảng baseline và kết luận dữ liệu thật sự chứa tín hiệu gì. Kết quả và phân tích: [`ml-evaluation-v2.md`](ml-evaluation-v2.md), bảng đầy đủ [`rba-baseline-comparison.md`](rba-baseline-comparison.md)
   - [x] Cài lại mô hình Freeman et al. 2016 làm baseline học thuật (`freeman_all`, `freeman_no_ip`)
   - [x] Rule Tier 2 hiện tại (`tier2_current`, xấp xỉ bằng đặc trưng RBA) và luật đã tinh chỉnh ngưỡng trên train (`rules_tuned`: 18 luật, hồi quy logistic)
   - [x] Isolation Forest chạy trên đặc trưng mới, không dùng nhãn (`isolation_forest`)
-  - **Kết luận CP1:** dữ liệu chứa tín hiệu vượt xa Freeman và Tier 2 (ATO thật tương lai: Isolation Forest 0,95, Freeman 0,77, Tier 2 hiện tại 0,53 ≈ ngẫu nhiên); kẻ tấn công Targeted đánh bại mọi mô hình (ROC-AUC ≤ 0,62); 35% ATO nhắm vào tài khoản chưa có lịch sử nhưng độ hiếm quốc gia/ASN phân biệt được chúng (AUC 0,95–0,97)
-- [ ] **MR6 [Lõi, L] Mô hình và hybrid** — Xong khi: model card và bảng so với baseline MR5
-  - [ ] Unsupervised chỉ học từ đăng nhập hợp lệ: Isolation Forest, LOF/kNN-distance, Autoencoder
-  - [ ] Supervised gradient boosting (LightGBM) trên nhãn Attack IP, chia theo IP, class weight
-  - [ ] Đánh giá trên 141 ATO: recall ở ngân sách cảnh báo cố định
-  - [ ] Stacking/ensemble, hiệu chỉnh xác suất (isotonic/Platt), chọn ngưỡng theo mục tiêu
-  - [ ] Cá nhân hoá, toàn cục và fallback cold-start
-  - [ ] Mô hình B (địa lý-thời gian) trên simulator mở rộng, vì RBA không hỗ trợ
+  - **Kết luận CP1:** dữ liệu chứa tín hiệu vượt xa Freeman và Tier 2 (ATO thật tương lai: Isolation Forest 0,95, Freeman 0,77, Tier 2 hiện tại 0,53 ≈ ngẫu nhiên); kẻ tấn công Targeted đánh bại mọi baseline (⚠️ số kẻ tấn công mô phỏng đã đính chính ở MR6: Freeman 0,67, còn lại ≤ 0,54); 35% ATO nhắm vào tài khoản chưa có lịch sử nhưng độ hiếm quốc gia/ASN phân biệt được chúng (AUC 0,95–0,97)
+- [x] **MR6 [Lõi, L] Mô hình và hybrid** — Xong khi: model card và bảng so với baseline MR5. Model card: [`model-card-rba.md`](model-card-rba.md); kết quả và phân tích: [`ml-evaluation-v2.md`](ml-evaluation-v2.md); bảng đầy đủ 13 mô hình × 11 bài: [`rba-baseline-comparison.md`](rba-baseline-comparison.md)
+  - [x] Unsupervised chỉ học từ đăng nhập hợp lệ: Isolation Forest (MR5), kNN-distance (thay LOF: cùng họ nhưng chạy được trên hàng triệu dòng bằng phép nhân ma trận), Autoencoder 32-12-32 ([`models.py`](../backend/ml/rba/models.py))
+  - [x] Supervised LightGBM trên nhãn Attack IP (chia theo nhóm IP, trọng số dân số) và trên kẻ tấn công mô phỏng; mô hình gộp hai nguồn với tỉ trọng ρ chọn trên val
+  - [x] Đánh giá trên ATO thật: recall ở FPR 1% / 0,1%, khoảng tin cậy bootstrap. **Kết quả âm tính:** mô hình có giám sát không chuyển sang ATO thật (0% ở FPR 1%); Isolation Forest không nhãn bắt 42,1% [26–55%]
+  - [x] Hybrid "bất kỳ bộ phát hiện nào báo động" (3 thành phần có cổng, [`ensemble.py`](../backend/ml/rba/ensemble.py)), hiệu chỉnh isotonic, ngưỡng chọn trên val rồi chuyển sang test/late (FPR thực tế 0,92% / 0,85% cho mục tiêu 1%) — [`analysis.py`](../backend/ml/rba/analysis.py)
+  - [x] Cá nhân hoá và cold-start: `gbm_combined_global` (chỉ đặc trưng toàn cục) + bảng theo mức lịch sử. Cá nhân hoá quyết định chống chiếm tài khoản (AUC 0,94 → 0,51); hybrid không báo nhầm tài khoản mới nhiều hơn mức chung nhưng ATO ở đó (35%) chưa bắt được — khoảng trống còn lại
+  - ➡️ Mô hình B (địa lý-thời gian) **chuyển sang MR18**: cần thư viện kịch bản tấn công của MR18 và simulator hiện tại (`ml/generate_dataset.py`) dựa trên DB
+  - ⚠️ Điều chỉnh/bài học: (1) chọn nạn nhân, IP và hồ sơ của kẻ tấn công mô phỏng sai bảy lần (mô hình học cách mô phỏng, recall 100% giả tạo) — mỗi lỗi do `ml/rba/audit.py` chỉ ra; số kẻ tấn công của CP1 đã đính chính; (2) trọng số dân số; (3) bộ mô phỏng không thay thế được ATO thật: kết quả trên kẻ tấn công mô phỏng chỉ dùng để so sánh mô hình
 - [ ] **MR7 [Lõi, M] Kiểm chứng "kiểu tấn công mới" và ablation** — Xong khi: bảng ablation và kết luận trung thực
   - [ ] Giấu từng họ tấn công khỏi tập train (bot/device, Attack IP theo ASN, ATO), đo phần bắt được
   - [ ] Ablation theo nhóm đặc trưng để chứng minh không học đường tắt
@@ -173,7 +175,7 @@ Ba nguồn bằng chứng: (1) **RBA** — mô hình tần suất/mới lạ, so
   - [ ] Kịch bản: spray chậm, botnet phân tán, proxy cùng quốc gia, UA rotation, TK ngủ đông, Targeted mimic, enumeration, stuffing quy mô lớn, impossible travel
   - [ ] Runner chạy tất cả và ghi: có phát hiện không, thời gian phát hiện, bằng rule/ML/hybrid, số cảnh báo
   - [ ] Scorecard đưa vào báo cáo, **kể cả các ca hệ thống không bắt được**
-  - [ ] Dùng lại làm dữ liệu sinh cho mô hình B (MR6)
+  - [ ] Dùng lại làm dữ liệu sinh cho mô hình B (chuyển từ MR6 sang MR18)
 - [ ] **MR19 [Lõi, M] Tài liệu và nghiệm thu**
   - [ ] `docs/ml-evaluation-v2.md` (kết quả RBA, simulator, live; ablation; giới hạn), model card, data card, ma trận phủ hành vi
   - [ ] Bảng năng lực so với công cụ thương mại (từ tài liệu công khai) và so số với baseline học thuật

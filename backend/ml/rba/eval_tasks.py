@@ -34,6 +34,7 @@ from ml.rba.paths import RBA_DATA_DIR
 from ml.rba.sample import SAMPLE_PARQUET
 
 ATTACKERS_PARQUET = RBA_DATA_DIR / "rba_attackers.parquet"
+ATTACKERS_TRAINVAL_PARQUET = RBA_DATA_DIR / "rba_attackers_trainval.parquet"
 REPORT_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "rba_reports"
 
 # Tỉ lệ lấy mẫu user theo tầng (ml/rba/sample.py); user có ATO được lấy 100%
@@ -58,6 +59,17 @@ def load_model_table() -> pd.DataFrame:
     return df.merge(ips, on="row_id", how="left")
 
 
+def add_population_weights(df: pd.DataFrame) -> pd.DataFrame:
+    """Thêm cột `pop_weight`: trọng số quy về DÂN SỐ user (weight của dòng chia tỉ lệ lấy mẫu của tầng user).
+
+    Mẫu lấy 25% user hoạt động nhiều nhưng chỉ 5% user chỉ có 1 lần đăng nhập, nên tỉ lệ báo nhầm đo trên mẫu
+    thô lệch về user nhiều lịch sử. Mọi chỉ số dùng `pop_weight` để phản ánh đúng khi triển khai cho toàn bộ user.
+    Bảng không có cột `stratum` (dữ liệu thử nghiệm nhỏ) thì `pop_weight` = `weight`."""
+    out = df.copy()
+    out["pop_weight"] = population_weights(out) if "stratum" in out else out["weight"].to_numpy(dtype=float)
+    return out
+
+
 def _legit_success(df: pd.DataFrame) -> pd.Series:
     return (df["cur_success"] == 1) & ~df["is_attack_ip"] & ~df["is_ato"]
 
@@ -69,8 +81,16 @@ def _with_labels(frame: pd.DataFrame, y, cluster) -> pd.DataFrame:
     return out
 
 
-def build_tasks(df: pd.DataFrame, attackers: pd.DataFrame | None = None) -> dict[str, Task]:
-    df = df[~df["in_warmup"]]
+def build_tasks(
+    df: pd.DataFrame,
+    attackers: pd.DataFrame | None = None,
+    attackers_val: pd.DataFrame | None = None,
+) -> dict[str, Task]:
+    df = add_population_weights(df[~df["in_warmup"]])
+    if attackers is not None:
+        attackers = attackers.assign(pop_weight=1.0)  # mỗi đăng nhập giả là một cuộc tấn công giả định, trọng số 1
+    if attackers_val is not None:
+        attackers_val = attackers_val.assign(pop_weight=1.0)
     tasks: dict[str, Task] = {}
 
     for part in ("val", "test", "late"):
@@ -99,26 +119,43 @@ def build_tasks(df: pd.DataFrame, attackers: pd.DataFrame | None = None) -> dict
         _with_labels(frame, frame["is_ato"], frame["user_id"]),
     )
 
+    # Kẻ tấn công mô phỏng chỉ nhắm vào tài khoản đã có ít nhất 1 lần đăng nhập thành công (cần hồ sơ để mô phỏng),
+    # nên âm tính tương ứng cũng chỉ gồm đăng nhập của tài khoản đã có lịch sử — nếu không, "tài khoản mới" thành lối tắt.
+    legit_test_history = legit_test[legit_test["u_n_success"] >= 1]
     if attackers is not None:
         for kind in ("naive", "vpn", "targeted"):
             part = attackers[attackers["attacker_type"] == kind]
             if part.empty:
                 continue
-            frame = pd.concat([legit_test, part])
-            y = np.r_[np.zeros(len(legit_test), dtype=bool), np.ones(len(part), dtype=bool)]
-            cluster = np.r_[legit_test["user_id"].to_numpy(), part["user_id"].to_numpy()]
+            frame = pd.concat([legit_test_history, part])
+            y = np.r_[np.zeros(len(legit_test_history), dtype=bool), np.ones(len(part), dtype=bool)]
+            cluster = np.r_[legit_test_history["user_id"].to_numpy(), part["user_id"].to_numpy()]
             tasks[f"attacker/{kind}"] = Task(
                 f"attacker/{kind}",
-                f"{len(part)} đăng nhập kẻ tấn công mô phỏng '{kind}' so với đăng nhập hợp lệ thành công giai đoạn test",
+                f"{len(part)} đăng nhập kẻ tấn công mô phỏng '{kind}' so với đăng nhập hợp lệ thành công của tài khoản ĐÃ CÓ LỊCH SỬ, giai đoạn test",
+                _with_labels(frame, y, cluster),
+            )
+    if attackers_val is not None:
+        legit_val = df[(df["partition"] == "val") & _legit_success(df) & (df["u_n_success"] >= 1)]
+        for kind in ("naive", "vpn", "targeted"):
+            part = attackers_val[attackers_val["attacker_type"] == kind]
+            if part.empty:
+                continue
+            frame = pd.concat([legit_val, part])
+            y = np.r_[np.zeros(len(legit_val), dtype=bool), np.ones(len(part), dtype=bool)]
+            cluster = np.r_[legit_val["user_id"].to_numpy(), part["user_id"].to_numpy()]
+            tasks[f"attacker_val/{kind}"] = Task(
+                f"attacker_val/{kind}",
+                f"[CHỌN MÔ HÌNH] {len(part)} đăng nhập kẻ tấn công mô phỏng '{kind}' giai đoạn val so với đăng nhập hợp lệ thành công của tài khoản đã có lịch sử, giai đoạn val",
                 _with_labels(frame, y, cluster),
             )
     return tasks
 
 
-def evaluate_task(task: Task, scorer: Scorer, n_boot: int = 500, seed: int = 0) -> dict:
+def evaluate_task(task: Task, scorer: Scorer | None, n_boot: int = 500, seed: int = 0, scores: np.ndarray | None = None) -> dict:
     frame = task.frame
-    score = np.asarray(scorer(frame), dtype=float)
-    weight = frame["weight"].to_numpy() if "weight" in frame and frame["weight"].notna().all() else None
+    score = np.asarray(scorer(frame) if scores is None else scores, dtype=float)
+    weight = frame["pop_weight"].to_numpy() if "pop_weight" in frame and frame["pop_weight"].notna().all() else None
     result = M.evaluate(frame["y"].to_numpy(), score, weight, frame["cluster"].to_numpy(), n_boot=n_boot, seed=seed)
     out = {
         "task": task.name,
@@ -128,9 +165,18 @@ def evaluate_task(task: Task, scorer: Scorer, n_boot: int = 500, seed: int = 0) 
         "metrics": {k: {"value": v, "ci95": list(result.ci[k])} for k, v in result.values.items()},
         "by_history": breakdown_by_history(frame, score, weight, fpr_target=0.01),
     }
-    if "stratum" in frame:
+    if "pop_weight" in frame and "stratum" in frame:
         out["alert_volume"] = [alert_volume(frame, score, target) for target in (0.90, 0.99)]
     return out
+
+
+def point_metrics(task: Task, scores: np.ndarray) -> dict[str, float]:
+    """Chỉ số điểm (không bootstrap) — nhanh, dùng để chọn mô hình trên val."""
+    frame = task.frame
+    y = frame["y"].to_numpy()
+    w = frame["pop_weight"].to_numpy()
+    ref = M.NegativeReference.build(scores[~y], w[~y])
+    return M.compute_metrics(ref, scores[y], w[y])
 
 
 def breakdown_by_history(frame: pd.DataFrame, score: np.ndarray, weight, fpr_target: float) -> list[dict]:
@@ -170,10 +216,9 @@ def alert_volume(frame: pd.DataFrame, score: np.ndarray, recall_target: float) -
     """Ở ngưỡng bắt được recall_target ca tấn công, sẽ có bao nhiêu cảnh báo mỗi 1.000 lần đăng nhập và mỗi ngày
     (ước lượng cho toàn bộ dân số user RBA được chấm điểm, không tính tài khoản không tồn tại)."""
     y = frame["y"].to_numpy()
-    weight = frame["weight"].to_numpy()
-    tau = M.threshold_for_recall(score[y], weight[y], recall_target)
+    pop = frame["pop_weight"].to_numpy()
+    tau = M.threshold_for_recall(score[y], pop[y], recall_target)
     flagged = score >= tau
-    pop = population_weights(frame)
     days = max((frame["ts"].max() - frame["ts"].min()).total_seconds() / 86400, 1.0)
     return {
         "recall_target": recall_target,
@@ -183,8 +228,21 @@ def alert_volume(frame: pd.DataFrame, score: np.ndarray, recall_target: float) -
     }
 
 
+def score_all_tasks(scorer: Scorer, tasks: dict[str, Task]) -> dict[str, np.ndarray]:
+    """Chấm điểm MỘT LẦN cho hợp các dòng của mọi bài (nhiều bài dùng chung các dòng hợp lệ), rồi tách theo bài."""
+    union = pd.concat([t.frame for t in tasks.values()]).drop_duplicates("row_id")
+    values = np.asarray(scorer(union), dtype=float)
+    by_row = pd.Series(values, index=union["row_id"].to_numpy())
+    return {name: by_row.loc[t.frame["row_id"].to_numpy()].to_numpy() for name, t in tasks.items()}
+
+
 def run_report(scorer_name: str, scorer: Scorer, tasks: dict[str, Task], n_boot: int = 500) -> dict:
-    return {"scorer": scorer_name, "features": len(FEATURE_NAMES), "tasks": [evaluate_task(t, scorer, n_boot) for t in tasks.values()]}
+    scores = score_all_tasks(scorer, tasks)
+    return {
+        "scorer": scorer_name,
+        "features": len(FEATURE_NAMES),
+        "tasks": [evaluate_task(t, None, n_boot, scores=scores[name]) for name, t in tasks.items()],
+    }
 
 
 def _fmt(metric: dict, pct: bool = True) -> str:

@@ -66,7 +66,9 @@ def main() -> int:
 
     df = eval_tasks.load_model_table()
     attackers = pd.read_parquet(eval_tasks.ATTACKERS_PARQUET) if eval_tasks.ATTACKERS_PARQUET.is_file() else None
-    tasks = eval_tasks.build_tasks(df, attackers)
+    trainval = pd.read_parquet(eval_tasks.ATTACKERS_TRAINVAL_PARQUET) if eval_tasks.ATTACKERS_TRAINVAL_PARQUET.is_file() else None
+    attackers_val = None if trainval is None else trainval[trainval["period"] == "val"]
+    tasks = eval_tasks.build_tasks(df, attackers, attackers_val)
     print(f"Các bài: {', '.join(tasks)}", flush=True)
 
     reports = []

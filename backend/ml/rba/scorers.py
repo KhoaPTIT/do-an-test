@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from typing import Callable
 
+import joblib
 import numpy as np
 import pandas as pd
 
-from ml.rba import baselines
+from ml.rba import baselines, models
 from ml.rba.eval_tasks import Scorer
 from ml.rba.features import FREEMAN_ATTRS
 
@@ -33,3 +34,21 @@ SCORER_FACTORIES: dict[str, Callable[[pd.DataFrame], Scorer]] = {
     "rules_tuned": lambda df: baselines.fit_tuned_rules(df),
     "isolation_forest": lambda df: baselines.IsolationForestScorer().fit(df),
 }
+
+
+def _artifact(name: str) -> Callable[[pd.DataFrame], Scorer]:
+    """Nạp mô hình đã huấn luyện bởi `python -m ml.rba.train` (LightGBM lưu .txt/.json, còn lại .joblib)."""
+
+    def factory(df: pd.DataFrame) -> Scorer:
+        if (models.ARTIFACT_DIR / f"{name}.txt").exists():
+            return models.GbmScorer.load(name)
+        path = models.ARTIFACT_DIR / f"{name}.joblib"
+        if path.exists():
+            return joblib.load(path)
+        raise FileNotFoundError(f"Chưa có mô hình {name} — chạy `python -m ml.rba.train` trước")
+
+    return factory
+
+
+for _name in ("gbm_attack_ip", "gbm_attacker_sim", "gbm_combined", "gbm_combined_global", "knn_distance", "autoencoder", "hybrid"):
+    SCORER_FACTORIES[_name] = _artifact(_name)

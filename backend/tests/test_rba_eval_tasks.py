@@ -123,3 +123,63 @@ def test_comparison_markdown_puts_every_scorer_side_by_side_per_task(tasks):
     assert text.count("#### `attack_ip/test`") == 1 and text.count("#### `ato/future`") == 1
     assert text.count("`mo_hinh_a`") == 2 and text.count("`mo_hinh_b`") == 2  # mỗi mô hình một dòng ở mỗi bảng
     assert "Xác thực lại @TPR 99%" in text
+
+
+def test_population_weights_correct_the_false_alert_rate_for_uneven_sampling():
+    heavy = pd.DataFrame({"stratum": "heavy", "forced": False, "weight": 1.0, "s": 1.0, "y": False}, index=range(1000))
+    single = pd.DataFrame({"stratum": "single", "forced": False, "weight": 1.0, "s": 0.0, "y": False}, index=range(1000, 2000))
+    attack = pd.DataFrame({"stratum": "heavy", "forced": False, "weight": 1.0, "s": 1.0, "y": True}, index=range(2000, 2010))
+    frame = pd.concat([heavy, single, attack])
+    frame["row_id"] = np.arange(len(frame))
+    frame["cluster"] = np.arange(len(frame))
+    frame["u_n_success"] = 5.0
+    frame["ts"] = pd.Timestamp("2020-10-01")
+    frame = E.add_population_weights(frame)
+    assert set(frame.loc[~frame["y"] & (frame["stratum"] == "heavy"), "pop_weight"]) == {4.0}
+    assert set(frame.loc[frame["stratum"] == "single", "pop_weight"]) == {20.0}
+
+    result = E.evaluate_task(E.Task("demo", "demo", frame), lambda f: f["s"].to_numpy(), n_boot=10)
+    # user "heavy" (bị báo nhầm) chiếm 4.000 / 24.000 dân số, không phải 1.000 / 2.000 của mẫu thô
+    assert result["metrics"]["reauth@tpr=0.99"]["value"] == pytest.approx(4000 / 24000)
+
+
+def test_scoring_once_over_all_tasks_gives_the_same_results_as_scoring_each_task(tasks):
+    scorer = lambda f: f["llr_sum"].to_numpy() + 0.0 * f["row_id"].to_numpy()
+    subset = {k: tasks[k] for k in ("attack_ip/test", "ato/future")}
+    cached = E.run_report("x", scorer, subset, n_boot=20)
+    for task_report in cached["tasks"]:
+        direct = E.evaluate_task(subset[task_report["task"]], scorer, n_boot=20)
+        assert task_report["metrics"]["roc_auc"]["value"] == pytest.approx(direct["metrics"]["roc_auc"]["value"], abs=1e-12)
+        assert task_report["metrics"]["pr_auc"]["value"] == pytest.approx(direct["metrics"]["pr_auc"]["value"], abs=1e-12)
+
+
+def test_validation_attacker_tasks_use_val_negatives_and_are_flagged_as_model_selection():
+    df = make_table()
+    rng = np.random.default_rng(1)
+    val_rows = df[(df["partition"] == "val") & (df["cur_success"] == 1)].head(30)
+    fake = val_rows.assign(row_id=10**9 + np.arange(len(val_rows)), attacker_type=rng.choice(["naive", "vpn", "targeted"], len(val_rows)), period="val", partition="attacker")
+    tasks = E.build_tasks(df, attackers=None, attackers_val=fake)
+    names = {n for n in tasks if n.startswith("attacker_val/")}
+    assert names == {"attacker_val/naive", "attacker_val/vpn", "attacker_val/targeted"}
+    frame = tasks["attacker_val/naive"].frame
+    assert set(frame.loc[~frame["y"], "partition"]) == {"val"} and (frame.loc[frame["y"], "pop_weight"] == 1.0).all()
+    assert "CHỌN MÔ HÌNH" in tasks["attacker_val/naive"].description
+
+
+def test_summary_matrices_are_generated_from_saved_reports(tmp_path, tasks):
+    import json
+
+    from ml.rba import summary
+
+    subset = {k: tasks[k] for k in ("attack_ip/test", "ato/future")}
+    for name, sign in (("mo_hinh_a", 1), ("mo_hinh_b", -1)):
+        report = E.run_report(name, lambda f, s=sign: s * f["llr_sum"].to_numpy(), subset, n_boot=15)
+        (tmp_path / f"{name}.json").write_text(json.dumps(report), encoding="utf-8")
+    (tmp_path / "comparison.md").write_text("bỏ qua", encoding="utf-8")
+
+    reports = summary.load_reports(tmp_path)
+    assert [r["scorer"] for r in reports] == ["mo_hinh_a", "mo_hinh_b"]
+    text = summary.matrix_markdown(reports, "roc_auc", "ROC-AUC", pct=False, with_ci=True)
+    assert text.count("`mo_hinh_a`") == 1 and "`attack_ip/test`" in text and "[" in text
+    history = summary.history_markdown(reports, "ato/future")
+    assert "Chưa có lịch sử" in history and history.count("`mo_hinh_") == 2
