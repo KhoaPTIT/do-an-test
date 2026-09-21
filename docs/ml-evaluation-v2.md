@@ -41,6 +41,8 @@ Các con số dưới đây đều ở **FPR 1%** (chỉ báo nhầm 1% đăng n
 5. **Hybrid không báo nhầm tài khoản mới nhiều hơn mức chung** (0,56% ở ngưỡng chung cho FPR 1%; Isolation Forest 0,29%) **nhưng cũng chưa có mô hình nào bắt được ATO ở tài khoản chưa có lịch sử** (35% số ATO; 0/46 ở hybrid và mọi mô hình có giám sát, 1/46 ở Isolation Forest và Autoencoder). Đây là giới hạn chưa giải quyết.
 6. **Ngưỡng chọn trên val giữ đúng mức báo nhầm** ở test và ở giai đoạn trôi phân phối (hybrid, mục tiêu 1%: 0,92% ở test, 0,85% ở late).
 
+7. **Kiểm chứng thêm ở MR7** ([`ml-holdout-ablation.md`](ml-holdout-ablation.md)): giấu một họ IP tấn công khỏi huấn luyện thì LightGBM gần như mất khả năng bắt họ đó (0,0–1,1% ở 5 trong 6 họ mà nó bắt được khi đã thấy); chỉ với kẻ tấn công mô phỏng mới tổng quát một phần (giữ 30–91%). Một luật một đặc trưng `rare_asn` (không học) bắt 65,8% ATO tương lai, hơn mọi mô hình ở đây.
+
 Mọi kết luận chịu các giới hạn ở mục 8: dữ liệu **tổng hợp**, chỉ **38** ATO tương lai (khoảng tin cậy rộng), và kẻ tấn công mô phỏng là chuẩn so sánh, không phải bảo đảm.
 
 ## 1. Các mô hình và cách chọn
@@ -198,7 +200,7 @@ Giai đoạn test 09–11/2020 (tương lai so với train/val), ngưỡng và t
 | `hybrid` | 26.3% [13%–39%] | 23.8% [16%–32%] |
 
 - **Isolation Forest không nhãn là mô hình tốt nhất trên ATO thật**: ROC-AUC 0,953 [0,93–0,97], bắt 42,1% [26–55%] ca ở FPR 1%. Hybrid 0,923 [0,87–0,96], 26,3% [13–39%]; khoảng tin cậy của hai mô hình chồng nhau nên không kết luận được chúng khác nhau. Cả hai hơn rõ Freeman (0,759 [0,66–0,83], 15,8%), luật tinh chỉnh (0,735, 0%) và Tier 2 (0,532, 0%).
-- **Các mô hình có giám sát không chuyển sang ATO thật ở FPR thấp**: `gbm_attack_ip` và `gbm_attacker_sim` đạt ROC-AUC 0,84 và 0,72 nhưng recall@FPR 1% bằng **0%**; `gbm_combined` 7,9%. Nguyên nhân (quan sát, chưa kiểm chứng riêng): ATO thật của bộ dữ liệu dùng nhà mạng và quốc gia cực hiếm (trung vị nhà mạng của chúng có 0 lượt thử trong 24 giờ trước, so với 14.463 của đăng nhập hợp lệ), khác cả lưu lượng IP tấn công (đông, nhiều lượt) lẫn kẻ tấn công mô phỏng (mượn nhà mạng phổ biến của đăng nhập thật); Isolation Forest coi "hiếm" là bất thường nên bắt được. Kẻ tấn công ngoài đời hay dùng nhà mạng phổ biến hơn, nên **điểm cao của Isolation Forest trên ATO thật của bộ dữ liệu này có thể lạc quan** so với thực tế.
+- **Các mô hình có giám sát không chuyển sang ATO thật ở FPR thấp**: `gbm_attack_ip` và `gbm_attacker_sim` đạt ROC-AUC 0,84 và 0,72 nhưng recall@FPR 1% bằng **0%**; `gbm_combined` 7,9%. Nguyên nhân (MR7 xác nhận ở [`ml-holdout-ablation.md`](ml-holdout-ablation.md) mục 4.3 và 5.1: bỏ nhóm độ hiếm/mới lạ/ASN làm Isolation Forest mất khả năng bắt ATO): ATO thật của bộ dữ liệu dùng nhà mạng và quốc gia cực hiếm (trung vị nhà mạng của chúng có 0 lượt thử trong 24 giờ trước, so với 14.463 của đăng nhập hợp lệ), khác cả lưu lượng IP tấn công (đông, nhiều lượt) lẫn kẻ tấn công mô phỏng (mượn nhà mạng phổ biến của đăng nhập thật); Isolation Forest coi "hiếm" là bất thường nên bắt được. Kẻ tấn công ngoài đời hay dùng nhà mạng phổ biến hơn, nên **điểm cao của Isolation Forest trên ATO thật của bộ dữ liệu này có thể lạc quan** so với thực tế.
 - **Thành phần nào làm nên kết quả hybrid** (ngưỡng hybrid chọn trên val cho FPR 1%): trong 26,3% ATO thật hybrid bắt được, 23,7 điểm phần trăm do `bat_thuong` (Isolation Forest) và 2,6 do `chiem_tai_khoan`; `ip_tan_cong` không bắt ca nào. Ngược lại 11,8/12,0 điểm phần trăm IP tấn công do `ip_tan_cong`, và gần như toàn bộ kẻ tấn công mô phỏng do `chiem_tai_khoan` (mục 6).
 
 ## 4. Cá nhân hoá và tài khoản mới (cold-start)
@@ -305,7 +307,7 @@ Phân công rõ ràng: mỗi họ tấn công do đúng một bộ phát hiện 
 - **Chỉ 38 ATO tương lai**: khoảng tin cậy rộng (Isolation Forest 26–55%; hybrid 13–39% ở FPR 1%). Kết luận định tính (không giám sát > có giám sát trên ATO thật; mọi mô hình học > Tier 2) vững vì khoảng tin cậy không chồng; thứ hạng giữa Isolation Forest và hybrid thì không.
 - **Kẻ tấn công mô phỏng là chuẩn so sánh, không phải bảo đảm**: hoà lẫn về hạ tầng, đăng nhập đúng nhịp của nạn nhân, Targeted biết trọn hồ sơ phiên. Mô hình học từ chính họ mô phỏng này nên có lợi thế; số tuyệt đối không suy ra được cho kẻ tấn công thật. Bộ mô phỏng đã qua kiểm định dấu vân tay (mục 5.2 của [`rba-evaluation.md`](rba-evaluation.md)) nhưng kiểm định chỉ bắt được lối tắt theo nhóm đặc trưng, không chứng minh không còn lối tắt nào.
 - **Kẻ tấn công bắt chước cả IP** (proxy trên máy nạn nhân, đánh cắp phiên) nằm ngoài phạm vi và là giới hạn đã biết của chấm điểm theo thuộc tính đăng nhập.
-- **Chưa đo tấn công "kiểu mới" theo họ** (giấu một họ khỏi tập huấn luyện) — việc của MR7; các nhận định "phát hiện được cái chưa thấy" chỉ dựa trên Isolation Forest/ATO thật ở trên.
+- **Kiểu tấn công mới** đã đo ở MR7 ([`ml-holdout-ablation.md`](ml-holdout-ablation.md)): mô hình có giám sát không bắt được họ IP tấn công chưa thấy (0,0–1,1% ở 5/6 họ bắt được khi đã thấy; bộ phát hiện không nhãn cao nhất 10,1%). **Không tuyên bố "phát hiện được tấn công mới"**; chỉ nói hệ thống cần huấn luyện lại khi có họ mới.
 - **Tài khoản mới**: xem mục 4.
 
 ## Tái lập

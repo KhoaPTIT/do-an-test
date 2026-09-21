@@ -90,7 +90,9 @@ Hiệu chỉnh xác suất (isotonic, học trên val) cho `gbm_attack_ip`: Brie
 4. **Tài khoản chưa có lịch sử**: hybrid không báo nhầm chúng nhiều hơn mức chung (0,56%), nhưng ATO ở đó (35% số ATO) hầu như không bị phát hiện (0/46 ở hybrid).
 5. **Kẻ tấn công mô phỏng** hoà lẫn về hạ tầng, đăng nhập đúng nhịp của nạn nhân, Targeted biết trọn hồ sơ phiên; mô hình học từ họ mô phỏng nên có lợi thế; kẻ tấn công bắt chước cả IP nằm ngoài phạm vi. Kiểm định dấu vân tay chỉ bắt được lối tắt theo nhóm đặc trưng.
 6. **Trôi phân phối**: recall giảm ở `late` (IP tấn công 12,1% → 7,1% ở ngưỡng cố định) dù mức báo nhầm giữ đúng; cần huấn luyện lại và hiệu chỉnh lại định kỳ.
-7. **Chưa đo "kiểu tấn công mới"** (giấu một họ khỏi tập huấn luyện) và chưa có giải thích từng cảnh báo — MR7 và MR8.
+7. **Không tổng quát sang họ IP tấn công chưa thấy** (MR7, [`ml-holdout-ablation.md`](ml-holdout-ablation.md)): giấu một họ khỏi huấn luyện thì `gbm_attack_ip` bắt 0,0–1,1% họ đó ở 5/6 họ bắt được khi đã thấy (15–56%); bộ phát hiện không nhãn tối đa 10,1%. Với kẻ tấn công mô phỏng tổng quát một phần (giữ 30–91%). Hệ thống cần huấn luyện lại khi có họ mới; **không tuyên bố phát hiện được tấn công mới**.
+8. **Trên ATO của RBA một luật `rare_asn` không học bắt 65,8% (38 ca tương lai), hơn hybrid (26,3%)**: chẩn đoán chọn sau khi thấy ATO nên không công bằng, nhưng cho thấy ATO của bộ dữ liệu "dễ" theo một dấu hiệu duy nhất; không được dùng con số hybrid trên ATO để tuyên bố AI hơn luật.
+9. **Giới hạn với Targeted**: bắt 58,9% khi kẻ tấn công đăng nhập trong 1 phút sau lần thành công trước, 6,5% khi cách > 30 ngày. Chưa có giải thích từng cảnh báo — MR8.
 
 ## 8. Tái lập
 

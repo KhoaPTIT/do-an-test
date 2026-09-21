@@ -109,11 +109,12 @@ Ba nguồn bằng chứng: (1) **RBA** — mô hình tần suất/mới lạ, so
   - [x] Cá nhân hoá và cold-start: `gbm_combined_global` (chỉ đặc trưng toàn cục) + bảng theo mức lịch sử. Cá nhân hoá quyết định chống chiếm tài khoản (AUC 0,94 → 0,51); hybrid không báo nhầm tài khoản mới nhiều hơn mức chung nhưng ATO ở đó (35%) chưa bắt được — khoảng trống còn lại
   - ➡️ Mô hình B (địa lý-thời gian) **chuyển sang MR18**: cần thư viện kịch bản tấn công của MR18 và simulator hiện tại (`ml/generate_dataset.py`) dựa trên DB
   - ⚠️ Điều chỉnh/bài học: (1) chọn nạn nhân, IP và hồ sơ của kẻ tấn công mô phỏng sai bảy lần (mô hình học cách mô phỏng, recall 100% giả tạo) — mỗi lỗi do `ml/rba/audit.py` chỉ ra; số kẻ tấn công của CP1 đã đính chính; (2) trọng số dân số; (3) bộ mô phỏng không thay thế được ATO thật: kết quả trên kẻ tấn công mô phỏng chỉ dùng để so sánh mô hình
-- [ ] **MR7 [Lõi, M] Kiểm chứng "kiểu tấn công mới" và ablation** — Xong khi: bảng ablation và kết luận trung thực
-  - [ ] Giấu từng họ tấn công khỏi tập train (bot/device, Attack IP theo ASN, ATO), đo phần bắt được
-  - [ ] Ablation theo nhóm đặc trưng để chứng minh không học đường tắt
-  - [ ] Phân tích lỗi: các ca ATO bị bỏ sót và báo nhầm tiêu biểu
-  - [ ] Ghi thẳng giới hạn với Targeted attacker
+- [x] **MR7 [Lõi, M] Kiểm chứng "kiểu tấn công mới" và ablation** — Xong khi: bảng ablation và kết luận trung thực. Kết quả: [`ml-holdout-ablation.md`](ml-holdout-ablation.md)
+  - [x] Giấu từng họ tấn công khỏi tập train (8 họ IP tấn công theo hành vi/nhà mạng/quốc gia/thiết bị; 4 cách giấu kiểu kẻ tấn công mô phỏng; ATO thật là họ chưa thấy theo thiết kế), đo phần bắt được ([`holdout.py`](../backend/ml/rba/holdout.py)). ⚠️ RBA gần như không có thiết bị bot (2 dòng) nên "bot/device" thay bằng loại thiết bị. **Kết quả:** LightGBM chưa thấy họ IP tấn công bắt 0,0–1,1% ở 5/6 họ (15–56% khi đã thấy); bộ phát hiện không nhãn tối đa 10,1%; kẻ tấn công mô phỏng tổng quát một phần (giữ 30–91%)
+  - [x] Ablation theo nhóm đặc trưng cho LightGBM IP tấn công, LightGBM kẻ tấn công mô phỏng và Isolation Forest trên ATO ([`ablation.py`](../backend/ml/rba/ablation.py)): mô hình học từ kẻ tấn công mô phỏng không có nhóm "đường tắt" nào tự mang tín hiệu (0,0–1,7%); Isolation Forest bắt ATO nhờ mới lạ/độ hiếm nhà mạng, bỏ nhóm hạ tầng IP tăng gần gấp đôi recall ATO
+  - [x] Phân tích lỗi ([`errors.py`](../backend/ml/rba/errors.py)): 103/130 ATO bị bỏ sót (0/46 tài khoản chưa có lịch sử) nhưng một luật `rare_asn` không học bắt 65,8% ATO tương lai; báo nhầm dồn vào đăng nhập từ quốc gia/nhà mạng mới (gấp 3,5 lần mức chung)
+  - [x] Ghi thẳng giới hạn với Targeted: bắt 58,9% khi đăng nhập trong 1 phút sau lần trước, 6,5% khi cách > 30 ngày; sàn lý thuyết khi kẻ tấn công dùng cả IP của nạn nhân
+  - ⚠️ Phát hiện cần quyết ở CP2: chọn lại nhóm đặc trưng cho từng thành phần trên val hoặc trên 92 ca ATO quá khứ (cần đồng ý vì trái quy tắc "ATO không dùng để chọn"); thêm rule "nhà mạng cực hiếm" ở MR9
 - [ ] **MR8 [Lõi, M] Giải thích và model card (CP2)**
   - [ ] SHAP cho LightGBM; z-score fallback cho unsupervised
   - [ ] Câu tiếng Việt ngắn từ top-3 yếu tố, kèm so sánh "thường … hôm nay …" (giữ định dạng rút gọn hiện tại)

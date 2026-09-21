@@ -147,12 +147,17 @@ _COUNT_LIKE = [
 class IsolationForestScorer:
     """Isolation Forest học trên đăng nhập BÌNH THƯỜNG của train (không IP tấn công, không ATO). Không dùng nhãn."""
 
-    def __init__(self, n_estimators: int = 300, max_samples: int = 2048, sample_rows: int = 400_000):
+    def __init__(self, n_estimators: int = 300, max_samples: int = 2048, sample_rows: int = 400_000, features=None):
         self.n_estimators, self.max_samples, self.sample_rows = n_estimators, max_samples, sample_rows
+        self.features = list(features) if features else None  # None = cả 50 đặc trưng (dùng cho ablation theo nhóm ở MR7)
+
+    def _names(self) -> list[str]:
+        return getattr(self, "features", None) or FEATURE_NAMES  # đối tượng lưu trước MR7 không có thuộc tính `features`
 
     def _prepare(self, frame: pd.DataFrame) -> np.ndarray:
-        x = frame[FEATURE_NAMES].to_numpy(dtype=float).copy()
-        for i, name in enumerate(FEATURE_NAMES):
+        names = self._names()
+        x = frame[names].to_numpy(dtype=float).copy()
+        for i, name in enumerate(names):
             if name in _COUNT_LIKE:
                 x[:, i] = np.log1p(np.maximum(np.nan_to_num(x[:, i], nan=0.0), 0.0))
         x = np.where(np.isnan(x), self.medians_, x)
@@ -162,8 +167,9 @@ class IsolationForestScorer:
         train = training_rows(df)
         legit = train[~train["is_attack_ip"] & ~train["is_ato"]]
         legit = legit.sample(min(self.sample_rows, len(legit)), random_state=RANDOM_STATE)
-        raw = legit[FEATURE_NAMES].to_numpy(dtype=float).copy()
-        for i, name in enumerate(FEATURE_NAMES):
+        names = self._names()
+        raw = legit[names].to_numpy(dtype=float).copy()
+        for i, name in enumerate(names):
             if name in _COUNT_LIKE:
                 raw[:, i] = np.log1p(np.maximum(np.nan_to_num(raw[:, i], nan=0.0), 0.0))
         self.medians_ = np.nanmedian(raw, axis=0)
