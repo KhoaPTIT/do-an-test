@@ -1,4 +1,4 @@
-"""Đo chất lượng giải thích cảnh báo (MR8):  python -m ml.rba.explain_eval [reference|faithfulness|global|examples|operating|latency|all]
+"""Đo chất lượng giải thích cảnh báo (MR8):  python -m ml.rba.explain_eval [reference|faithfulness|global|examples|operating|latency|all] [--hybrid TÊN]
 
 1. `faithfulness` — phép thử "XOÁ / GIỮ YẾU TỐ". Giải thích chỉ có ích nếu nó trỏ đúng thứ MÔ HÌNH dựa vào. Với các đăng nhập bị hybrid báo,
    chấm lại đúng thành phần đã báo sau khi đưa một số yếu tố về mức "thường thấy" của đăng nhập hợp lệ:
@@ -11,7 +11,8 @@
 4. `operating` — ngưỡng vận hành, số cảnh báo nhầm trên 10.000 đăng nhập, độ chính xác cảnh báo theo tỉ lệ tấn công giả định.
 5. `latency` — thời gian giải thích MỘT cảnh báo (từng dòng một, như luồng realtime sẽ gọi).
 
-Chỉ dùng phân vùng `test` (và `val` để chọn ngưỡng); kết quả ghi vào backend/ml/artifacts/rba_mr8/. Đây là kiểm tra trung thực của giải thích, KHÔNG
+Chỉ dùng phân vùng `test` (và `val` để chọn ngưỡng). Mặc định chạy trên `hybrid_cp2` (chốt ở CP2, ml/rba/selection.py) và ghi vào
+backend/ml/artifacts/rba_cp2/explain/; `--hybrid hybrid` chạy trên hybrid MR6 và ghi vào backend/ml/artifacts/rba_mr8/. Đây là kiểm tra trung thực của giải thích, KHÔNG
 phải chỉ số phát hiện; các cảnh báo được chọn ở đây là cảnh báo của test nên độ phủ ATO/IP tấn công vẫn theo các báo cáo MR6–MR7.
 """
 
@@ -33,7 +34,9 @@ from ml.rba import ensemble as En
 from ml.rba import explain as Ex
 from ml.rba.features import FEATURE_NAMES, FREEMAN_ATTRS, RBA_CATCHALL_USER_ID, EventRecord
 
-OUT_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "rba_mr8"
+OUT_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "rba_mr8"  # kết quả cho hybrid MR6 (`--hybrid hybrid`)
+CP2_OUT_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "rba_cp2" / "explain"  # kết quả cho hybrid chốt ở CP2
+HYBRID_NAME = "hybrid_cp2"
 FPR_TARGETS = (0.01, 0.001)
 N_RANDOM = 5  # số lần bốc ngẫu nhiên cho nhóm đối chứng
 MAX_HISTORY_EVENTS = 5_000  # user có quá nhiều sự kiện (thùng "tài khoản không tồn tại", user khổng lồ) không dựng ngữ cảnh
@@ -53,10 +56,11 @@ class World:
         self.explainer = Ex.HybridExplainer(hybrid, reference, self.threshold)
 
     @classmethod
-    def load(cls, target_fpr: float = 0.01) -> "World":
-        """Nạp bảng đặc trưng, kẻ tấn công mô phỏng và hybrid đã huấn luyện (`python -m ml.rba.train`) từ đĩa."""
+    def load(cls, target_fpr: float = 0.01, hybrid_name: str = HYBRID_NAME) -> "World":
+        """Nạp bảng đặc trưng, kẻ tấn công mô phỏng và hybrid đã huấn luyện từ đĩa (`hybrid`: MR6 — `python -m ml.rba.train`;
+        `hybrid_cp2`: bản chốt ở CP2 — `python -m ml.rba.selection`)."""
         df = eval_tasks.add_population_weights(eval_tasks.load_model_table())
-        return cls(df, pd.read_parquet(eval_tasks.ATTACKERS_PARQUET), joblib.load(models.ARTIFACT_DIR / "hybrid.joblib"), load_or_build_reference(df), target_fpr)
+        return cls(df, pd.read_parquet(eval_tasks.ATTACKERS_PARQUET), joblib.load(models.ARTIFACT_DIR / f"{hybrid_name}.joblib"), load_or_build_reference(df), target_fpr)
 
     def flagged(self, frame: pd.DataFrame) -> pd.DataFrame:
         return frame[self.hybrid(frame) > self.threshold]
@@ -109,8 +113,8 @@ def component_score(component: En.Component, frame: pd.DataFrame) -> np.ndarray:
     return -np.log10(component.calibrator.tail(component.scorer(frame)))
 
 
-def _complement(sets: Sequence[Sequence[str]]) -> list[list[str]]:
-    return [[c for c in Ex.EXPLAINABLE_CONCEPTS if c not in set(s)] for s in sets]
+def _complement(sets: Sequence[Sequence[str]], universe: Sequence[str] = Ex.EXPLAINABLE_CONCEPTS) -> list[list[str]]:
+    return [[c for c in universe if c not in set(s)] for s in sets]
 
 
 def deletion_test(explainer: Ex.HybridExplainer, frame: pd.DataFrame, explanations: Sequence[Ex.Explanation], seed: int = 0, n_random: int = N_RANDOM) -> list[dict]:
@@ -118,7 +122,6 @@ def deletion_test(explainer: Ex.HybridExplainer, frame: pd.DataFrame, explanatio
     tỉ lệ cảnh báo CÒN khi chỉ giữ các yếu tố nêu ra (`sufficiency_k`), tỉ lệ điểm còn lại khi chỉ giữ chúng (`retention_k`; điểm cảnh báo sát
     ngưỡng nên "còn cảnh báo" là phép thử khắt khe, tỉ lệ điểm cho biết các yếu tố nêu ra giải thích được bao nhiêu phần) và điểm tụt khi xoá
     (`drop_k`) — cho giải thích / ngẫu nhiên / quan trọng toàn cục."""
-    concepts = Ex.EXPLAINABLE_CONCEPTS
     rows = []
     for component in explainer.hybrid.components:
         index = [i for i, e in enumerate(explanations) if e.component == component.name]
@@ -130,13 +133,16 @@ def deletion_test(explainer: Ex.HybridExplainer, frame: pd.DataFrame, explanatio
         before = component_score(component, sub)
 
         attr = Ex.attribute(component.scorer, sub)
-        _, scores, _ = Ex.concept_scores(attr, sub)
-        by_importance = np.argsort(-np.maximum(scores, 0.0).mean(axis=0))  # yếu tố quan trọng nhất TOÀN CỤC của thành phần trên tập này
+        all_concepts, scores, _ = Ex.concept_scores(attr, sub)
+        # chỉ xét yếu tố mà mô hình thật sự có đặc trưng (bản CP2 bỏ nhóm đặc trưng ở một số thành phần): xoá yếu tố mô hình không dùng thì vô nghĩa
+        used = [c for c in all_concepts if any(f in attr.features for f in Ex.CONCEPTS[c])]
+        concepts = used
+        by_importance = np.argsort(-np.maximum(scores[:, [all_concepts.index(c) for c in used]], 0.0).mean(axis=0))  # yếu tố quan trọng nhất TOÀN CỤC của thành phần trên tập này
 
         def outcome(sets):
             """(cảnh báo biến mất khi xoá `sets`, cảnh báo còn khi chỉ giữ `sets`, điểm tụt khi xoá, tỉ lệ điểm còn khi chỉ giữ) — trung bình trên các dòng."""
             after = component_score(component, neutralize(sub, sets, explainer.reference))
-            kept = component_score(component, neutralize(sub, _complement(sets), explainer.reference))
+            kept = component_score(component, neutralize(sub, _complement(sets, used), explainer.reference))
             return float((after <= explainer.threshold).mean()), float((kept > explainer.threshold).mean()), float((before - after).mean()), float((kept / before).mean())
 
         def measure(count):
@@ -146,7 +152,7 @@ def deletion_test(explainer: Ex.HybridExplainer, frame: pd.DataFrame, explanatio
                 "global": outcome([[concepts[c] for c in by_importance[:n]] for n in count]),
             }
             rng = np.random.default_rng(seed)
-            draws = [outcome([[concepts[c] for c in rng.choice(len(concepts), n, replace=False)] for n in count]) for _ in range(n_random)]
+            draws = [outcome([[concepts[c] for c in rng.choice(len(concepts), min(n, len(concepts)), replace=False)] for n in count]) for _ in range(n_random)]
             out["random"] = tuple(float(np.mean([d[j] for d in draws])) for j in range(4))
             return out
 
@@ -431,45 +437,48 @@ def operating_markdown(result: dict) -> str:
 # ------------------------------------------------------------------------------------------------ dòng lệnh
 
 
-def _save(name: str, payload) -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / f"{name}.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=float), encoding="utf-8")
+def _save(name: str, payload, directory: Path) -> None:
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / f"{name}.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=float), encoding="utf-8")
 
 
 def main() -> int:
-    what = sys.argv[1] if len(sys.argv) > 1 else "all"
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    what = args[0] if args else "all"
+    hybrid_name = sys.argv[sys.argv.index("--hybrid") + 1] if "--hybrid" in sys.argv else HYBRID_NAME
+    out_dir = OUT_DIR if hybrid_name == "hybrid" else CP2_OUT_DIR
     started = time.time()
 
     def say(message: str) -> None:
         print(f"  [{time.time() - started:6.0f}s] {message}", flush=True)
 
     say("nạp bảng đặc trưng, mô hình và tạo bảng 'thường thấy'")
-    world = World.load()
+    world = World.load(hybrid_name=hybrid_name)
     say(f"ngưỡng hybrid (val): " + ", ".join(f"FPR {t:.1%} → {v:.3f}" for t, v in world.thresholds.items()))
     if what in ("reference", "all"):
         path = world.reference.save()
         say(f"đã lưu {path} ({world.reference.n_rows:,} dòng, chữ ký đặc trưng {world.reference.signature})")
     if what in ("operating", "all"):
         result = run_operating(world)
-        _save("operating", result)
+        _save("operating", result, out_dir)
         print("\n### Ngưỡng vận hành\n\n" + operating_markdown(result), flush=True)
     if what in ("faithfulness", "all"):
         result = run_faithfulness(world, say)
-        _save("faithfulness", result)
+        _save("faithfulness", result, out_dir)
         print("\n### Phép thử xoá yếu tố\n\n" + faithfulness_markdown(result), flush=True)
         print("\n### Yếu tố hay đứng trong giải thích\n\n" + frequency_markdown(result), flush=True)
         print("\n### Độ dài câu giải thích\n\n" + length_markdown(result), flush=True)
     if what in ("global", "all"):
         result = run_global(world)
-        _save("global", result)
+        _save("global", result, out_dir)
         print("\n### SHAP toàn cục\n\n" + global_markdown(result), flush=True)
     if what in ("examples", "all"):
         rows = run_examples(world)
-        _save("examples", rows)
+        _save("examples", rows, out_dir)
         print("\n### Ví dụ\n\n" + examples_markdown(rows), flush=True)
     if what in ("latency", "all"):
         result = run_latency(world)
-        _save("latency", result)
+        _save("latency", result, out_dir)
         print("\n### Độ trễ\n\n" + latency_markdown(result), flush=True)
     say("xong")
     return 0

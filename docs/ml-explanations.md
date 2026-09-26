@@ -1,6 +1,6 @@
 # Giải thích cảnh báo (MR8)
 
-Mã: [`explain.py`](../backend/ml/rba/explain.py) (SHAP, z-score, gộp yếu tố, viết câu, ngữ cảnh) · [`explain_eval.py`](../backend/ml/rba/explain_eval.py) (đo độ trung thực, bảng toàn cục, ví dụ, ngưỡng vận hành, độ trễ). Kiểm thử: `tests/test_rba_explain.py` (21), `tests/test_rba_explain_eval.py` (13), `tests/test_rba_audit.py` (thêm 2). Số liệu chạy trên giai đoạn **test** của bộ RBA tổng hợp ([`rba-data-card.md`](rba-data-card.md)); mô hình là bộ đã huấn luyện ở MR6 ([`model-card-rba.md`](model-card-rba.md)), chưa đổi.
+Mã: [`explain.py`](../backend/ml/rba/explain.py) (SHAP, z-score, gộp yếu tố, viết câu, ngữ cảnh) · [`explain_eval.py`](../backend/ml/rba/explain_eval.py) (đo độ trung thực, bảng toàn cục, ví dụ, ngưỡng vận hành, độ trễ). Kiểm thử: `tests/test_rba_explain.py` (21), `tests/test_rba_explain_eval.py` (13), `tests/test_rba_audit.py` (thêm 2). Số liệu chạy trên giai đoạn **test** của bộ RBA tổng hợp ([`rba-data-card.md`](rba-data-card.md)); **mục 1–8 chạy trên hybrid MR6** (`python -m ml.rba.explain_eval all --hybrid hybrid`); sau khi chốt mô hình ở CP2 ([`ml-model-selection.md`](ml-model-selection.md)) các phép đo chính được lặp lại trên **`hybrid_cp2`** ở mục 9 (kết luận không đổi). Model card: [`model-card-rba.md`](model-card-rba.md).
 
 ## Tóm tắt
 
@@ -291,10 +291,46 @@ Cùng phép thử ở ba giai đoạn (AUC; recall ở FPR 1% trong ngoặc):
 
 ```bash
 cd backend
-venv\Scripts\python.exe -m ml.rba.explain_eval all        # ~3 phút; ghi ml/artifacts/rba_mr8/*.json và ml/artifacts/rba/explain_reference.json
-venv\Scripts\python.exe -m ml.rba.explain_eval faithfulness   # riêng phép thử xoá/giữ yếu tố
+venv\Scripts\python.exe -m ml.rba.explain_eval all --hybrid hybrid    # mục 1–8 (hybrid MR6, ~3 phút); ghi ml/artifacts/rba_mr8/*.json và ml/artifacts/rba/explain_reference.json
+venv\Scripts\python.exe -m ml.rba.explain_eval all                    # mục 9 (hybrid chốt ở CP2, mặc định); ghi ml/artifacts/rba_cp2/explain/*.json
+venv\Scripts\python.exe -m ml.rba.explain_eval faithfulness           # riêng phép thử xoá/giữ yếu tố
 venv\Scripts\python.exe -m ml.rba.audit conditional        # kiểm định dấu vân tay có điều kiện (thêm `trainval` để chạy train, val)
 venv\Scripts\python.exe -m pytest tests/test_rba_explain.py tests/test_rba_explain_eval.py tests/test_rba_audit.py
 ```
 
 `ExplainReference` (mức "thường thấy") lưu ở `ml/artifacts/rba/explain_reference.json` kèm **chữ ký danh sách đặc trưng** (`feature_signature()`, hiện `2e54756a441c`, phiên bản đặc trưng `v2`); nạp lại sẽ báo lỗi nếu danh sách đặc trưng đã đổi.
+
+## 9. Sau CP2: giải thích trên hybrid chốt (`hybrid_cp2`)
+
+Cùng phép đo, cùng mã, chạy lại trên `hybrid_cp2` (`gbm_attack_ip` MR6 + `gbm_attacker_sim_cp2` 28 đặc trưng + `isolation_forest_cp2` 43 đặc trưng). Cảnh báo lấy ở test theo ngưỡng 2,391: 723 trên 5.709 dòng IP tấn công, 1.454 trên 5.911 kẻ tấn công mô phỏng, 38 trên 130 ATO thật, 609 trên 60.000 đăng nhập hợp lệ bốc ngẫu nhiên. Phép thử xoá/giữ yếu tố chỉ chọn trong các yếu tố mà thành phần THẬT SỰ có đặc trưng (thành phần đã bỏ nhóm đặc trưng không bị "xoá" một yếu tố nó không dùng). Cột: **GT** giải thích, **NN** ngẫu nhiên, **TC** quan trọng toàn cục.
+
+| Nhóm cảnh báo | Thành phần | Số cảnh báo | Xoá cả k yếu tố → mất cảnh báo (GT / NN) | Chỉ xoá yếu tố đầu → mất cảnh báo (GT / NN / TC) | Chỉ giữ k yếu tố → còn cảnh báo (GT / NN) | Điểm còn lại (GT) |
+|---|---|---|---|---|---|---|
+| IP tấn công (test) | `ip_tan_cong` | 697 | **100%** / 79% | **100%** / 39% / 100% | **49%** / 1% | 66% |
+| IP tấn công (test) | `chiem_tai_khoan` | 13 | **100%** / 74% | **100%** / 43% / 100% | **69%** / 2% | 103% |
+| IP tấn công (test) | `bat_thuong` | 13 | **100%** / 95% | **100%** / 52% / 85% | **0%** / 0% | 71% |
+| Kẻ tấn công mô phỏng (test) | `ip_tan_cong` | 6 | **100%** / 90% | **100%** / 40% / 100% | **17%** / 0% | 66% |
+| Kẻ tấn công mô phỏng (test) | `chiem_tai_khoan` | 1.399 | **100%** / 71% | **100%** / 35% / 100% | **84%** / 7% | 92% |
+| Kẻ tấn công mô phỏng (test) | `bat_thuong` | 49 | **100%** / 78% | **78%** / 40% / 76% | **20%** / 2% | 69% |
+| ATO thật (cả 141 ca) | `chiem_tai_khoan` | 5 | **100%** / 84% | **100%** / 32% / 100% | **100%** / 0% | 96% |
+| ATO thật (cả 141 ca) | `bat_thuong` | 33 | **100%** / 88% | **67%** / 30% / 36% | **0%** / 0% | 66% |
+| Đăng nhập hợp lệ (test) | `ip_tan_cong` | 99 | **100%** / 82% | **100%** / 42% / 100% | **25%** / 1% | 69% |
+| Đăng nhập hợp lệ (test) | `chiem_tai_khoan` | 216 | **100%** / 77% | **100%** / 40% / 100% | **66%** / 5% | 94% |
+| Đăng nhập hợp lệ (test) | `bat_thuong` | 294 | **100%** / 81% | **78%** / 35% / 56% | **15%** / 2% | 68% |
+
+- **Cần thiết — vẫn đạt:** xoá các yếu tố nêu ra làm mất 99–100% cảnh báo (ngẫu nhiên 71–95%); chỉ xoá yếu tố đứng đầu: 100% ở hai LightGBM, 67–100% ở Isolation Forest (ngẫu nhiên 30–52%, toàn cục 36–85%) — z-score theo từng ca vẫn hơn bảng toàn cục ở cảnh báo đa dạng (ATO 67% so với 36%, báo nhầm 78% so với 56%).
+- **Đủ — vẫn không:** `ip_tan_cong` còn 17–49% cảnh báo khi chỉ giữ ba yếu tố (còn ~2/3 điểm), `bat_thuong` 0–20% (~2/3 điểm). `chiem_tai_khoan` giờ dùng 28 đặc trưng nên chỉ còn 66–100% cảnh báo (điểm còn 92–103%), thấp hơn bản MR6 (90–100%) vì có ít yếu tố hơn để gộp. Kết luận cũ giữ nguyên: ba yếu tố là phần chủ đạo, không phải toàn bộ.
+- **Yếu tố hay đứng đầu:** `chiem_tai_khoan` luôn có "IP" (100%), rồi thiết bị/trình duyệt (62–81%) và nhịp (56–62%); ATO thật bị Isolation Forest bắt qua quốc gia (97%), nhà mạng (94%) và hoạt động của nhà mạng (94%) — không đổi so với MR6.
+
+**Độ dài câu giải thích** (ký tự):
+
+| Nhóm cảnh báo | Số cảnh báo | Độ dài trung vị (ký tự) | p95 | Dài nhất | Không có yếu tố nào |
+|---|---|---|---|---|---|
+| IP tấn công (test) | 723 | 110 | 114 | 145 | 0 |
+| Kẻ tấn công mô phỏng (test) | 1.454 | 57 | 96 | 147 | 0 |
+| ATO thật (cả 141 ca) | 38 | 118 | 145 | 145 | 0 |
+| Đăng nhập hợp lệ (test) | 609 | 96 | 143 | 147 | 0 |
+
+Độ trễ giải thích từng cảnh báo một (150 cảnh báo): **4,5 ms (p50) / 9,8 ms (p95)** cho phần giải thích, 55,6 ms (p50) / 63,6 ms (p95) gồm cả chấm điểm lại ba thành phần.
+
+Ngưỡng vận hành, độ chính xác cảnh báo theo tỉ lệ tấn công và so trước/sau: [`ml-model-selection.md`](ml-model-selection.md) mục 6.

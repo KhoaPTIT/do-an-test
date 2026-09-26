@@ -183,7 +183,7 @@ def main() -> int:
         print(transfer_markdown(name, transfer_table(scorer, tasks, df)), "\n", flush=True)
         if name.startswith("gbm_attack_ip") or name == "gbm_combined":
             print(calibration_markdown(calibration_report(name, scorer, tasks)), flush=True)
-        if name == "hybrid":
+        if name.startswith("hybrid"):
             wanted = {k: v for k, v in tasks.items() if k.startswith(("ato/", "attacker/", "attack_ip/test"))}
             print(attribution_markdown(hybrid_attribution(scorer, wanted, df), 0.01), "\n", flush=True)
     return 0

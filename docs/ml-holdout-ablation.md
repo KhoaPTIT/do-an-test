@@ -2,6 +2,8 @@
 
 Trả lời ba câu hỏi bằng thí nghiệm, không bằng lập luận: (1) mô hình có bắt được kiểu tấn công **chưa từng thấy** không? (2) sức mạnh của nó có đến từ một **đường tắt** không? (3) nó **sai ở đâu**? Khung đo và cách đọc: [`rba-evaluation.md`](rba-evaluation.md); mô hình: [`model-card-rba.md`](model-card-rba.md); kết quả MR6: [`ml-evaluation-v2.md`](ml-evaluation-v2.md). Dữ liệu là **tổng hợp** ([`rba-data-card.md`](rba-data-card.md)). Mọi số ở **FPR 1%** (chỉ báo nhầm 1% đăng nhập hợp lệ), giai đoạn test, trọng số dân số, trừ khi ghi khác.
 
+> ⚠️ **Cập nhật CP2 (26/09/2026):** thí nghiệm ở tài liệu này chạy trên các mô hình MR6 (50 đặc trưng). Đề xuất của mục 4.3 (Isolation Forest bỏ nhóm `infra_ip`) đã được chốt ở CP2 nhưng chọn lại trên 92 ATO quá khứ thay vì 38 ca tương lai ([`ml-model-selection.md`](ml-model-selection.md)); đề xuất bỏ `infra_ip` khỏi `gbm_attack_ip` **không** được chọn theo val (val cho `infra_asn`) và cũng bị phủ quyết theo `late`. Các số hold-out, ablation và phân tích lỗi giữ nguyên là của bản MR6.
+
 ## Tóm tắt
 
 1. **AI học từ nhãn không tự bắt được họ tấn công chưa từng thấy.** Giấu một họ IP tấn công khỏi huấn luyện thì ở 6 họ mà LightGBM bắt được khi đã thấy (15–56%), recall của họ bị giấu rơi xuống **0,0–1,1% (5 họ) hoặc 11,9% (1 họ)**; hai họ còn lại nó không bắt được cả khi đã thấy (≤ 1,0%). Hybrid chưa thấy họ: 0,0–2,9%. Bộ phát hiện không cần nhãn cũng yếu: Isolation Forest 0,1–6,2%, kNN 0,1–10,1%. Bỏ các đặc trưng "định danh" (độ hiếm) hay hạ tầng IP **không** làm mô hình tổng quát tốt hơn. Nên **không thể nói "AI phát hiện được tấn công mới nhờ so sánh với bình thường"** dựa trên các thí nghiệm này.

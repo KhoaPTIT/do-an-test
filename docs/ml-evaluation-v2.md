@@ -2,6 +2,8 @@
 
 Tài liệu kết quả cho giai đoạn mở rộng (MR1–MR19). Khung đo và cách đọc số liệu: [`rba-evaluation.md`](rba-evaluation.md). Bản chất dữ liệu (**tổng hợp**, không phải log thật): [`rba-data-card.md`](rba-data-card.md). Mô hình, dữ liệu học và giới hạn: [`model-card-rba.md`](model-card-rba.md). Bảng đầy đủ mọi mô hình × mọi bài, kèm khoảng tin cậy: [`rba-baseline-comparison.md`](rba-baseline-comparison.md).
 
+> ⚠️ **Cập nhật CP2 (26/09/2026):** các số ở tài liệu này là của **hybrid MR6** (`hybrid`). Sau khi chốt mô hình ở CP2 ([`ml-model-selection.md`](ml-model-selection.md)) hybrid vận hành là `hybrid_cp2` (Isolation Forest bỏ nhóm `infra_ip`, `gbm_attacker_sim` chỉ 28 đặc trưng quan hệ với lịch sử): ATO tương lai 26,3% → 36,8%, IP tấn công 12,3% → 12,4%, kẻ tấn công mô phỏng 47,1 / 37,2 / 17,8% → 36,4 / 27,0 / 8,4%. Kết luận định tính của tài liệu này giữ nguyên; tổng hợp lại toàn bộ số ở MR19.
+
 ## Đính chính (21/09/2026): hai sai sót của báo cáo CP1
 
 Trong lúc làm MR6 tôi phát hiện hai sai sót ở báo cáo CP1 (MR4–MR5). Cả hai đã sửa, **mọi số liệu trong tài liệu này được sinh lại từ mã**, số cũ không còn hiệu lực.

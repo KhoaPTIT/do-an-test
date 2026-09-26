@@ -52,3 +52,7 @@ def _artifact(name: str) -> Callable[[pd.DataFrame], Scorer]:
 
 for _name in ("gbm_attack_ip", "gbm_attacker_sim", "gbm_combined", "gbm_combined_global", "knn_distance", "autoencoder", "hybrid"):
     SCORER_FACTORIES[_name] = _artifact(_name)
+
+# Mô hình chốt ở CP2 (ml/rba/selection.py): cùng vai trò với bản MR6 nhưng đặc trưng đã chọn lại; đứng cạnh bản MR6 để so trước/sau
+for _name in ("gbm_attack_ip_cp2", "gbm_attacker_sim_cp2", "isolation_forest_cp2", "hybrid_cp2"):
+    SCORER_FACTORIES[_name] = _artifact(_name)
