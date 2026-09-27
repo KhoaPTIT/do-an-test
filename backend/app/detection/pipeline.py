@@ -9,22 +9,32 @@ request — session đó đã đóng khi response được trả về, dùng l�
 Message của Alert đều được DIỄN GIẢI CỤ THỂ (không chỉ nói "bất thường" hay
 1 con số điểm) — nâng cấp sau Tuần 7: admin đọc alert phải hiểu ngay tình
 huống là gì mà không cần vào tra log riêng.
+
+MR12 nối thêm rule engine v2 (MR9-10) + hybrid risk engine (MR11) — mục "MR12" ở cuối hàm — CHẠY SONG SONG tầng 1-2-3
+ở trên, KHÔNG THAY THẾ (đúng triết lý xuyên suốt module này). Toàn khối MR12 được cô lập trong một `try/except` RIÊNG:
+lỗi ở đó (đặc trưng RBA, rule engine, mô hình ML) không bao giờ làm mất alert của tầng 1-2-3 hay làm hỏng `event` đã ghi.
 """
 
 from __future__ import annotations
 
+import asyncio
+import logging
+import time
 from datetime import datetime
 
 from app.database import SessionLocal
-from app.detection import ml_model
+from app.detection import hybrid_runtime, ml_model, perf
 from app.detection.baseline import (
     is_known_location,
     record_known_device_if_new,
     record_known_location_if_new,
     update_baseline_after_successful_login,
 )
-from app.detection.geoip import lookup_ip
+from app.detection.engine.types import LoginAttempt
+from app.detection.geoip import lookup_asn, lookup_ip
 from app.detection.rate_counter import check_fail_count, redis_client
+from app.detection.rba_live_features import compute_rba_features, event_record_for
+from app.detection.rule_engine_runtime import build_rule_engine
 from app.detection.rules import (
     CREDENTIAL_STUFFING_FAIL_THRESHOLD,
     CREDENTIAL_STUFFING_MIN_DISTINCT_USERNAMES,
@@ -38,13 +48,18 @@ from app.detection.rules import (
     register_login_failure,
 )
 from app.detection.scoring import SUCCESS_AFTER_FAIL_STREAK_MIN_FAILS, classify_severity, compute_risk_score, explain_factors
-from app.models import Alert, LoginEvent, User, UserBaseline
-from app.utils.device import compute_device_fingerprint
+from app.models import Alert, AuditLog, LoginEvent, ResponseAction, User, UserBaseline
+from app.utils.device import compute_device_fingerprint, parse_user_agent
 from app.ws_manager import ws_manager
 from ml.features import compute_realtime_features
 
+logger = logging.getLogger("pipeline")
+
 _RULE_TIER1_RISK_SCORE = 80
 _RULE_TIER1_SEVERITY = "high"
+
+# MR12: điểm 0-100 của hybrid risk engine (MR11) -> severity của Alert khi hành động đề xuất không phải "allow".
+_HYBRID_SEVERITY = {"alert": "medium", "step_up": "high", "lock": "high"}
 
 
 def _brute_force_message(username: str, fail_count: int) -> str:
@@ -62,7 +77,7 @@ def _impossible_travel_message(distance_km: float, elapsed_minutes: float, speed
     return f"Cách {distance_km:.0f}km chỉ sau {elapsed_minutes:.1f} phút (~{speed_kmh:,.0f} km/h, ngưỡng {IMPOSSIBLE_TRAVEL_SPEED_KMH:.0f})."
 
 
-async def run_detection_pipeline(
+def _run_detection_pipeline_sync(
     *,
     username: str,
     user_id: int | None,
@@ -70,14 +85,24 @@ async def run_detection_pipeline(
     ip: str,
     user_agent: str | None,
     timestamp: datetime,
-) -> None:
+) -> list[dict]:
+    """Toàn bộ việc (GeoIP, DB, Redis, rule engine, ML) — MỌI THAO TÁC ĐỀU ĐỒNG BỘ (SQLAlchemy dùng driver psycopg2
+    đồng bộ, redis-py đồng bộ, LightGBM/scikit-learn CPU-bound), không có `await` nào bên trong. Vì vậy hàm này CỐ Ý
+    KHÔNG phải `async def`: `run_detection_pipeline` bên dưới chạy nó trong `asyncio.to_thread` — nếu để `async def` và
+    gọi trực tiếp trên vòng lặp sự kiện (như trước MR12), toàn bộ thời gian chạy (đo được p50 ~vài chục ms, p95 có lúc
+    tới hàng trăm ms — xem docs/realtime-integration.md) sẽ CHẶN vòng lặp sự kiện DÙNG CHUNG cho mọi kết nối khác; đo tải
+    (nhiều request /login đồng thời) trước khi sửa cho thấy timeout thật sự, không phải giả thuyết suông."""
     db = SessionLocal()
     alert_payloads: list[dict] = []
+    pipeline_started = time.perf_counter()
 
     try:
         user = db.get(User, user_id) if user_id else None
         geo = lookup_ip(ip)
         device_fingerprint = compute_device_fingerprint(user_agent)
+        # MR12: parse UA + tra ASN — không chặn /login (toàn hàm này đã chạy nền), lỗi/thiếu dữ liệu trả None chứ không raise.
+        parsed_ua = parse_user_agent(user_agent)
+        asn_result = lookup_asn(ip)
 
         # Đọc counter TRƯỚC khi register_login_failure cập nhật thêm.
         recent_fail_count = check_fail_count(f"fail:{username}")
@@ -93,6 +118,10 @@ async def run_detection_pipeline(
             city=geo.city if geo else None,
             latitude=geo.latitude if geo else None,
             longitude=geo.longitude if geo else None,
+            asn=asn_result.asn if asn_result else None,
+            os_name=parsed_ua.os,
+            browser_name=parsed_ua.browser,
+            device_type=parsed_ua.device_type,
             is_synthetic=False,
             created_at=timestamp,
         )
@@ -218,7 +247,55 @@ async def run_detection_pipeline(
                 record_known_device_if_new(db, user, device_fingerprint, user_agent)
                 record_known_location_if_new(db, user, event.country, event.city)
 
+        # --- MR12: rule engine v2 (MR9-10) + hybrid risk engine (MR11) — CHẠY SONG SONG tầng 1-2-3 ở trên, KHÔNG THAY
+        # THẾ. Cô lập trong try/except RIÊNG: lỗi ở đây không được làm mất alert tầng 1-2-3 đã ghi hay làm sập luồng.
+        try:
+            with perf.timer("hybrid"):
+                attempt = LoginAttempt(
+                    ts=event.created_at.timestamp(), username=username, success=success, ip=ip, user_key=str(user_id) if user_id else None,
+                    asn=event.asn, country=event.country, city=event.city, latitude=event.latitude, longitude=event.longitude,
+                    user_agent=user_agent, browser=parsed_ua.browser, os=parsed_ua.os, device_type=parsed_ua.device_type,
+                )
+                with perf.timer("rule_engine"):
+                    evaluation = build_rule_engine(db, before=event.created_at).evaluate(attempt)
+                with perf.timer("rba_features"):
+                    features = compute_rba_features(db, event_record_for(event))
+                risk_result = hybrid_runtime.get_engine().evaluate(features, evaluation.hits)
+                event.hybrid_risk_score = risk_result.score
+                event.hybrid_action = risk_result.action
+
+                if risk_result.action != "allow":
+                    top_rule = next((c.source for c in risk_result.contributions if c.source != "ml"), None)
+                    reasons = "; ".join(f"{c.label} ({c.weight:.0%})" for c in risk_result.contributions[:3])
+                    hybrid_alert = Alert(
+                        login_event_id=event.id, user_id=user_id, alert_type="hybrid_risk",
+                        severity=_HYBRID_SEVERITY[risk_result.action], risk_score=risk_result.score,
+                        message=f"Hybrid risk engine: điểm {risk_result.score}/100, đề xuất '{risk_result.action}' — {reasons}.",
+                        rule_id=risk_result.overridden_by or top_rule,
+                        explanation={"contributions": [{"source": c.source, "label": c.label, "weight": round(c.weight, 4), "group": c.group} for c in risk_result.contributions]},
+                    )
+                    db.add(hybrid_alert)
+                    db.flush()
+                    alert_records.append((hybrid_alert, {}))
+
+                    if risk_result.action in ("step_up", "lock"):
+                        response_action = ResponseAction(
+                            login_event_id=event.id, alert_id=hybrid_alert.id, user_id=user_id, action=risk_result.action,
+                            reason=f"Hybrid risk engine đề xuất (điểm {risk_result.score}/100): {reasons}.",
+                        )
+                        db.add(response_action)
+                        db.flush()
+                        db.add(
+                            AuditLog(
+                                actor="system", action=f"recommend_{risk_result.action}", target_type="login_event", target_id=event.id,
+                                detail={"response_action_id": response_action.id, "alert_id": hybrid_alert.id, "score": risk_result.score},
+                            )
+                        )
+        except Exception:  # noqa: BLE001 — MR12 không bao giờ được làm mất alert tầng 1-2-3 hay làm sập luồng đăng nhập
+            logger.exception("lỗi ở khối MR12 (rule engine/hybrid) cho user_id=%s ip=%s — bỏ qua, tầng 1-2-3 không bị ảnh hưởng", user_id, ip)
+
         db.commit()
+        perf.record("pipeline", (time.perf_counter() - pipeline_started) * 1000)
 
         # Đọc dữ liệu để broadcast TRƯỚC khi đóng session (object hết hạn sau khi đóng).
         for alert_obj, extra in alert_records:
@@ -234,6 +311,7 @@ async def run_detection_pipeline(
                     "message": alert_obj.message,
                     "latitude": event.latitude,
                     "longitude": event.longitude,
+                    "rule_id": alert_obj.rule_id,
                     "created_at": alert_obj.created_at.isoformat() if alert_obj.created_at else timestamp.isoformat(),
                     **extra,
                 }
@@ -241,5 +319,24 @@ async def run_detection_pipeline(
     finally:
         db.close()
 
+    return alert_payloads
+
+
+async def run_detection_pipeline(
+    *,
+    username: str,
+    user_id: int | None,
+    success: bool,
+    ip: str,
+    user_agent: str | None,
+    timestamp: datetime,
+) -> None:
+    """Wrapper mỏng: chạy toàn bộ việc ĐỒNG BỘ ở trên trong một thread riêng (`asyncio.to_thread`) rồi mới broadcast
+    WebSocket (thao tác `await` DUY NHẤT thật sự cần vòng lặp sự kiện — xem `WebSocketManager.broadcast_json`). Nhiều
+    lần đăng nhập đến CÙNG LÚC giờ chạy `_run_detection_pipeline_sync` song song ở các thread khác nhau thay vì nối đuôi
+    nhau trên một vòng lặp sự kiện duy nhất."""
+    alert_payloads = await asyncio.to_thread(
+        _run_detection_pipeline_sync, username=username, user_id=user_id, success=success, ip=ip, user_agent=user_agent, timestamp=timestamp,
+    )
     for payload in alert_payloads:
         await ws_manager.broadcast_json({"type": "alert", "data": payload})

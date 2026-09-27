@@ -152,6 +152,12 @@ class Blocklist:
     def remove(self, kind: str, value: str) -> bool:
         return self._entries.pop((kind, self._normalize(kind, value)), None) is not None
 
+    def add_entry(self, entry: BlockEntry) -> None:
+        """Ghi thẳng một `BlockEntry` đã dựng sẵn (ví dụ từ hàng của bảng `blocklist` trong DB, MR12) — không tính lại
+        `expires_at` từ `ttl` như `add()`, vì DB đã lưu mốc tuyệt đối. Giá trị coi như đã chuẩn hoá (được ghi bởi `add()`
+        ở lần tạo), nên không gọi lại `_normalize`."""
+        self._entries[(entry.kind, entry.value)] = entry
+
     def entries(self, ts: float | None = None) -> list[BlockEntry]:
         return [e for e in self._entries.values() if ts is None or e.active_at(ts)]
 

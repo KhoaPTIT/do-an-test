@@ -31,6 +31,11 @@ venv\Scripts\python.exe -c "from app.detection.geoip import lookup_ip; print(loo
 
 ## GeoLite2-ASN (giai đoạn mở rộng, cần từ MR12)
 
+✅ **Đã cài** (MR12, 27/09/2026): giải nén file đã tải sẵn (`GeoLite2-ASN_20260920.tar.gz`, không dùng lại key MaxMind)
+vào `backend/geoip/GeoLite2-ASN.mmdb`. Xác nhận thật: `lookup_asn('8.8.8.8')` → `AsnResult(asn=15169,
+organization='Google LLC')`. Máy khác clone repo thì làm lại theo hướng dẫn dưới (file `.mmdb` không commit, xem
+`.gitignore`).
+
 Đặc trưng ASN (nhà mạng/hạ tầng của IP) dùng file **riêng** `GeoLite2-ASN.mmdb`, không nằm trong GeoLite2-City. Chưa có file này thì `lookup_asn()` trả `None` (không lỗi) — làm việc với dữ liệu RBA (MR2–MR8) không cần file này vì RBA đã có sẵn cột ASN; chỉ luồng đăng nhập thật (MR12) mới cần.
 
 Tải giống bước 4 ở trên, đổi `edition_id`:

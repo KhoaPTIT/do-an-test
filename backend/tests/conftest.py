@@ -41,6 +41,15 @@ def db_session(monkeypatch):
     # chỗ này thì test sẽ âm thầm ghi vào Postgres dev thật (hoặc lỗi nếu
     # Postgres không chạy) thay vì SQLite in-memory của test.
     monkeypatch.setattr("app.detection.pipeline.SessionLocal", TestingSessionLocal)
+    # app/main.py (MR12): sự kiện "startup" (đăng ký model_registry, nạp hybrid risk engine) cũng mở SESSION RIÊNG
+    # qua app.database.SessionLocal, chạy khi TestClient(app) vào `with` — cùng lý do phải patch như trên.
+    monkeypatch.setattr("app.main.SessionLocal", TestingSessionLocal)
+    # app/detection/rule_engine_runtime.py (MR12) cache blocklist DB TTL 15s ở BIẾN MODULE (persist giữa các test trong
+    # cùng tiến trình pytest) — xoá cache mỗi test để không đọc nhầm blocklist đã cache từ DB (SQLite in-memory) của
+    # một test KHÁC chạy trước đó chưa quá 15 giây.
+    from app.detection.rule_engine_runtime import invalidate_blocklist_cache
+
+    invalidate_blocklist_cache()
 
     session = TestingSessionLocal()
     try:

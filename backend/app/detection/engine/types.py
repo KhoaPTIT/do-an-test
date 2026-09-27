@@ -20,6 +20,13 @@ MODES = ("enforce", "shadow", "off")
 DEVICE_TYPES = ("mobile", "desktop", "tablet", "bot", "unknown")
 
 
+def ua_hash(user_agent: str | None) -> str:
+    """Dấu vân tay ngắn (12 ký tự hex) của một chuỗi User-Agent, rỗng nếu thiếu — hàm dùng chung để `LoginAttempt.ua_hash`
+    và mã dựng lịch sử tài khoản từ DB (MR12: `app/detection/rule_engine_runtime.py`) luôn tính RA CÙNG GIÁ TRỊ cho cùng
+    một UA (so khớp `AccountHistory.known_devices` được, dù một bên tính từ `LoginAttempt`, một bên từ hàng DB thô)."""
+    return hashlib.sha1(user_agent.encode("utf-8")).hexdigest()[:12] if user_agent else ""
+
+
 @dataclass(frozen=True)
 class LoginAttempt:
     """MỘT lần thử đăng nhập — đầu vào duy nhất của mọi luật."""
@@ -48,7 +55,7 @@ class LoginAttempt:
     @cached_property
     def ua_hash(self) -> str:
         """Dấu vân tay ngắn của chuỗi User-Agent (rỗng nếu thiếu UA) — dùng để đếm UA khác nhau. Tính một lần cho mỗi lần thử."""
-        return hashlib.sha1(self.user_agent.encode("utf-8")).hexdigest()[:12] if self.user_agent else ""
+        return ua_hash(self.user_agent)
 
     @property
     def has_geo(self) -> bool:

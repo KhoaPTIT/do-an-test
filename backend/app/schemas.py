@@ -42,6 +42,14 @@ class LoginEventOut(BaseModel):
     is_synthetic: bool
     created_at: datetime
 
+    # MR12: parse UA + tra ASN trong pipeline nền, điểm/hành động của hybrid risk engine (MR11)
+    asn: int | None = None
+    os_name: str | None = None
+    browser_name: str | None = None
+    device_type: str | None = None
+    hybrid_risk_score: int | None = None
+    hybrid_action: str | None = None
+
 
 class PaginatedLoginEvents(BaseModel):
     items: list[LoginEventOut]
@@ -64,6 +72,13 @@ class AlertOut(BaseModel):
     message: str
     resolved: bool
     created_at: datetime
+
+    # MR12: gắn với luật/mô hình đã sinh ra cảnh báo, giải thích, chiến dịch (MR13), trạng thái xử lý chi tiết hơn `resolved`
+    rule_id: str | None = None
+    attack_family: str | None = None
+    explanation: dict | None = None
+    campaign_id: int | None = None
+    status: str = "open"
 
 
 class PaginatedAlerts(BaseModel):
