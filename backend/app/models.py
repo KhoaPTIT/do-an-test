@@ -38,6 +38,11 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # MR13: hệ số nhân trong công thức xếp hạng ưu tiên cảnh báo (novelty × độ tin cậy × importance, xem
+    # app/detection/alert_intelligence.py). Demo KHÔNG có khái niệm "tài khoản quan trọng" thật (không role/tier) nên
+    # mặc định 1.0 cho mọi user — placeholder có chủ đích cho hệ thống thật (ví dụ gắn theo phòng ban/chức vụ từ HR),
+    # chỉnh tay qua script/DB để kiểm chứng công thức hoạt động đúng khi khác nhau.
+    importance: Mapped[float] = mapped_column(Float, default=1.0, server_default="1.0", nullable=False)
 
     login_events: Mapped[list["LoginEvent"]] = relationship(back_populates="user")
     baseline: Mapped["UserBaseline"] = relationship(back_populates="user", uselist=False)
@@ -160,6 +165,7 @@ class Alert(Base):
     """Cảnh báo sinh ra khi rule tầng 1 khớp hoặc risk_score vượt ngưỡng (mục 4.2: >70 = cao)."""
 
     __tablename__ = "alerts"
+    __table_args__ = (Index("ix_alerts_dedup_lookup", "user_id", "attack_family", "status"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     login_event_id: Mapped[int] = mapped_column(ForeignKey("login_events.id"), nullable=False, index=True)
@@ -180,6 +186,15 @@ class Alert(Base):
     # open | acknowledged | resolved | false_positive — cờ `resolved` cũ GIỮ NGUYÊN (tương thích ngược); `status` chi tiết hơn cho MR13/14
     status: Mapped[str] = mapped_column(String(16), server_default="open", nullable=False)
     feedback: Mapped[str | None] = mapped_column(Text, nullable=True)  # phản hồi ngắn của quản trị viên (đúng/sai cảnh báo, ghi chú)
+
+    # --- MR13: cảnh báo thông minh v2 (app/detection/alert_intelligence.py) ---
+    # độ tin cậy [0,1] của attack_family (= trọng số của bằng chứng dẫn đầu trong RiskResult.contributions) — LUÔN là gợi ý, không phải khẳng định
+    attack_family_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # chống trùng lặp: cùng (user_id hoặc IP) + attack_family trong cửa sổ ngắn GỘP vào 1 hàng thay vì tạo hàng mới (xem dedup_window trong alert_intelligence.py)
+    occurrence_count: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # novelty_level × attack_family_confidence × User.importance — dùng để sắp xếp GET /alerts (mặc định), không thay severity/risk_score
+    priority_score: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     resolved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -209,8 +224,10 @@ class Admin(Base):
 
 
 class Campaign(Base):
-    """Gom nhiều `Alert` được coi là CÙNG một đợt tấn công (MR13 quyết định gán alert nào vào campaign nào dựa trên IP/ASN/khoảng thời gian
-    gần nhau; MR12 chỉ tạo bảng và cột `campaign_id` trên `alerts` để MR13 dùng ngay, chưa có gì gán vào đây)."""
+    """Gom nhiều `Alert` được coi là CÙNG một đợt tấn công (MR14 "tương quan chiến dịch" quyết định gán alert nào vào
+    campaign nào dựa trên IP/ASN/UA/khoảng thời gian gần nhau; MR12 chỉ tạo bảng và cột `campaign_id` trên `alerts` để
+    dùng ngay, MR13 vẫn chưa gán gì vào đây — MR13 chỉ chống trùng lặp CÙNG một (user/IP, họ tấn công), khác với gom
+    chiến dịch CÙNG hạ tầng NHIỀU tài khoản của MR14)."""
 
     __tablename__ = "campaigns"
 

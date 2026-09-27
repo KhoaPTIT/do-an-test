@@ -17,6 +17,7 @@ from app.detection.rate_counter import (
     record_credential_stuffing_attempt,
     record_fail,
 )
+from app.utils.time import ensure_utc
 
 EARTH_RADIUS_KM = 6371.0
 
@@ -56,7 +57,12 @@ def is_impossible_travel(previous: GeoPoint | None, current: GeoPoint) -> bool:
     if current.latitude is None or current.longitude is None:
         return False
 
-    elapsed_hours = (current.timestamp - previous.timestamp).total_seconds() / 3600
+    # ⚠️ Bug thật phát hiện ở MR13 (không phải giả thuyết): `previous.timestamp` đọc lại từ SQLite (test) mất tzinfo
+    # (naive, bị hiểu ngầm là UTC) trong khi `current.timestamp` vừa gán trong Python vẫn còn aware — trừ hai loại
+    # datetime khác nhau raise TypeError. Trên Postgres thật (TIMESTAMP WITH TIME ZONE) không xảy ra (cả hai đều
+    # aware), nhưng ĐÂY LÀ Ổ GÀ CHỜ SẴN — cùng lớp lỗi đã sửa ở MR9 (replay.py) và MR12 (app/utils/time.ensure_utc),
+    # applying ở nguồn cụ thể của lỗi đó thay vì né bằng dữ liệu test khác.
+    elapsed_hours = (ensure_utc(current.timestamp) - ensure_utc(previous.timestamp)).total_seconds() / 3600
     if elapsed_hours <= 0:
         return False  # timestamp không hợp lệ / trùng nhau, không kết luận được
 

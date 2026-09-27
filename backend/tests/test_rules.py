@@ -53,6 +53,18 @@ def test_impossible_travel_false_without_previous_login():
     assert is_impossible_travel(None, current) is False
 
 
+def test_impossible_travel_tolerates_a_naive_previous_timestamp():
+    """Bug thật phát hiện ở MR13 (test_pipeline_mr13.py, hai lần đăng nhập thành công thật qua pipeline trên SQLite):
+    `previous.timestamp` đọc lại từ SQLite mất tzinfo (naive) trong khi `current.timestamp` (vừa gán trong Python) vẫn
+    aware — trừ hai loại datetime khác nhau từng raise TypeError thay vì so sánh được. Không xảy ra trên Postgres thật
+    (TIMESTAMP WITH TIME ZONE luôn trả aware) nhưng vẫn là ổ gà cần vá tận gốc — xem ensure_utc() trong hàm."""
+    aware_now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    naive_previous = datetime(2026, 1, 1, 11, 50)  # mô phỏng đúng những gì SQLAlchemy/SQLite trả về
+    previous = GeoPoint(21.03, 105.85, naive_previous)
+    current = GeoPoint(40.71, -74.01, aware_now)
+    assert is_impossible_travel(previous, current) is True  # Hà Nội -> New York trong 10 phút vẫn phải bắt được, không raise
+
+
 def test_is_brute_force_true_after_threshold_fails(fake_redis):
     for _ in range(BRUTE_FORCE_THRESHOLD):
         register_login_failure("victim", "1.2.3.4")

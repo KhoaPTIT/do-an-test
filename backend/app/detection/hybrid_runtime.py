@@ -75,6 +75,21 @@ class HybridEngine:
             logger.exception("lỗi khi chấm điểm ML — bỏ qua thành phần ML cho lần thử này")
             return None
 
+    def ml_component(self, features: dict[str, float] | None) -> str | None:
+        """Tên thành phần của `HybridMinTail` (hybrid_cp2) có xác suất đuôi nhỏ nhất — dùng để gán họ tấn công GỢI Ý
+        khi bằng chứng dẫn đầu là ML (MR13, `app/detection/alert_intelligence.py`). `None` nếu thiếu đặc trưng/mô hình
+        chưa sẵn sàng/lỗi (không bao giờ raise — cùng triết lý `ml_probability`)."""
+        if features is None or not self.ml_available:
+            return None
+        try:
+            import pandas as pd
+
+            frame = pd.DataFrame([features])
+            return str(self.scorer.triggered_by(frame)[0])
+        except Exception:  # noqa: BLE001
+            logger.exception("lỗi khi tra thành phần ML dẫn đầu — bỏ qua gợi ý họ tấn công từ ML")
+            return None
+
     def evaluate(self, features: dict[str, float] | None, hits: Iterable[RuleHit]) -> RiskResult:
         """Điểm 0-100 + hành động cho MỘT lần thử — không bao giờ raise (mọi lỗi rơi về `combine_risk` với `ml_probability=None`)."""
         try:

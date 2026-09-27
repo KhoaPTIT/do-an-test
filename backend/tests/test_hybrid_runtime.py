@@ -108,3 +108,35 @@ def test_evaluate_falls_back_to_no_evidence_when_combining_the_real_hits_blows_u
 def test_singleton_get_engine_returns_the_same_instance():
     a, b = hybrid_runtime.get_engine(), hybrid_runtime.get_engine()
     assert a is b
+
+
+# --------------------------------------------------------------------------------------- ml_component (MR13)
+
+
+def test_ml_component_returns_none_without_features_or_without_ml(engine):
+    assert engine.ml_component(None) is None
+    assert engine.ml_component({"a": 1.0}) is None  # ml_available vẫn False
+
+
+def test_ml_component_swallows_errors_from_a_scorer_without_triggered_by(engine):
+    """`ml_probability` chấp nhận MỌI callable làm scorer (chỉ cần gọi được); `ml_component` cần thêm `.triggered_by()`
+    (chỉ `HybridMinTail` thật có) — scorer giả trong các test khác của file này (hàm/lambda trần) không có, phải rơi
+    về `None` chứ không được raise."""
+    engine.scorer = lambda frame: [3.0] * len(frame)
+    engine.profile = HybridProfile(RuleWeights(), ActionBands(10, 50, 90), MonotonicCalibrator((0.0, 5.0), (0.0, 1.0)))
+    assert engine.ml_component({"a": 1.0}) is None
+
+
+def test_ml_component_against_the_real_trained_model_returns_a_known_component_name(db_session, engine):
+    """Nạp `hybrid_cp2` THẬT (không giả lập) — `triggered_by` phải trả đúng tên một trong ba thành phần của
+    `HybridMinTail` (ml/rba/ensemble.py), khớp `ML_COMPONENT_FAMILY` mà app/detection/alert_intelligence.py dùng."""
+    from ml.rba.explain import COMPONENT_LABELS
+    from ml.rba.features import FEATURE_NAMES
+
+    model_registry.ensure_registered(db_session)
+    engine.load(db_session)
+    assert engine.ml_available is True
+
+    features = {name: 0.0 for name in FEATURE_NAMES}
+    component = engine.ml_component(features)
+    assert component in COMPONENT_LABELS

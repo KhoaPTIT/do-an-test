@@ -18,6 +18,7 @@ Tài khoản của **web app mẫu** — không phải admin.
 | password_hash | VARCHAR(255) | bcrypt, không bao giờ lưu plain text |
 | email | VARCHAR(255) | nullable |
 | created_at | TIMESTAMPTZ | default now() |
+| importance | FLOAT | default 1.0 (MR13) — hệ số nhân trong công thức ưu tiên cảnh báo (`alert_intelligence.priority_score`); demo không có khái niệm "tài khoản quan trọng" thật nên mặc định bằng nhau, placeholder cho hệ thống thật |
 
 ## login_events
 
@@ -92,14 +93,20 @@ Hồ sơ hành vi "bình thường" theo user (Tuần 4). Quan hệ 1-1 với `u
 | risk_score | INTEGER | |
 | message | TEXT | mô tả người đọc được, hiển thị trực tiếp trên dashboard |
 | rule_id | VARCHAR(64) | nullable (MR12) — mã luật (`app/detection/engine/registry.py`) hoặc luật ghi đè đã sinh ra cảnh báo; NULL nếu chỉ do ML/tầng 1-2 cũ |
-| attack_family | VARCHAR(64) | nullable (MR12) — dự trữ cho MR13 (gán họ tấn công), chưa có gì điền |
-| explanation | JSON | nullable (MR12) — `{"contributions": [{"source", "label", "weight", "group"}, ...]}` từ `RiskResult` của hybrid risk engine |
-| campaign_id | INTEGER FK → campaigns.id | nullable (MR12) — dự trữ cho MR13, chưa có gì gán |
+| attack_family | VARCHAR(64) | nullable — GỢI Ý (MR13, `alert_intelligence.suggest_attack_family`): 1 trong 4 `CATEGORIES` của rule engine (ưu tiên nếu có luật/danh tiếng khớp) hoặc nhãn thành phần `HybridMinTail` (chỉ khi không luật nào khớp); KHÔNG PHẢI khẳng định |
+| attack_family_confidence | FLOAT | nullable (MR13) — độ tin cậy [0,1] của `attack_family`, = trọng số của bằng chứng dẫn đầu |
+| explanation | JSON | nullable (MR12) — `{"contributions": [...], "action": ...}` từ `RiskResult`; `action` (MR13) là mức đề xuất TỆ NHẤT của cả đợt tính đến lần gộp gần nhất, dùng để phát hiện leo thang khi chống trùng lặp |
+| campaign_id | INTEGER FK → campaigns.id | nullable — dự trữ cho MR14 (tương quan chiến dịch), chưa có gì gán |
 | status | VARCHAR(16) | default `'open'` (MR12) — `open`\|`acknowledged`\|`resolved`\|`false_positive`; chi tiết hơn `resolved`, TỒN TẠI SONG SONG (tương thích ngược) |
 | feedback | TEXT | nullable (MR12) — phản hồi ngắn của quản trị viên, chưa có router nào ghi |
+| occurrence_count | INTEGER | default 1 (MR13) — chống trùng lặp: số lần CÙNG (tài khoản hoặc IP) + `attack_family` khớp trong `DEDUP_WINDOW` (15 phút) đã GỘP vào hàng này thay vì tạo hàng mới |
+| last_seen_at | TIMESTAMPTZ | nullable (MR13) — lần khớp GẦN NHẤT của đợt đã gộp; `created_at` giữ nguyên lần ĐẦU TIÊN |
+| priority_score | FLOAT | nullable (MR13) — `novelty_level × attack_family_confidence × users.importance`; sắp xếp mặc định của `GET /alerts` (NULLS LAST), KHÔNG thay `severity`/`risk_score` |
 | resolved | BOOLEAN | default false |
 | resolved_at | TIMESTAMPTZ | nullable |
-| created_at | TIMESTAMPTZ | indexed — dùng để sort mới nhất trước |
+| created_at | TIMESTAMPTZ | indexed — mốc TẠO đầu tiên; `GET /alerts` mặc định sắp theo `priority_score`, `sort=recent` sắp theo cột này |
+
+Index bổ sung MR13: `(user_id, attack_family, status)` — dùng cho tra cứu chống trùng lặp trước khi ghi mỗi lần chấm.
 
 ## admins (bổ sung Tuần 5 — nhiệm vụ 5.1)
 
@@ -116,10 +123,12 @@ admin chỉ phát sinh nhu cầu từ Tuần 5.
 
 Tạo tài khoản admin qua script (chưa có UI): `python -m scripts.create_admin --username admin --password "..."`.
 
-## campaigns (bổ sung MR12 — dự trữ cho MR13)
+## campaigns (bổ sung MR12 — dự trữ cho MR14)
 
-Gom nhiều `Alert` được coi là CÙNG một đợt tấn công. MR12 chỉ tạo bảng và cột `alerts.campaign_id`; MR13 mới quyết định
-gán alert nào vào campaign nào (theo IP/ASN/khoảng thời gian gần nhau) — bảng hiện CHƯA có hàng nào.
+Gom nhiều `Alert` được coi là CÙNG một đợt tấn công CỦA NHIỀU TÀI KHOẢN dùng chung hạ tầng (IP/ASN/UA/khoảng thời gian
+gần nhau) — khác chống trùng lặp của MR13 (`alerts.occurrence_count`, chỉ gộp CÙNG MỘT tài khoản/IP). MR12 chỉ tạo
+bảng và cột `alerts.campaign_id`; MR14 "tương quan chiến dịch" mới quyết định gán alert nào vào campaign nào — bảng
+hiện CHƯA có hàng nào.
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|

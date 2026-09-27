@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.detection.rba_live_features import GlobalCountsCache, build_history_summary, compute_rba_features, event_record_for, to_us
+from app.detection.rba_live_features import GlobalCountsCache, build_features_and_summary, build_history_summary, compute_rba_features, event_record_for, to_us
 from app.models import LoginEvent, User
 from ml.rba.features import FEATURE_NAMES
 
@@ -133,3 +133,27 @@ def test_compute_rba_features_returns_none_instead_of_raising_on_error(db_sessio
     monkeypatch.setattr(mod, "build_history_summary", boom)
     current = _mk(db_session, minutes=0)
     assert compute_rba_features(db_session, event_record_for(current)) is None
+
+
+def test_build_features_and_summary_returns_both_and_matches_the_separate_calls(db_session):
+    """MR13: `app/detection/alert_intelligence.py` cần TÁI DÙNG `HistorySummary` đã dựng (không truy vấn DB lần hai) để
+    tính novelty — kết quả hai phần phải khớp CHÍNH XÁC với gọi `build_history_summary`/`compute_rba_features` riêng."""
+    user = _user(db_session)
+    _mk(db_session, minutes=0, user_id=user.id, success=True, country="VN", ua="Mozilla/5.0 A")
+    current_a = _mk(db_session, minutes=10, user_id=user.id, success=True, country="VN", ua="Mozilla/5.0 A")
+    current_b = _mk(db_session, minutes=10, user_id=user.id, success=True, country="VN", ua="Mozilla/5.0 A")
+
+    features, summary = build_features_and_summary(db_session, event_record_for(current_a))
+    assert features == compute_rba_features(db_session, event_record_for(current_b))
+    assert summary is not None and summary.user_events is not None and len(summary.user_events) == 1
+
+
+def test_build_features_and_summary_returns_none_none_instead_of_raising_on_error(db_session, monkeypatch):
+    import app.detection.rba_live_features as mod
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("lỗi giả lập")
+
+    monkeypatch.setattr(mod, "build_history_summary", boom)
+    current = _mk(db_session, minutes=0)
+    assert build_features_and_summary(db_session, event_record_for(current)) == (None, None)

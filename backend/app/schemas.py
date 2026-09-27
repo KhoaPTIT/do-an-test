@@ -73,12 +73,18 @@ class AlertOut(BaseModel):
     resolved: bool
     created_at: datetime
 
-    # MR12: gắn với luật/mô hình đã sinh ra cảnh báo, giải thích, chiến dịch (MR13), trạng thái xử lý chi tiết hơn `resolved`
+    # MR12: gắn với luật/mô hình đã sinh ra cảnh báo, giải thích, chiến dịch (MR14), trạng thái xử lý chi tiết hơn `resolved`
     rule_id: str | None = None
     attack_family: str | None = None
     explanation: dict | None = None
     campaign_id: int | None = None
     status: str = "open"
+
+    # MR13: cảnh báo thông minh v2 — attack_family (trên) LUÔN là GỢI Ý, độ tin cậy đi kèm ở đây; chống trùng lặp; ưu tiên
+    attack_family_confidence: float | None = None
+    occurrence_count: int = 1
+    last_seen_at: datetime | None = None
+    priority_score: float | None = None
 
 
 class PaginatedAlerts(BaseModel):

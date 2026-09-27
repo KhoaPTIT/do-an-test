@@ -136,12 +136,22 @@ def build_history_summary(db: Session, event: EventRecord, *, cache: GlobalCount
     )
 
 
+def build_features_and_summary(
+    db: Session, event: EventRecord, *, cache: GlobalCountsCache | None = None
+) -> tuple[dict[str, float] | None, HistorySummary | None]:
+    """Như `compute_rba_features`, nhưng trả THÊM `HistorySummary` để MR13 (`app/detection/alert_intelligence.py`)
+    tính novelty ("thường … → nay …") từ CHÍNH `summary.user_events` đã truy vấn — không truy vấn DB lần hai. Cùng quy
+    tắc không bao giờ raise: lỗi trả `(None, None)`."""
+    try:
+        summary = build_history_summary(db, event, cache=cache)
+        return features_from_summary(event, summary), summary
+    except Exception:  # noqa: BLE001
+        logger.exception("lỗi khi tính đặc trưng RBA cho user_id=%s ip=%s — bỏ qua thành phần ML", event.user_id, event.ip)
+        return None, None
+
+
 def compute_rba_features(db: Session, event: EventRecord, *, cache: GlobalCountsCache | None = None) -> dict[str, float] | None:
     """50 đặc trưng RBA (`ml.rba.features.FEATURE_NAMES`) của `event`, hoặc `None` nếu có lỗi (không bao giờ raise — không
     được chặn/làm sập pipeline nền, cùng triết lý phần còn lại của `app/detection`)."""
-    try:
-        summary = build_history_summary(db, event, cache=cache)
-        return features_from_summary(event, summary)
-    except Exception:  # noqa: BLE001
-        logger.exception("lỗi khi tính đặc trưng RBA cho user_id=%s ip=%s — bỏ qua thành phần ML", event.user_id, event.ip)
-        return None
+    features, _summary = build_features_and_summary(db, event, cache=cache)
+    return features
