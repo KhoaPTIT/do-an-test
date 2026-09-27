@@ -92,7 +92,13 @@ RBA_NOTES = rba_notes()
 RBA_CAVEATS = rba_caveats()
 
 
-def rba_attempts(
+def rba_attempts(*args, **kwargs) -> Iterator[LoginAttempt]:
+    """Như `rba_rows` nhưng chỉ trả `LoginAttempt` (không kèm `row_id`)."""
+    for _, attempt in rba_rows(*args, **kwargs):
+        yield attempt
+
+
+def rba_rows(
     parquet: Path | str | None = None,
     *,
     start: str | None = None,
@@ -101,8 +107,8 @@ def rba_attempts(
     batch_rows: int = BATCH_ROWS,
     sort: bool = False,
     unknown_names: str = "attempt",
-) -> Iterator[LoginAttempt]:
-    """Các lần đăng nhập của RBA trong [`start`, `end`) theo thứ tự thời gian. `start`/`end`: ngày hoặc giờ dạng ISO (UTC).
+) -> Iterator[tuple[int, LoginAttempt]]:
+    """Các lần đăng nhập của RBA trong [`start`, `end`) theo thứ tự thời gian, mỗi lần kèm `row_id` của dòng trong RBA (khoá nối với bảng đặc trưng ML). `start`/`end`: ngày hoặc giờ dạng ISO (UTC).
 
     Đọc từng lô bằng DuckDB (không nạp cả 31 triệu dòng vào bộ nhớ). Mặc định (`sort=False`) TIN thứ tự vật lý của tệp: `ml.rba.etl` ghi theo `index` gốc và
     kiểm tra không có bước lùi thời gian (etl_stats.json: 0 bước), DuckDB giữ nguyên thứ tự khi quét parquet không có ORDER BY; nhờ đó không phải sắp xếp 13 triệu dòng
@@ -146,7 +152,7 @@ def rba_attempts(
                 return
             for row_id, ts_us, user_id, ip, country, asn, ua, browser, os_name, device_type, success, is_attack_ip, is_ato in rows:
                 known = user_id != RBA_CATCHALL_USER_ID
-                yield LoginAttempt(
+                yield row_id, LoginAttempt(
                     ts=ts_us / 1_000_000,
                     username=str(user_id) if known else (f"?{row_id}" if per_attempt else f"?{ip}"),
                     success=bool(success),

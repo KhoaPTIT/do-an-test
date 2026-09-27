@@ -2,7 +2,7 @@
 
 > **Tệp này được TỰ SINH** từ sổ đăng ký luật (`python -m app.detection.engine.catalog --write`) — đừng sửa tay. `tests/test_rule_engine_catalog.py` báo lỗi nếu tệp lỗi thời so với mã.
 
-Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · kiểm thử: `tests/test_rule_engine_*.py` · đo từng luật trên log lịch sử: `python -m app.detection.engine.replay` (kết quả trên RBA: [`rule-replay.md`](rule-replay.md)).
+Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · kiểm thử: `tests/test_rule_engine_*.py` · đo từng luật trên log lịch sử: `python -m app.detection.engine.replay` (kết quả trên RBA: [`rule-replay.md`](rule-replay.md)) · ngưỡng đã tinh chỉnh trên train RBA: [`rule-tuning.md`](rule-tuning.md).
 
 ## 1. Tổng quan
 
@@ -42,7 +42,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 
 ### Cấu hình
 
-Ghi đè chế độ và tham số theo từng luật bằng JSON (`RuleConfig.from_file(...)`); luật không nêu dùng mặc định của bảng dưới. Tham số sai (không tồn tại, sai kiểu, ngoài khoảng) bị từ chối ngay khi nạp.
+Ghi đè chế độ và tham số theo từng luật bằng JSON (`RuleConfig.from_file(...)`); luật không nêu dùng mặc định của bảng dưới. Tham số sai (không tồn tại, sai kiểu, ngoài khoảng) bị từ chối ngay khi nạp. Mặc định ở bảng dưới là giá trị đặt trước; hồ sơ [`profiles/rba_train_tuned.json`](../backend/app/detection/engine/profiles/rba_train_tuned.json) là bộ tham số đã tinh chỉnh trên train RBA (chỉ đúng cho RBA, xem [`rule-tuning.md`](rule-tuning.md)).
 
 ```json
 {"rules": {"brute_force": {"params": {"threshold": 8, "window_s": 600}}, "vpn_ip": {"mode": "off"}, "country_hop": {"mode": "enforce"}}}

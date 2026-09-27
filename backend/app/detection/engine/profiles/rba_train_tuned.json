@@ -1,0 +1,63 @@
+{
+ "rules": {
+  "brute_force": {
+   "params": {
+    "threshold": 8
+   }
+  },
+  "credential_stuffing": {
+   "params": {
+    "min_fails": 8,
+    "min_users": 4,
+    "asn_min_fails": 1000000,
+    "asn_min_users": 1000000
+   }
+  },
+  "password_spray_slow": {
+   "params": {
+    "min_users": 50,
+    "asn_min_users": 1000000
+   }
+  },
+  "distributed_bruteforce": {
+   "params": {
+    "min_fails": 4,
+    "min_ips": 3
+   }
+  },
+  "success_after_failures": {
+   "params": {
+    "min_fails": 5
+   }
+  },
+  "ua_rotation": {
+   "params": {
+    "min_fails": 4,
+    "min_distinct_ua": 3
+   }
+  },
+  "dormant_account_login": {
+   "mode": "shadow"
+  },
+  "rare_network_login": {
+   "mode": "shadow"
+  },
+  "multi_context_simultaneous": {
+   "params": {
+    "window_s": 600
+   }
+  },
+  "country_hop": {
+   "params": {
+    "min_countries": 3
+   },
+   "mode": "shadow"
+  },
+  "bot_user_agent": {
+   "params": {}
+  },
+  "scripted_client": {
+   "params": {}
+  }
+ }
+}

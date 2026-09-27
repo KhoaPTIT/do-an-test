@@ -8,6 +8,10 @@ Thứ tự cho mỗi lần thử:
   4. cập nhật lịch sử và thống kê toàn hệ thống bằng lần thử này.
 
 Engine không biết nguồn dữ liệu: luồng thật (MR12), replay log lịch sử (replay.py) và test đều gọi cùng `evaluate`. Nhãn (`LoginAttempt.labels`) không bao giờ được truyền cho luật.
+
+Hai đường phụ cho việc tinh chỉnh ngưỡng (MR10, ml/rba/rule_tuning.py), dùng CÙNG trạng thái và CÙNG hàm luật:
+  - `observe(attempt)`: chỉ cập nhật trạng thái (chỉ mục, lịch sử, thống kê), không chạy luật — cho những dòng không cần chấm nhưng phải được đếm;
+  - `probe(attempt)`: chấm với THAM SỐ TUỲ Ý thay vì cấu hình của engine, nhiều lần cho cùng một lần thử (mỗi tham số một lần gọi `run`).
 """
 
 from __future__ import annotations
@@ -22,7 +26,7 @@ from app.detection.engine.context import GlobalStats, HistoryProvider, MemoryGlo
 from app.detection.engine.intel import Blocklist, ThreatIntel
 from app.detection.engine.registry import NEEDS, REGISTRY, RuleConfig, RuleContext, RuleSpec
 from app.detection.engine.state import MemoryStore, WindowStore
-from app.detection.engine.types import AccountHistory, Evaluation, LoginAttempt, RuleHit
+from app.detection.engine.types import AccountHistory, Evaluation, Finding, LoginAttempt, RuleHit
 
 logger = logging.getLogger("rule_engine")
 
@@ -82,6 +86,18 @@ class RuleEngine:
                 return f"thiếu {NEEDS[need]}"
         return None
 
+    # ------------------------------------------------------------------------------------------------ chỉ trạng thái / quét tham số
+
+    def observe(self, attempt: LoginAttempt) -> None:
+        """Ghi lần thử vào chỉ mục, lịch sử và thống kê mà KHÔNG chạy luật nào. Replay chỉ chấm một phần các dòng vẫn phải cho mọi dòng đi qua đây để số đếm đầy đủ."""
+        indexes.record(self.store, attempt)
+        self.history.update(attempt)
+        self.stats.update(attempt)
+
+    def probe(self, attempt: LoginAttempt) -> "Probe":
+        """Mở lần thử để chấm với tham số tuỳ ý. Dùng trong `with engine.probe(a) as probe:` — thoát khối thì lịch sử và thống kê được cập nhật như sau `evaluate`."""
+        return Probe(self, attempt)
+
     # ------------------------------------------------------------------------------------------------ chấm điểm
 
     def evaluate(self, attempt: LoginAttempt, record: bool = True) -> Evaluation:
@@ -113,3 +129,29 @@ class RuleEngine:
             self.stats.update(attempt)
         result.elapsed_ms = (time.perf_counter() - started) * 1000
         return result
+
+
+class Probe:
+    """MỘT lần thử đã được ghi vào chỉ mục và sẵn sàng để chạy luật với các bộ tham số khác nhau (`RuleEngine.probe`). Thứ tự đúng như `evaluate`: ghi chỉ mục → lấy lịch sử
+    TRƯỚC lần thử → chấm → cập nhật lịch sử và thống kê (khi thoát khối `with`)."""
+
+    def __init__(self, engine: RuleEngine, attempt: LoginAttempt) -> None:
+        self.engine, self.attempt = engine, attempt
+        indexes.record(engine.store, attempt)
+        self.history = engine.history.get(attempt.user_key)
+        self._available = engine._available(attempt, self.history)
+
+    def __enter__(self) -> "Probe":
+        return self
+
+    def __exit__(self, *exc_info) -> bool:
+        self.engine.history.update(self.attempt)
+        self.engine.stats.update(self.attempt)
+        return False
+
+    def run(self, spec: RuleSpec, params: SimpleNamespace) -> Finding | None:
+        """Kết quả của luật `spec` với `params` (đã giải quyết, ví dụ `RuleConfig.resolved_params`); None nếu thiếu dữ liệu hoặc không khớp. Lỗi của luật được ném ra."""
+        if RuleEngine._missing(spec, self._available) is not None:
+            return None
+        e = self.engine
+        return spec.evaluate(RuleContext(self.attempt, e.store, self.history, e.intel, e.blocklist, e.stats, params))

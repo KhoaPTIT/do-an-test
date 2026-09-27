@@ -162,6 +162,69 @@ def test_sweeping_expired_keys_does_not_change_the_results_of_the_rules():
     assert swept.store.keys() < plain.store.keys() - 1_000  # các khoá dùng một lần đã hết hạn và bị dọn
 
 
+# ------------------------------------------------------------------------------------------------ observe / probe (MR10)
+
+
+def _state_signature(engine):
+    return (
+        {u: (h.last_event_ts, h.n_success, h.known_countries, h.known_devices) for u, h in engine.history._accounts.items()},
+        engine.stats.total_successes, dict(engine.stats._by_asn), engine.store.keys(),
+    )
+
+
+def test_observe_updates_the_same_state_as_evaluate_without_running_rules():
+    scenario = random_scenario(9, n=600)
+    full, mixed = RuleEngine(), RuleEngine()
+    for a in scenario:
+        full.evaluate(a)
+        mixed.observe(a)  # chỉ trạng thái
+    assert _state_signature(full) == _state_signature(mixed)
+    follow_up = random_scenario(10, n=50)
+    assert [signature(full.evaluate(a)) for a in follow_up] == [signature(mixed.evaluate(a)) for a in follow_up]  # kết quả về sau y hệt
+
+
+def test_probe_with_the_engine_parameters_reproduces_evaluate_and_leaves_the_same_state():
+    scenario = random_scenario(11, n=700)
+    evaluated, probed = RuleEngine(), RuleEngine()
+    specs = [(spec, probed.config.resolved_params(spec)) for spec, _, _ in probed._plan]
+    fired = 0
+    for a in scenario:
+        expected = {h.rule_id for h in evaluated.evaluate(a).hits}
+        with probed.probe(a) as probe:
+            got = {spec.id for spec, params in specs if probe.run(spec, params) is not None}
+        assert got == expected
+        fired += len(expected)
+    assert fired > 0 and _state_signature(evaluated) == _state_signature(probed)
+
+
+def test_probe_runs_a_rule_with_custom_parameters_on_the_same_attempt():
+    engine = RuleEngine()
+    spec = engine.registry["brute_force"]
+    loose = RuleConfig.from_dict({"rules": {"brute_force": {"params": {"threshold": 2}}}}).resolved_params(spec)
+    strict = RuleConfig.from_dict({"rules": {"brute_force": {"params": {"threshold": 50}}}}).resolved_params(spec)
+    levels = []
+    for i in range(3):
+        with engine.probe(make(i)) as probe:
+            levels.append((probe.run(spec, loose) is not None, probe.run(spec, strict) is not None))
+    assert levels == [(False, False), (True, False), (True, False)]  # ngưỡng 2 khớp từ lần sai thứ hai; ngưỡng 50 chưa bao giờ
+
+
+def test_probe_skips_rules_whose_data_is_missing_and_lets_rule_errors_surface():
+    registry: dict[str, RuleSpec] = {}
+    rule(id="can_geo", title="cần toạ độ", category="Ngữ cảnh tài khoản", severity="low", description="cần geo", needs=("geo",), registry=registry)(lambda ctx: Finding("có"))
+    rule(id="hong", title="hỏng", category="Tự động hoá", severity="low", description="luôn lỗi", registry=registry)(lambda ctx: 1 / 0)
+    engine = RuleEngine(registry=registry)
+    with engine.probe(make(0)) as probe:  # không có toạ độ
+        assert probe.run(registry["can_geo"], engine.config.resolved_params(registry["can_geo"])) is None
+        try:
+            probe.run(registry["hong"], engine.config.resolved_params(registry["hong"]))
+        except ZeroDivisionError:
+            surfaced = True
+        else:
+            surfaced = False
+    assert surfaced and engine.history.get("u-alice").last_event_ts == T0  # thoát khối with vẫn cập nhật lịch sử
+
+
 # ------------------------------------------------------------------------------------------------ dựng từ request thật
 
 
