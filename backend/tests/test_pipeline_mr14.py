@@ -77,11 +77,16 @@ def test_the_same_account_repeating_from_the_same_ip_does_not_start_a_campaign(d
     db_session.add(BlocklistEntry(kind="ip", value=GOOGLE_DNS, reason="test MR14", added_by="test"))
     db_session.commit()
 
+    # ⚠️ PHẢI trong DEDUP_WINDOW (15 phút, MR13) để MR13 gộp thành 1 alert — dùng timedelta(hours=i) từng cho kết quả
+    # ĐÚNG NHƯNG VÌ SAI LÝ DO: bug thật tự phát hiện ở MR15 khiến bộ lọc cửa sổ của MR13 vô hiệu hoàn toàn (so nhầm
+    # Alert.created_at thay vì LoginEvent.created_at — xem app/detection/pipeline.py), nên MỌI khoảng cách đều bị coi
+    # là "trong cửa sổ". Sau khi vá đúng, timedelta(hours=i) (2 giờ) giờ NGOÀI cửa sổ 15 phút — đúng ra phải tạo 3
+    # alert riêng, không phải 1. Đổi sang phút để test CÒN kiểm đúng điều nó nói (chống trùng lặp CÙNG một tài khoản).
     for i in range(3):
-        _run(username="alice", user_id=alice.id, success=True, ip=GOOGLE_DNS, ts=BASE + timedelta(hours=i))
+        _run(username="alice", user_id=alice.id, success=True, ip=GOOGLE_DNS, ts=BASE + timedelta(minutes=i))
 
     assert db_session.query(Campaign).count() == 0
-    alert = _hybrid_alerts(db_session)[0]  # MR13 đã gộp 3 lần thành 1 alert hybrid_risk
+    alert = _hybrid_alerts(db_session)[0]  # MR13 gộp 3 lần (trong 15 phút) thành 1 alert hybrid_risk
     assert len(_hybrid_alerts(db_session)) == 1 and alert.campaign_id is None
 
 

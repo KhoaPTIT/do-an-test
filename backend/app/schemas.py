@@ -87,6 +87,13 @@ class AlertOut(BaseModel):
     priority_score: float | None = None
 
 
+class AlertFeedbackRequest(BaseModel):
+    """POST /alerts/{id}/feedback (MR15) — quản trị viên xác nhận cảnh báo đúng hay báo nhầm."""
+
+    correct: bool  # True = "Đúng" (cảnh báo hợp lý), False = "Báo nhầm"
+    note: str | None = Field(default=None, max_length=500)
+
+
 class PaginatedAlerts(BaseModel):
     items: list[AlertOut]
     total: int

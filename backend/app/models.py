@@ -283,8 +283,10 @@ class ResponseAction(Base):
 
 
 class AuditLog(Base):
-    """Nhật ký thao tác chung (MR12): ai/cái gì làm gì lên tài nguyên nào. Hiện chỉ được ghi tự động bởi hệ thống khi tạo `ResponseAction`
-    (`actor='system'`); quản trị viên thao tác tay (duyệt cảnh báo, thêm blocklist...) sẽ ghi thêm khi các router đó được xây (MR13+)."""
+    """Nhật ký thao tác chung (MR12): ai/cái gì làm gì lên tài nguyên nào. `actor='system'` khi hệ thống tự ghi (tạo
+    `ResponseAction`, MR12; retrain ngưỡng định kỳ, MR15); `actor=<username admin>` khi quản trị viên thao tác tay
+    (phản hồi "Đúng"/"Báo nhầm" trên alert, MR15 `POST /alerts/{id}/feedback`; thêm blocklist... sẽ ghi thêm khi router
+    đó được xây)."""
 
     __tablename__ = "audit_log"
 
@@ -314,3 +316,26 @@ class ModelRegistryEntry(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     trained_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class UserRiskProfile(Base):
+    """MR15 "Vòng phản hồi": ngưỡng THÍCH NGHI theo TỪNG tài khoản, suy ra ĐỊNH KỲ (không phải ngay khi bấm phản hồi —
+    xem backend/scripts/retrain_from_feedback.py) từ lịch sử phản hồi quản trị viên trên `Alert.status`/`feedback`.
+    Tài khoản CHƯA đủ phản hồi (`feedback_count` < ngưỡng tối thiểu, xem `app/detection/adaptive_threshold.py`) KHÔNG
+    có hàng ở đây — tự động dùng ngưỡng NHÓM (mặc định toàn hệ thống trong hồ sơ hybrid đang active) — đúng "ngưỡng
+    thích nghi theo user/nhóm" của checklist: user khi có đủ dữ liệu, nhóm (mặc định chung) khi chưa.
+
+    KHÔNG PHẢI retrain mô hình học máy (không đủ dữ liệu phản hồi thật để làm việc đó có ý nghĩa) — chỉ điều chỉnh
+    NGƯỠNG hành động (`ActionBands`), và CHỈ NỚI LỎNG (threshold_delta luôn ≥ 0): có bằng chứng báo nhầm nhiều thì tự
+    động bớt nhạy hơn cho riêng tài khoản đó; KHÔNG tự động thắt chặt xuống dưới mặc định nhóm dù phản hồi toàn
+    "đúng" — thắt chặt hơn mặc định cần con người quyết định, chỉ nới lỏng theo bằng chứng là hướng an toàn để tự động."""
+
+    __tablename__ = "user_risk_profiles"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    threshold_delta: Mapped[float] = mapped_column(Float, default=0.0, server_default="0.0", nullable=False)
+    feedback_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    false_positive_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    user: Mapped["User"] = relationship()

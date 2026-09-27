@@ -54,6 +54,7 @@ Web app mẫu (React)                Attack-sim scripts
 | `GET /alerts` | 4→5→13 | Danh sách cảnh báo, phân trang, mặc định sắp theo ưu tiên (`?sort=priority`\|`recent`, MR13). **Có JWT bắt buộc từ Tuần 5** |
 | `GET /campaigns` | 14 | Danh sách chiến dịch (nhiều tài khoản chung hạ tầng), phân trang, lọc `?status=`. **Có JWT bắt buộc từ Tuần 5** |
 | `GET /campaigns/{id}` | 14 | Chi tiết một chiến dịch: timeline, tài khoản bị nhắm, đồ thị liên kết user-IP-ASN-thiết bị. **Có JWT bắt buộc từ Tuần 5** |
+| `POST /alerts/{id}/feedback` | 15 | "Đúng"/"Báo nhầm" (`{correct, note?}`) — ghi `alerts.status`/`feedback` + `audit_log`; ngưỡng thích nghi tính lại ĐỊNH KỲ, không phải ngay lúc gọi. **Có JWT bắt buộc từ Tuần 5** |
 | `WS /ws/alerts` | 5 | Đẩy cảnh báo real-time, xác thực bằng JWT qua query param `?token=` |
 
 ⚠️ **Rủi ro đã biết (chấp nhận có chủ đích):** JWT qua query param của WebSocket

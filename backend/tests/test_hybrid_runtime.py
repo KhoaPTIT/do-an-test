@@ -90,6 +90,23 @@ def test_evaluate_combines_ml_probability_with_hits_when_available(engine):
     assert result.ml_probability == pytest.approx(0.6) and result.score == 60 and result.action == "step_up"
 
 
+def test_evaluate_uses_the_group_default_bands_when_no_override_is_given(engine):
+    engine.scorer = lambda frame: [3.0] * len(frame)
+    engine.profile = HybridProfile(RuleWeights(), ActionBands(alert_at=10, step_up_at=50, lock_at=90), MonotonicCalibrator((0.0, 5.0), (0.0, 1.0)))
+    result = engine.evaluate({"a": 1.0}, [])
+    assert result.score == 60 and result.action == "step_up"  # ActionBands mặc định của profile: [50,90) -> step_up
+
+
+def test_evaluate_uses_a_per_user_bands_override_when_given(engine):
+    """MR15: cùng điểm 60 như test ở trên, nhưng ngưỡng riêng của tài khoản (đã nới lỏng) đẩy step_up_at lên 65 -> 60
+    giờ chỉ còn 'alert', không phải 'step_up' nữa — chứng minh override THỰC SỰ đổi được hành động, không bị bỏ qua."""
+    engine.scorer = lambda frame: [3.0] * len(frame)
+    engine.profile = HybridProfile(RuleWeights(), ActionBands(alert_at=10, step_up_at=50, lock_at=90), MonotonicCalibrator((0.0, 5.0), (0.0, 1.0)))
+    looser_bands = ActionBands(alert_at=20, step_up_at=65, lock_at=90)
+    result = engine.evaluate({"a": 1.0}, [], bands=looser_bands)
+    assert result.score == 60 and result.action == "alert"
+
+
 def test_evaluate_falls_back_to_no_evidence_when_combining_the_real_hits_blows_up(engine, monkeypatch):
     """Mô phỏng combine_risk lỗi KHI CÓ bằng chứng thật (`hits` khác rỗng) — evaluate() phải bắt lỗi đó và rơi về gọi
     lại combine_risk thật với hits=() (đường dự phòng), không raise ra ngoài."""

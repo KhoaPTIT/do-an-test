@@ -17,6 +17,13 @@ lỗi ở đó (đặc trưng RBA, rule engine, mô hình ML) không bao giờ l
 MR13 (`app/detection/alert_intelligence.py`, THUẦN không đụng DB) làm giàu alert `hybrid_risk` NGAY TRONG khối MR12 ở
 trên: novelty so với lịch sử tài khoản, họ tấn công GỢI Ý, ưu tiên hiển thị, và chống trùng lặp — cùng (tài khoản hoặc
 IP) + họ tấn công trong 15 phút GỘP vào một hàng `Alert` thay vì tạo hàng mới.
+
+MR14 (mục "MR14" ở cuối hàm, `app/detection/campaign_correlation.py`) gán `Alert.campaign_id` khi NHIỀU TÀI KHOẢN
+khác nhau bị nhắm từ CÙNG hạ tầng (IP/ASN) trong 24h.
+
+MR15 (`app/detection/adaptive_threshold.py`) đọc `UserRiskProfile` (nếu tài khoản đã đủ phản hồi "báo nhầm" ròng, cập
+nhật ĐỊNH KỲ bởi `backend/scripts/retrain_from_feedback.py`, KHÔNG PHẢI ngay lúc chấm) và NỚI LỎNG riêng `ActionBands`
+cho tài khoản đó trước khi gọi `hybrid_runtime`.
 """
 
 from __future__ import annotations
@@ -28,6 +35,7 @@ from datetime import datetime
 
 from app.database import SessionLocal
 from app.detection import alert_intelligence, hybrid_runtime, ml_model, perf
+from app.detection.adaptive_threshold import apply_delta
 from app.detection.baseline import (
     is_known_location,
     record_known_device_if_new,
@@ -53,7 +61,7 @@ from app.detection.rules import (
     register_login_failure,
 )
 from app.detection.scoring import SUCCESS_AFTER_FAIL_STREAK_MIN_FAILS, classify_severity, compute_risk_score, explain_factors
-from app.models import Alert, AuditLog, Campaign, LoginEvent, ResponseAction, User, UserBaseline
+from app.models import Alert, AuditLog, Campaign, LoginEvent, ResponseAction, User, UserBaseline, UserRiskProfile
 from app.utils.device import compute_device_fingerprint, parse_user_agent
 from app.utils.time import ensure_utc
 from app.ws_manager import ws_manager
@@ -269,7 +277,14 @@ def _run_detection_pipeline_sync(
                 with perf.timer("rba_features"):
                     event_record = event_record_for(event)
                     features, history_summary = build_features_and_summary(db, event_record)
-                risk_result = hybrid_runtime.get_engine().evaluate(features, evaluation.hits)
+                # MR15: ngưỡng THÍCH NGHI riêng cho tài khoản này nếu đã đủ phản hồi (adaptive_threshold.apply_delta),
+                # NHÓM (mặc định) nếu chưa có hàng UserRiskProfile hay user_id là None (tên đăng nhập không tồn tại).
+                user_bands = None
+                if user_id is not None:
+                    risk_profile = db.get(UserRiskProfile, user_id)
+                    if risk_profile is not None and risk_profile.threshold_delta > 0:
+                        user_bands = apply_delta(hybrid_runtime.get_engine().profile.bands, risk_profile.threshold_delta)
+                risk_result = hybrid_runtime.get_engine().evaluate(features, evaluation.hits, bands=user_bands)
                 event.hybrid_risk_score = risk_result.score
                 event.hybrid_action = risk_result.action
 
@@ -283,16 +298,25 @@ def _run_detection_pipeline_sync(
                     top_rule = next((c.source for c in risk_result.contributions if c.source != "ml"), None)
 
                     # --- MR13: chống trùng lặp — cùng (tài khoản, hoặc IP nếu tài khoản không tồn tại) + họ tấn công,
-                    # trong DEDUP_WINDOW gần nhất và còn "open" thì GỘP vào alert đó thay vì tạo hàng mới ---
+                    # trong DEDUP_WINDOW gần nhất và còn "open" thì GỘP vào alert đó thay vì tạo hàng mới.
+                    # ⚠️ Lọc theo THỜI ĐIỂM ĐĂNG NHẬP (LoginEvent.created_at, JOIN), KHÔNG PHẢI lúc hàng Alert được ghi
+                    # (Alert.created_at, server_default=func.now()) — bug thật cùng lớp đã sửa ở MR14 (app/detection/
+                    # campaign_correlation.py): hai mốc trùng nhau khi chấm gần thời gian thực, nhưng lệch hẳn khi nạp
+                    # lại/mô phỏng nhiều "ngày" trong thời gian chạy thật ngắn (lộ ra qua MR15's feedback_loop_sim.py,
+                    # vốn cố tình cách các vòng 1 NGÀY GIẢ trong khi cả script chạy thật chỉ mất vài giây — dedup theo
+                    # Alert.created_at sẽ coi MỌI vòng trước đó là "trong cửa sổ 15 phút" vì đều được GHI gần như cùng
+                    # một thời điểm THẬT, dù các vòng cách nhau cả ngày về mặt "thời điểm đăng nhập"). ---
                     existing_alert = None
                     if family is not None:
-                        dedup_query = db.query(Alert).filter(
-                            Alert.attack_family == family, Alert.status == "open", Alert.created_at >= event.created_at - alert_intelligence.DEDUP_WINDOW,
+                        dedup_query = (
+                            db.query(Alert)
+                            .join(LoginEvent, Alert.login_event_id == LoginEvent.id)
+                            .filter(Alert.attack_family == family, Alert.status == "open", LoginEvent.created_at >= event.created_at - alert_intelligence.DEDUP_WINDOW)
                         )
                         if user_id is not None:
                             dedup_query = dedup_query.filter(Alert.user_id == user_id)
                         else:
-                            dedup_query = dedup_query.join(LoginEvent, Alert.login_event_id == LoginEvent.id).filter(Alert.user_id.is_(None), LoginEvent.ip_address == ip)
+                            dedup_query = dedup_query.filter(Alert.user_id.is_(None), LoginEvent.ip_address == ip)
                         existing_alert = dedup_query.order_by(Alert.created_at.desc()).first()
 
                     # "action" đã lưu ở lần trước là mức TỆ NHẤT của cả đợt tính đến lúc đó (xem combined_action bên dưới) — không phải riêng lần đó.

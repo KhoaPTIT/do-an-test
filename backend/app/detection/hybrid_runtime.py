@@ -90,17 +90,23 @@ class HybridEngine:
             logger.exception("lỗi khi tra thành phần ML dẫn đầu — bỏ qua gợi ý họ tấn công từ ML")
             return None
 
-    def evaluate(self, features: dict[str, float] | None, hits: Iterable[RuleHit]) -> RiskResult:
-        """Điểm 0-100 + hành động cho MỘT lần thử — không bao giờ raise (mọi lỗi rơi về `combine_risk` với `ml_probability=None`)."""
+    def evaluate(self, features: dict[str, float] | None, hits: Iterable[RuleHit], *, bands: ActionBands | None = None) -> RiskResult:
+        """Điểm 0-100 + hành động cho MỘT lần thử — không bao giờ raise (mọi lỗi rơi về `combine_risk` với `ml_probability=None`).
+
+        `bands`: ngưỡng đã NỚI LỎNG riêng cho tài khoản đang chấm (MR15, `app/detection/adaptive_threshold.py` +
+        `UserRiskProfile`) — `None` (mặc định) thì dùng thẳng ngưỡng NHÓM (`self.profile.bands`, hồ sơ hybrid đang
+        active). Không ảnh hưởng `weights`/`ml_calibration` — MR15 chỉ chỉnh NGƯỠNG HÀNH ĐỘNG, không chỉnh lại cách
+        tính điểm 0-100 (điểm hiển thị cho mọi người xem vẫn nhất quán; chỉ NGƯỠNG QUYẾT ĐỊNH hành động khác nhau)."""
+        effective_bands = bands if bands is not None else self.profile.bands
         try:
             ml_probability = self.ml_probability(features)
         except Exception:  # noqa: BLE001 — phòng hờ kép, ml_probability() đã tự bắt lỗi nhưng không đánh đổi độ an toàn
             ml_probability = None
         try:
-            return combine_risk(ml_probability=ml_probability, hits=hits, weights=self.profile.weights, bands=self.profile.bands)
+            return combine_risk(ml_probability=ml_probability, hits=hits, weights=self.profile.weights, bands=effective_bands)
         except Exception:  # noqa: BLE001 — combine_risk là hàm thuần không nên lỗi, nhưng "không bao giờ raise" là bất biến của cả pipeline
             logger.exception("lỗi khi gộp điểm hybrid — coi như không có bằng chứng nào")
-            return combine_risk(ml_probability=None, hits=(), weights=RuleWeights(), bands=self.profile.bands)
+            return combine_risk(ml_probability=None, hits=(), weights=RuleWeights(), bands=effective_bands)
 
 
 _engine: HybridEngine | None = None

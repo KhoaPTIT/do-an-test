@@ -70,6 +70,26 @@ def test_a_burst_from_a_blocklisted_ip_is_deduped_into_one_alert_not_five(db_ses
     assert db_session.query(AuditLog).filter(AuditLog.action == "recommend_lock").count() == 1
 
 
+def test_two_blocklist_hits_a_fake_day_apart_are_not_incorrectly_deduped_into_one_alert(db_session):
+    """Bug thật tự phát hiện ở MR15 (feedback_loop_sim.py chạy nhiều "vòng" cách nhau vài ngày GIẢ trong khi cả script
+    chạy thật chỉ mất vài giây): bộ lọc cửa sổ chống trùng lặp BAN ĐẦU so `Alert.created_at` (giờ hàng Alert được GHI,
+    server_default=func.now() — giờ THẬT lúc chạy) với `event.created_at - DEDUP_WINDOW` (giờ ĐĂNG NHẬP, có thể là giờ
+    giả) — hai "đồng hồ" khác nhau khiến MỌI alert trước đó trông như "trong cửa sổ 15 phút" bất kể cách nhau bao xa
+    về mặt thời điểm đăng nhập, vì tất cả đều được GHI vào DB gần như cùng một thời điểm thật. Test này tái lập đúng
+    điều kiện đó (hai lần khớp blocklist_hit cách nhau 1 NGÀY GIẢ, chạy cách nhau chỉ mili-giây thật) — PHẢI ra 2 alert
+    riêng (occurrence_count=1 mỗi cái), không phải 1 alert gộp occurrence_count=2."""
+    user = _create_user(db_session, "alice")
+    db_session.add(BlocklistEntry(kind="ip", value=GOOGLE_DNS, reason="test MR15", added_by="test"))
+    db_session.commit()
+
+    _run(username="alice", user_id=user.id, success=True, ip=GOOGLE_DNS, ts=BASE)
+    _run(username="alice", user_id=user.id, success=True, ip=GOOGLE_DNS, ts=BASE + timedelta(days=1))
+
+    alerts = db_session.query(Alert).filter(Alert.alert_type == "hybrid_risk").order_by(Alert.id).all()
+    assert len(alerts) == 2, "cách nhau 1 ngày (giờ đăng nhập) phải là 2 alert riêng, không phải gộp thành 1 chỉ vì được GHI vào DB gần nhau về giờ thật"
+    assert alerts[0].occurrence_count == 1 and alerts[1].occurrence_count == 1
+
+
 def test_dedup_still_groups_by_ip_when_the_username_does_not_exist(db_session):
     """Kịch bản dò danh sách tài khoản: nhiều TÊN ĐĂNG NHẬP KHÔNG TỒN TẠI khác nhau, cùng một IP bị blocklist — user_id
     luôn None nên chống trùng lặp phải gộp theo IP, không phải theo user_id (None == None sẽ gộp NHẦM các IP khác nhau

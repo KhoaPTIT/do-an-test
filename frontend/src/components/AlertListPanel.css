@@ -38,3 +38,34 @@
   border-left-color: var(--danger);
   background: var(--danger-bg);
 }
+
+.alert-list__feedback {
+  margin-top: 0.4rem;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.alert-list__feedback button {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.alert-list__feedback button:hover:not(:disabled) {
+  background: var(--accent-bg);
+}
+
+.alert-list__feedback button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.alert-list__feedback-done {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+}

@@ -98,7 +98,7 @@ Hồ sơ hành vi "bình thường" theo user (Tuần 4). Quan hệ 1-1 với `u
 | explanation | JSON | nullable (MR12) — `{"contributions": [...], "action": ...}` từ `RiskResult`; `action` (MR13) là mức đề xuất TỆ NHẤT của cả đợt tính đến lần gộp gần nhất, dùng để phát hiện leo thang khi chống trùng lặp |
 | campaign_id | INTEGER FK → campaigns.id | nullable — dự trữ cho MR14 (tương quan chiến dịch), chưa có gì gán |
 | status | VARCHAR(16) | default `'open'` (MR12) — `open`\|`acknowledged`\|`resolved`\|`false_positive`; chi tiết hơn `resolved`, TỒN TẠI SONG SONG (tương thích ngược) |
-| feedback | TEXT | nullable (MR12) — phản hồi ngắn của quản trị viên, chưa có router nào ghi |
+| feedback | TEXT | nullable — ghi chú ngắn của quản trị viên (MR15, `POST /alerts/{id}/feedback`); `status` chuyển `resolved`\|`false_positive` cùng lúc, nguồn cho `user_risk_profiles` |
 | occurrence_count | INTEGER | default 1 (MR13) — chống trùng lặp: số lần CÙNG (tài khoản hoặc IP) + `attack_family` khớp trong `DEDUP_WINDOW` (15 phút) đã GỘP vào hàng này thay vì tạo hàng mới |
 | last_seen_at | TIMESTAMPTZ | nullable (MR13) — lần khớp GẦN NHẤT của đợt đã gộp; `created_at` giữ nguyên lần ĐẦU TIÊN |
 | priority_score | FLOAT | nullable (MR13) — `novelty_level × attack_family_confidence × users.importance`; sắp xếp mặc định của `GET /alerts` (NULLS LAST), KHÔNG thay `severity`/`risk_score` |
@@ -216,6 +216,22 @@ file, `feature_signature` lệch) thì `app/detection/hybrid_runtime.py` bỏ qu
 | created_at | TIMESTAMPTZ | default now() |
 
 UNIQUE (name, version).
+
+## user_risk_profiles (bổ sung MR15)
+
+Ngưỡng THÍCH NGHI theo TỪNG tài khoản ("vòng phản hồi") — suy ra ĐỊNH KỲ (không phải ngay lúc admin bấm phản hồi, xem
+`backend/scripts/retrain_from_feedback.py`) từ `alerts.status`/`feedback`. Tài khoản chưa đủ phản hồi (`feedback_count`
+< 3, `app/detection/adaptive_threshold.MIN_FEEDBACK_FOR_PERSONAL_THRESHOLD`) KHÔNG có hàng ở đây — tự động dùng ngưỡng
+NHÓM (mặc định toàn hệ thống). CHỈ NỚI LỎNG (`threshold_delta` luôn ≥ 0) — không bao giờ tự động thắt chặt xuống dưới
+mặc định nhóm dù phản hồi toàn "đúng".
+
+| Cột | Kiểu | Ghi chú |
+|---|---|---|
+| user_id | INTEGER PK, FK → users.id | |
+| threshold_delta | FLOAT | default 0.0 — cộng THÊM vào cả ba mốc `alert_at`/`step_up_at`/`lock_at` khi chấm điểm cho tài khoản này (`app/detection/adaptive_threshold.apply_delta`) |
+| feedback_count | INTEGER | default 0 — tổng số alert đã có phản hồi (`resolved` + `false_positive`) |
+| false_positive_count | INTEGER | default 0 — trong đó, số phản hồi "báo nhầm" |
+| updated_at | TIMESTAMPTZ | tự cập nhật (`onupdate=func.now()`) |
 
 ## Kiểm tra sau khi hoàn thành (checklist gốc mục 1.2)
 
