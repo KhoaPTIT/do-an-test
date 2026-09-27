@@ -67,7 +67,8 @@ def test_a_burst_from_a_blocklisted_ip_is_deduped_into_one_alert_not_five(db_ses
 
     # "action" không đổi (lock -> lock không phải leo thang) mỗi lần trùng -> chỉ 1 response_action/audit_log, không phải 5.
     assert db_session.query(ResponseAction).count() == 1
-    assert db_session.query(AuditLog).filter(AuditLog.action == "recommend_lock").count() == 1
+    # MR16: lock giờ được THỰC THI thật ngay ở lần đầu (không chỉ "recommend_lock" như MR12/13 ban đầu).
+    assert db_session.query(AuditLog).filter(AuditLog.action == "execute_lock").count() == 1
 
 
 def test_two_blocklist_hits_a_fake_day_apart_are_not_incorrectly_deduped_into_one_alert(db_session):

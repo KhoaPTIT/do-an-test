@@ -246,8 +246,9 @@ class Campaign(Base):
 class BlocklistEntry(Base):
     """Bản lưu DB của `app.detection.engine.intel.Blocklist` (MR9: trong bộ nhớ, dùng cho replay/test). Luồng thật nạp lại bảng này thành một
     `Blocklist` trong bộ nhớ mỗi lần chấm (có cache TTL ngắn — `app/detection/rule_engine_runtime.py`), vì `Blocklist.match()` cần tra cứu nhanh,
-    không phải truy vấn SQL cho mỗi lần đăng nhập. Chưa có hành động chặn THẬT (từ chối đăng nhập) — luật `blocklist_hit` mới chỉ tạo cảnh báo/ghi
-    đè điểm rủi ro; hành động chặn thật là việc của MR16."""
+    không phải truy vấn SQL cho mỗi lần đăng nhập. Từ MR16: `app/routers/auth.py` từ chối NGAY (HTTP 423, trước cả bước xác thực mật khẩu) một mục
+    còn hiệu lực ở đây — hàng có thể do quản trị viên tự thêm (MR9, `added_by` khác "system") HOẶC do pipeline TỰ ĐỘNG thêm khi hybrid risk engine
+    đề xuất `lock` (MR16, `added_by="system"`, luôn CÓ hạn dùng — xem `app/detection/response_execution.py`)."""
 
     __tablename__ = "blocklist"
     __table_args__ = (UniqueConstraint("kind", "value", name="uq_blocklist_kind_value"),)
@@ -263,8 +264,9 @@ class BlocklistEntry(Base):
 
 class ResponseAction(Base):
     """Hành động ứng phó mà hybrid risk engine (MR11) ĐỀ XUẤT khi điểm gộp đạt mức `step_up` hoặc `lock` (`app.detection.hybrid.combine_risk`),
-    hoặc do luật ghi đè (`overridden_by`). `status='recommended'` nghĩa là mới chỉ ghi nhận đề xuất — CHƯA có gì thực thi việc khoá/yêu cầu xác
-    thực thêm thật sự (không có luồng MFA/khoá tài khoản ở web app mẫu); thực thi thật là việc của MR16, đúng như luật `blocklist_hit` đã ghi chú."""
+    hoặc do luật ghi đè (`overridden_by`). `status='recommended'` — chỉ mới ghi nhận đề xuất (dùng khi đã có một hàng CÙNG alert từ trước, dedup
+    trùng lặp không escalate thêm, MR13). Từ MR16: `status='executed'` khi đã THỰC THI thật (`lock` → tạo/gia hạn `BlocklistEntry`,
+    `app/detection/pipeline.py`; `step_up` → tạo `OtpChallenge`, `app/routers/auth.py`) — `executed_at` đi kèm ghi lại lúc đó."""
 
     __tablename__ = "response_actions"
 
@@ -339,3 +341,22 @@ class UserRiskProfile(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     user: Mapped["User"] = relationship()
+
+
+class OtpChallenge(Base):
+    """MR16 "Phản ứng tự động (mô phỏng)": bước xác thực thêm khi hybrid risk engine đề xuất `step_up` cho MỘT lần
+    đăng nhập đã qua ĐÚNG mật khẩu. ⚠️ OTP GIẢ LẬP — không gửi SMS/email thật (không có nhà cung cấp nào tích hợp),
+    mã trả THẲNG trong response của `POST /login` để demo tự dùng được (`app/detection/response_execution.py`), luôn
+    ghi rõ đây là mô phỏng ở message trả về. `code_hash` băm bằng `app.security.hash_password` (bcrypt — thừa sức cho
+    một mã 6 số, nhưng tái dùng đúng hàm đã có thay vì tự viết thêm)."""
+
+    __tablename__ = "otp_challenges"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    login_event_id: Mapped[int] = mapped_column(ForeignKey("login_events.id"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

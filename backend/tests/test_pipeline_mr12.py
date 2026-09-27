@@ -72,17 +72,22 @@ def test_a_brute_force_burst_computes_a_valid_score_without_crashing(client, db_
     assert len(events) == 8 and all(0 <= e.hybrid_risk_score <= 100 for e in events)
 
 
-def test_a_blocklisted_ip_deterministically_locks_creates_a_response_action_and_an_audit_log_entry(client, db_session, monkeypatch):
+def test_a_blocklisted_ip_deterministically_locks_and_the_pipeline_executes_it(db_session):
     """`blocklist_hit` GHI ĐÈ (MR11: điểm 100, hành động `lock`) bất kể hiệu chỉnh trọng số/ML cụ thể — kịch bản DUY NHẤT
-    chắc chắn tái lập được hành động `lock` mà không phụ thuộc số liệu hiệu chỉnh có thể đổi sau này. IP cố định qua
-    monkeypatch (không qua X-Forwarded-For — phụ thuộc TRUST_FORWARDED_FOR của `.env`, không chắc bật ở môi trường khác)."""
-    monkeypatch.setattr("app.routers.auth.resolve_client_ip", lambda request: "203.0.113.66")
-    _create_user(db_session, "alice")
+    chắc chắn tái lập được hành động `lock` mà không phụ thuộc số liệu hiệu chỉnh có thể đổi sau này.
+
+    Gọi THẲNG `run_detection_pipeline` (không qua HTTP/`app/routers/auth.py`), giống `test_asn_is_looked_up_for_a_real_public_ip`
+    ở trên — từ MR16, `POST /login` chặn NGAY một IP đã có trong blocklist TRƯỚC KHI tới bước chấm điểm (xem
+    `test_a_blocklisted_login_is_rejected_before_scoring` trong test_auth_mr16.py), nên kịch bản "pipeline tự chấm ra
+    lock rồi THỰC THI luôn" giờ chỉ còn tái lập được bằng cách gọi thẳng pipeline."""
+    user = _create_user(db_session, "alice")
     db_session.add(BlocklistEntry(kind="ip", value="203.0.113.66", reason="test MR12", added_by="test"))
     db_session.commit()
 
-    response = client.post("/login", json={"username": "alice", "password": PASSWORD}, headers={"user-agent": CHROME_UA})
-    assert response.status_code == 200  # blocklist chỉ ghi đè ĐIỂM RỦI RO/đề xuất, KHÔNG (chưa) chặn đăng nhập thật (MR16)
+    result = asyncio.run(
+        run_detection_pipeline(username="alice", user_id=user.id, success=True, ip="203.0.113.66", user_agent=CHROME_UA, timestamp=datetime.now(timezone.utc))
+    )
+    assert result.hybrid_action == "lock" and result.hybrid_risk_score == 100
 
     event = db_session.query(LoginEvent).order_by(LoginEvent.id.desc()).first()
     assert event.hybrid_risk_score == 100 and event.hybrid_action == "lock"
@@ -91,11 +96,18 @@ def test_a_blocklisted_ip_deterministically_locks_creates_a_response_action_and_
     assert hybrid_alert is not None and hybrid_alert.rule_id == "blocklist_hit" and hybrid_alert.status == "open"
     assert hybrid_alert.explanation is not None and any(c["source"] == "blocklist_hit" for c in hybrid_alert.explanation["contributions"])
 
+    # MR16: hành động lock giờ được THỰC THI thật (không còn dừng ở "recommended" như MR12) — khoá TÀI KHOẢN (alice
+    # tồn tại) chứ không phải IP, dù chính mục chặn IP là thứ khiến rule khớp (xem lock_kind_and_value, response_execution.py).
     action = db_session.query(ResponseAction).order_by(ResponseAction.id.desc()).first()
-    assert action is not None and action.action == "lock" and action.status == "recommended" and action.alert_id == hybrid_alert.id
+    assert action is not None and action.action == "lock" and action.status == "executed" and action.alert_id == hybrid_alert.id
+    assert action.executed_at is not None
 
-    log = db_session.query(AuditLog).filter(AuditLog.action == "recommend_lock").order_by(AuditLog.id.desc()).first()
+    log = db_session.query(AuditLog).filter(AuditLog.action == "execute_lock").order_by(AuditLog.id.desc()).first()
     assert log is not None and log.actor == "system" and log.target_type == "login_event" and log.target_id == event.id
+    assert log.detail["blocklist_kind"] == "username" and log.detail["blocklist_value"] == "alice"
+
+    new_block = db_session.query(BlocklistEntry).filter(BlocklistEntry.kind == "username", BlocklistEntry.value == "alice").one()
+    assert new_block.expires_at is not None  # khoá tạm CÓ hạn (LOCK_TTL), khác mục chặn IP thủ công (vĩnh viễn) ở trên
 
 
 def test_a_broken_mr12_block_never_loses_the_tier1_brute_force_alert(client, db_session, monkeypatch):

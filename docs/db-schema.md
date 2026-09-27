@@ -1,11 +1,12 @@
-# Schema cơ sở dữ liệu (nhiệm vụ 1.2 + bảng `admins` Tuần 5 + 5 bảng MR12)
+# Schema cơ sở dữ liệu (nhiệm vụ 1.2 + bảng `admins` Tuần 5 + 5 bảng MR12 + 1 bảng MR15 + 1 bảng MR16)
 
 6 bảng gốc PostgreSQL (nhiệm vụ 1.2) + bảng `admins` (nhiệm vụ 5.1) + 5 bảng MR12 (`campaigns`, `blocklist`,
-`response_actions`, `audit_log`, `model_registry`) và cột mới trên `login_events`/`alerts`, định nghĩa bằng SQLAlchemy ở
-[`backend/app/models.py`](../backend/app/models.py), tạo bằng Alembic migration trong
-[`backend/alembic/versions/`](../backend/alembic/versions/) (`..._initial_schema.py` cho 6 bảng gốc,
-`..._add_admins_table.py` cho Tuần 5, `..._add_ml_anomaly_score...py` cho `ml_anomaly_score`,
-`..._mr12_realtime_integration...py` cho phần MR12 — xem [`realtime-integration.md`](realtime-integration.md)).
+`response_actions`, `audit_log`, `model_registry`) + `user_risk_profiles` (MR15) + `otp_challenges` (MR16) và cột mới
+trên `login_events`/`alerts`, định nghĩa bằng SQLAlchemy ở [`backend/app/models.py`](../backend/app/models.py), tạo
+bằng Alembic migration trong [`backend/alembic/versions/`](../backend/alembic/versions/) (`..._initial_schema.py` cho
+6 bảng gốc, `..._add_admins_table.py` cho Tuần 5, `..._add_ml_anomaly_score...py` cho `ml_anomaly_score`,
+`..._mr12_realtime_integration...py` cho phần MR12 — xem [`realtime-integration.md`](realtime-integration.md);
+`..._mr16_otp_challenges.py` cho `otp_challenges`).
 
 ## users
 
@@ -42,7 +43,7 @@ Bảng quan trọng nhất — mọi lần thử đăng nhập, thành công l�
 | os_name / browser_name | VARCHAR(64) | nullable — parse User-Agent (MR12, `app/utils/device.py`), cùng bộ giá trị RBA |
 | device_type | VARCHAR(16) | nullable — `mobile`\|`desktop`\|`tablet`\|`bot`\|`unknown` (MR12) |
 | hybrid_risk_score | INTEGER | nullable, 0–100 — điểm hybrid risk engine (MR11), CHẠY SONG SONG risk_score/ml_anomaly_score |
-| hybrid_action | VARCHAR(16) | nullable — `allow`\|`alert`\|`step_up`\|`lock`, ĐỀ XUẤT của hybrid risk engine (chưa tự thực thi, xem `response_actions`) |
+| hybrid_action | VARCHAR(16) | nullable — `allow`\|`alert`\|`step_up`\|`lock` của hybrid risk engine; `step_up`/`lock` được THỰC THI thật từ MR16 (xem `response_actions`, `otp_challenges`) |
 | is_synthetic | BOOLEAN | default false — phân biệt dữ liệu giả lập (nhiệm vụ 2.3) |
 | created_at | TIMESTAMPTZ | default now() |
 
@@ -146,8 +147,11 @@ tách nếu có alert bắc cầu đến sau (xem giới hạn ở `docs/campaig
 Bản lưu DB của `app.detection.engine.intel.Blocklist` (MR9, trước đó chỉ có trong bộ nhớ cho replay/test). Luồng thật
 nạp lại bảng này thành một `Blocklist` trong bộ nhớ mỗi lần chấm điểm (cache TTL 15 giây,
 `app/detection/rule_engine_runtime.refresh_blocklist`) vì tra cứu cần nhanh, không phải truy vấn SQL cho mỗi lần đăng
-nhập. Khớp blocklist tạo cảnh báo/ghi đè điểm rủi ro (`blocklist_hit`, hành động `lock`) — **chưa có hành động chặn
-THẬT** (từ chối đăng nhập), việc đó là của MR16.
+nhập. Khớp blocklist tạo cảnh báo/ghi đè điểm rủi ro (`blocklist_hit`, hành động `lock`). Từ MR16: `POST /login`
+(`app/routers/auth.py`) từ chối NGAY (HTTP 423) một mục còn hiệu lực ở đây, TRƯỚC CẢ khi xác thực mật khẩu — hàng có
+thể do quản trị viên tự thêm (`added_by` khác `"system"`) hoặc do pipeline TỰ ĐỘNG thêm khi hành động là `lock`
+(`added_by="system"`, luôn CÓ `expires_at` — 30 phút, `app/detection/response_execution.LOCK_TTL`). Quản trị viên xem/mở
+khoá qua `GET /blocklist` + `DELETE /blocklist/{id}` (`app/routers/blocklist.py`).
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
@@ -164,8 +168,9 @@ UNIQUE (kind, value).
 ## response_actions (bổ sung MR12)
 
 Hành động ứng phó mà hybrid risk engine ĐỀ XUẤT khi điểm gộp đạt `step_up`/`lock`, hoặc do luật ghi đè. `status =
-'recommended'` nghĩa là mới chỉ GHI NHẬN đề xuất — chưa có gì thực thi thật (không có luồng MFA/khoá tài khoản ở web
-app mẫu); thực thi thật là việc của MR16.
+'recommended'` khi chỉ GHI NHẬN đề xuất (dùng khi đã có hàng CÙNG alert từ trước, chống trùng lặp không leo thang thêm,
+MR13). Từ MR16: `status = 'executed'` khi đã THỰC THI thật — `lock` → tạo/gia hạn `blocklist` (`app/detection/pipeline.py`),
+`step_up` → tạo `otp_challenges` (`app/routers/auth.py`) — kèm `executed_at`.
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
@@ -182,9 +187,11 @@ app mẫu); thực thi thật là việc của MR16.
 
 ## audit_log (bổ sung MR12)
 
-Nhật ký thao tác chung. Hiện chỉ được hệ thống tự ghi khi tạo `response_actions` (`actor='system'`, `action=
-'recommend_step_up'`/`'recommend_lock'`); quản trị viên thao tác tay (duyệt cảnh báo, thêm blocklist...) sẽ ghi thêm khi
-các router đó được xây (MR13+).
+Nhật ký thao tác chung. `actor='system'` khi hệ thống tự ghi: tạo `response_actions` (`action='recommend_step_up'`\|
+`'recommend_lock'`), MR16 thực thi thật (`'execute_lock'`\|`'execute_step_up'`), MR16 từ chối ở precheck
+(`'reject_blocked_login'`, `target_type='blocklist'`, không có `login_event` vì bị chặn TRƯỚC khi ghi). `actor=`username
+quản trị viên khi thao tác tay: phản hồi alert (MR15, `'feedback_correct'`\|`'feedback_false_positive'`), mở khoá
+(MR16, `'unlock'`, `target_type='blocklist'`, `detail` giữ lại toàn bộ thông tin mục chặn TRƯỚC KHI xoá hàng).
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
@@ -232,6 +239,25 @@ mặc định nhóm dù phản hồi toàn "đúng".
 | feedback_count | INTEGER | default 0 — tổng số alert đã có phản hồi (`resolved` + `false_positive`) |
 | false_positive_count | INTEGER | default 0 — trong đó, số phản hồi "báo nhầm" |
 | updated_at | TIMESTAMPTZ | tự cập nhật (`onupdate=func.now()`) |
+
+## otp_challenges (bổ sung MR16)
+
+Bước xác thực thêm khi hành động là `step_up` (mật khẩu ĐÃ đúng, `app/routers/auth.py`). ⚠️ OTP GIẢ LẬP — không có nhà
+cung cấp SMS/email nào tích hợp, mã trả THẲNG trong response `POST /login` (`demo_otp_code`), luôn ghi rõ đây là mô
+phỏng. Xác thực qua `POST /login/verify-otp` — thông báo lỗi GIỐNG NHAU cho MỌI lý do thất bại (không tồn tại, hết
+hạn, quá số lần thử, sai mã, đã dùng), cùng triết lý "sai mật khẩu = tài khoản không tồn tại" đã có
+(`docs/api-contract.md` mục 3).
+
+| Cột | Kiểu | Ghi chú |
+|---|---|---|
+| id | INTEGER PK | |
+| login_event_id | INTEGER FK → login_events.id | không null, indexed — lần đăng nhập đã sinh ra thử thách này |
+| user_id | INTEGER FK → users.id | không null |
+| code_hash | VARCHAR(255) | bcrypt (`app.security.hash_password` — tái dùng, không viết hàm băm riêng cho mã 6 số) |
+| expires_at | TIMESTAMPTZ | không null — `OTP_TTL` = 5 phút kể từ lúc tạo |
+| verified_at | TIMESTAMPTZ | nullable — đã xác thực thành công; có giá trị rồi thì mọi lần thử SAU đều bị từ chối (không cho dùng lại) |
+| attempts | INTEGER | default 0 — mỗi lần xác thực SAI (kể cả sau khi đã hết hạn) tăng 1; ≥ `OTP_MAX_ATTEMPTS` (5) thì từ chối luôn cả khi gửi đúng mã |
+| created_at | TIMESTAMPTZ | default now() |
 
 ## Kiểm tra sau khi hoàn thành (checklist gốc mục 1.2)
 

@@ -59,6 +59,24 @@
   width: 100%;
 }
 
+.auth-otp-banner {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-radius: 6px;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.auth-secondary {
+  width: 100%;
+  margin-top: 0.5rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
 .auth-hint {
   margin-top: 1rem;
   font-size: 0.78rem;

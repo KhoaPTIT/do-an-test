@@ -4,6 +4,7 @@ import "./DashboardPage.css";
 import { useCallback, useEffect, useState } from "react";
 
 import AlertListPanel from "../components/AlertListPanel";
+import BlocklistPanel from "../components/BlocklistPanel";
 import LogTablePanel from "../components/LogTablePanel";
 import MapPanel from "../components/MapPanel";
 import RiskChartPanel from "../components/RiskChartPanel";
@@ -56,6 +57,8 @@ export default function DashboardPage() {
         <LogTablePanel refreshKey={refreshKey} />
         <AlertListPanel latestAlert={latestAlert} />
       </div>
+
+      <BlocklistPanel />
     </main>
   );
 }

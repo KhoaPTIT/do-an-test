@@ -13,6 +13,21 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     success: bool
     message: str
+    # MR16 "phản ứng tự động (mô phỏng)" — bước xác thực thêm khi hybrid risk engine đề xuất step_up cho CHÍNH lần thử
+    # này (mật khẩu đã đúng). ⚠️ `demo_otp_code` CHỈ vì đây là OTP GIẢ LẬP (không có nhà cung cấp SMS/email nào tích
+    # hợp) — hệ thống thật KHÔNG BAO GIỜ trả mã trực tiếp trong response.
+    step_up_required: bool = False
+    challenge_id: int | None = None
+    demo_otp_code: str | None = None
+    # MR16 — tài khoản hoặc IP đang bị khoá tạm (Blocklist, app/detection/engine/intel.py).
+    locked: bool = False
+
+
+class OtpVerifyRequest(BaseModel):
+    """POST /login/verify-otp (MR16)."""
+
+    challenge_id: int = Field(gt=0)
+    code: str = Field(min_length=1, max_length=12)
 
 
 class AdminLoginRequest(BaseModel):
@@ -161,3 +176,27 @@ class CampaignDetail(CampaignOut):
     timeline: list[CampaignTimelineItem]
     targeted_usernames: list[str]
     graph: CampaignGraph
+
+
+# ----------------------------------------------------------------------------------------- MR16: blocklist / mở khoá
+
+
+class BlocklistEntryOut(BaseModel):
+    """Dùng cho GET /blocklist — danh sách khoá tạm/chặn (tự động từ MR16 + thủ công từ MR9) để quản trị viên xem và mở khoá."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kind: str  # ip | cidr | asn | username
+    value: str
+    reason: str | None
+    added_by: str
+    expires_at: datetime | None  # None = vĩnh viễn (chỉ có thể do quản trị viên đặt tay — MR16 tự động luôn có hạn)
+    created_at: datetime
+
+
+class PaginatedBlocklist(BaseModel):
+    items: list[BlocklistEntryOut]
+    total: int
+    page: int
+    page_size: int

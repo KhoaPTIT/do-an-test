@@ -22,7 +22,12 @@ def test_login_success_returns_200_and_logs_event(client, db_session):
     response = client.post("/login", json={"username": "alice", "password": PASSWORD})
 
     assert response.status_code == 200
-    assert response.json() == {"success": True, "message": "Login successful"}
+    # MR16: LoginResponse có thêm field step_up_required/challenge_id/demo_otp_code/locked — mặc định "không có gì
+    # đặc biệt xảy ra" cho một lần đăng nhập bình thường (không bị khoá, không cần xác thực thêm).
+    assert response.json() == {
+        "success": True, "message": "Login successful",
+        "step_up_required": False, "challenge_id": None, "demo_otp_code": None, "locked": False,
+    }
 
     events = db_session.query(LoginEvent).all()
     assert len(events) == 1

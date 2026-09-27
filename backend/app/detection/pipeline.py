@@ -2,6 +2,7 @@
 (nhiệm vụ 5.2) — GeoIP, rule tầng 1, risk score tầng 2, baseline, known
 device/location đều chuyển vào đây (trước ở routers/auth.py, chặn response).
 Alert mới được broadcast qua WebSocket ngay sau khi commit (nhiệm vụ 5.3).
+MR16: không còn ĐÚNG TUYỆT ĐỐI cho lần thử MẬT KHẨU ĐÚNG — xem đoạn MR16 bên dưới.
 
 Mở SESSION DB RIÊNG (không dùng session được inject qua Depends(get_db) của
 request — session đó đã đóng khi response được trả về, dùng lại sẽ lỗi).
@@ -24,6 +25,16 @@ khác nhau bị nhắm từ CÙNG hạ tầng (IP/ASN) trong 24h.
 MR15 (`app/detection/adaptive_threshold.py`) đọc `UserRiskProfile` (nếu tài khoản đã đủ phản hồi "báo nhầm" ròng, cập
 nhật ĐỊNH KỲ bởi `backend/scripts/retrain_from_feedback.py`, KHÔNG PHẢI ngay lúc chấm) và NỚI LỎNG riêng `ActionBands`
 cho tài khoản đó trước khi gọi `hybrid_runtime`.
+
+MR16 "Phản ứng tự động (mô phỏng)" THỰC THI THẬT đề xuất `step_up`/`lock` (trước đó `ResponseAction.status` luôn
+`"recommended"`, không làm gì cả) — mục "MR16" ngay dưới khối tạo `response_action`: `lock` tạo/gia hạn một
+`BlocklistEntry` có hạn (TÁI DÙNG `Blocklist`/`blocklist_hit` đã có từ MR9, xem `app/detection/response_execution.py`)
+rồi gọi `invalidate_blocklist_cache()` để lần đăng nhập KẾ TIẾP thấy ngay, không đợi hết cache TTL 15s;
+`step_up` (tạo `OtpChallenge`) nằm ở `app/routers/auth.py` (cần trả OTP thẳng trong response HTTP, không phải nền).
+Hệ quả: `run_detection_pipeline()` giờ TRẢ VỀ một `PipelineResult` (trước đây `None`) để `auth.py` biết hành động vừa
+quyết định là gì — và với MỘT lần thử ĐÚNG mật khẩu, `auth.py` phải `await` hàm này TRỰC TIẾP thay vì qua
+`BackgroundTasks` như trước (nhiệm vụ 5.2 nguyên bản), đổi lấy độ trễ cao hơn CHO ĐÚNG những lần thử đó (đo được, xem
+docs/automated-response.md) — lần thử SAI mật khẩu không đổi, vẫn chạy nền như cũ (không có gì để "chờ" thêm).
 """
 
 from __future__ import annotations
@@ -31,6 +42,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from dataclasses import dataclass
 from datetime import datetime
 
 from app.database import SessionLocal
@@ -47,7 +59,8 @@ from app.detection.engine.types import LoginAttempt
 from app.detection.geoip import lookup_asn, lookup_ip
 from app.detection.rate_counter import check_fail_count, redis_client
 from app.detection.rba_live_features import build_features_and_summary, event_record_for
-from app.detection.rule_engine_runtime import build_rule_engine
+from app.detection.response_execution import LOCK_TTL, lock_kind_and_value
+from app.detection.rule_engine_runtime import build_rule_engine, invalidate_blocklist_cache
 from app.detection.rules import (
     CREDENTIAL_STUFFING_FAIL_THRESHOLD,
     CREDENTIAL_STUFFING_MIN_DISTINCT_USERNAMES,
@@ -61,7 +74,7 @@ from app.detection.rules import (
     register_login_failure,
 )
 from app.detection.scoring import SUCCESS_AFTER_FAIL_STREAK_MIN_FAILS, classify_severity, compute_risk_score, explain_factors
-from app.models import Alert, AuditLog, Campaign, LoginEvent, ResponseAction, User, UserBaseline, UserRiskProfile
+from app.models import Alert, AuditLog, BlocklistEntry, Campaign, LoginEvent, ResponseAction, User, UserBaseline, UserRiskProfile
 from app.utils.device import compute_device_fingerprint, parse_user_agent
 from app.utils.time import ensure_utc
 from app.ws_manager import ws_manager
@@ -74,6 +87,19 @@ _RULE_TIER1_SEVERITY = "high"
 
 # MR12: điểm 0-100 của hybrid risk engine (MR11) -> severity của Alert khi hành động đề xuất không phải "allow".
 _HYBRID_SEVERITY = {"alert": "medium", "step_up": "high", "lock": "high"}
+
+
+@dataclass
+class PipelineResult:
+    """MR16: NGOÀI `alert_payloads` (đã có từ trước, để broadcast WebSocket), trả thêm hành động hybrid CỦA CHÍNH lần
+    thử này — để `app/routers/auth.py` biết có cần chặn/OTP ngay trong response hay không (chỉ khi ĐANG CHỜ kết quả,
+    tức gọi đồng bộ — xem docstring `run_detection_pipeline`). Đều là GIÁ TRỊ THUẦN (không phải object ORM còn gắn với
+    session) vì được đọc TRƯỚC khi đóng session, giống `alert_payloads`."""
+
+    alert_payloads: list[dict]
+    login_event_id: int | None
+    hybrid_action: str | None
+    hybrid_risk_score: int | None
 
 
 def _brute_force_message(username: str, fail_count: int) -> str:
@@ -99,7 +125,7 @@ def _run_detection_pipeline_sync(
     ip: str,
     user_agent: str | None,
     timestamp: datetime,
-) -> list[dict]:
+) -> PipelineResult:
     """Toàn bộ việc (GeoIP, DB, Redis, rule engine, ML) — MỌI THAO TÁC ĐỀU ĐỒNG BỘ (SQLAlchemy dùng driver psycopg2
     đồng bộ, redis-py đồng bộ, LightGBM/scikit-learn CPU-bound), không có `await` nào bên trong. Vì vậy hàm này CỐ Ý
     KHÔNG phải `async def`: `run_detection_pipeline` bên dưới chạy nó trong `asyncio.to_thread` — nếu để `async def` và
@@ -363,12 +389,36 @@ def _run_detection_pipeline_sync(
                         )
                         db.add(response_action)
                         db.flush()
-                        db.add(
-                            AuditLog(
-                                actor="system", action=f"recommend_{risk_result.action}", target_type="login_event", target_id=event.id,
-                                detail={"response_action_id": response_action.id, "alert_id": hybrid_alert.id, "score": risk_result.score},
-                            )
-                        )
+                        audit_action = f"recommend_{risk_result.action}"
+                        audit_detail = {"response_action_id": response_action.id, "alert_id": hybrid_alert.id, "score": risk_result.score}
+
+                        # --- MR16: THỰC THI THẬT hành động "lock" ngay tại đây (đủ ngữ cảnh, không cần chờ HTTP — khác
+                        # "step_up" cần trả OTP thẳng trong response nên được app/routers/auth.py tự thực thi). Khoá áp
+                        # dụng cho MỌI lần thử tiếp theo dẫn đến "lock" — kể cả lần thử THẤT BẠI (chạy nền, không HTTP
+                        # nào đang chờ) — không chỉ lần thành công đã qua auth.py.
+                        if risk_result.action == "lock":
+                            kind, value = lock_kind_and_value(user_id=user_id, username=username, ip=ip)
+                            new_expiry = event.created_at + LOCK_TTL
+                            # "lock" có thể đến từ blocklist_hit (mục NÀY đã có sẵn trong bảng — chính là lý do khớp
+                            # luật) — UniqueConstraint(kind, value) sẽ raise nếu cứ thêm mục mới trùng; tái dùng mục cũ,
+                            # chỉ GIA HẠN nếu lock hiện tại đi xa hơn (không bao giờ RÚT NGẮN một mục đang dài hơn/vĩnh viễn).
+                            block_entry = db.query(BlocklistEntry).filter(BlocklistEntry.kind == kind, BlocklistEntry.value == value).first()
+                            if block_entry is None:
+                                block_entry = BlocklistEntry(kind=kind, value=value, reason=f"Tự động khoá (MR16) — {reasons}.", added_by="system", expires_at=new_expiry)
+                                db.add(block_entry)
+                                db.flush()
+                                invalidate_blocklist_cache()  # để lần thử NGAY SAU (có thể trong vài mili-giây) đã thấy mục khoá mới, không đợi hết TTL cache 15s
+                            elif block_entry.expires_at is not None and block_entry.expires_at < new_expiry:
+                                block_entry.expires_at = new_expiry
+                                invalidate_blocklist_cache()
+                            response_action.status = "executed"
+                            response_action.executed_at = event.created_at
+                            audit_action = "execute_lock"
+                            audit_detail["blocklist_entry_id"] = block_entry.id
+                            audit_detail["blocklist_kind"] = kind
+                            audit_detail["blocklist_value"] = value
+
+                        db.add(AuditLog(actor="system", action=audit_action, target_type="login_event", target_id=event.id, detail=audit_detail))
         except Exception:  # noqa: BLE001 — MR12 không bao giờ được làm mất alert tầng 1-2-3 hay làm sập luồng đăng nhập
             logger.exception("lỗi ở khối MR12 (rule engine/hybrid) cho user_id=%s ip=%s — bỏ qua, tầng 1-2-3 không bị ảnh hưởng", user_id, ip)
 
@@ -443,10 +493,16 @@ def _run_detection_pipeline_sync(
                     **extra,
                 }
             )
+
+        # MR16: đọc TRƯỚC khi đóng session, giống alert_payloads ở trên — event.hybrid_risk_score/hybrid_action chỉ có
+        # giá trị nếu khối MR12-15 chạy trót lọt (None nếu lỗi/bị bỏ qua, app/routers/auth.py tự xử lý None an toàn).
+        login_event_id = event.id
+        hybrid_action = event.hybrid_action
+        hybrid_risk_score = event.hybrid_risk_score
     finally:
         db.close()
 
-    return alert_payloads
+    return PipelineResult(alert_payloads=alert_payloads, login_event_id=login_event_id, hybrid_action=hybrid_action, hybrid_risk_score=hybrid_risk_score)
 
 
 async def run_detection_pipeline(
@@ -457,13 +513,18 @@ async def run_detection_pipeline(
     ip: str,
     user_agent: str | None,
     timestamp: datetime,
-) -> None:
+) -> PipelineResult:
     """Wrapper mỏng: chạy toàn bộ việc ĐỒNG BỘ ở trên trong một thread riêng (`asyncio.to_thread`) rồi mới broadcast
     WebSocket (thao tác `await` DUY NHẤT thật sự cần vòng lặp sự kiện — xem `WebSocketManager.broadcast_json`). Nhiều
     lần đăng nhập đến CÙNG LÚC giờ chạy `_run_detection_pipeline_sync` song song ở các thread khác nhau thay vì nối đuôi
-    nhau trên một vòng lặp sự kiện duy nhất."""
-    alert_payloads = await asyncio.to_thread(
+    nhau trên một vòng lặp sự kiện duy nhất.
+
+    MR16: trả về `PipelineResult` (trước đây `None`) để `app/routers/auth.py` BIẾT được `hybrid_action` khi GỌI ĐỒNG BỘ
+    (chờ `await` xong rồi mới trả response — chỉ cho lần thử ĐÚNG mật khẩu, xem docstring router); khi gọi qua
+    `BackgroundTasks` (lần thử SAI mật khẩu, không đổi từ trước giờ) giá trị trả về đơn giản bị bỏ qua, không ảnh hưởng gì."""
+    result = await asyncio.to_thread(
         _run_detection_pipeline_sync, username=username, user_id=user_id, success=success, ip=ip, user_agent=user_agent, timestamp=timestamp,
     )
-    for payload in alert_payloads:
+    for payload in result.alert_payloads:
         await ws_manager.broadcast_json({"type": "alert", "data": payload})
+    return result

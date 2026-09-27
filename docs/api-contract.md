@@ -55,6 +55,9 @@ Web app mẫu (React)                Attack-sim scripts
 | `GET /campaigns` | 14 | Danh sách chiến dịch (nhiều tài khoản chung hạ tầng), phân trang, lọc `?status=`. **Có JWT bắt buộc từ Tuần 5** |
 | `GET /campaigns/{id}` | 14 | Chi tiết một chiến dịch: timeline, tài khoản bị nhắm, đồ thị liên kết user-IP-ASN-thiết bị. **Có JWT bắt buộc từ Tuần 5** |
 | `POST /alerts/{id}/feedback` | 15 | "Đúng"/"Báo nhầm" (`{correct, note?}`) — ghi `alerts.status`/`feedback` + `audit_log`; ngưỡng thích nghi tính lại ĐỊNH KỲ, không phải ngay lúc gọi. **Có JWT bắt buộc từ Tuần 5** |
+| `POST /login/verify-otp` | 16 | Xác thực bước OTP giả lập khi `POST /login` trả `step_up_required=true` (`{challenge_id, code}`) |
+| `GET /blocklist` | 16 | Danh sách khoá tạm/chặn (`?active_only=`, mặc định `true`), phân trang. **Có JWT bắt buộc từ Tuần 5** |
+| `DELETE /blocklist/{id}` | 16 | Mở khoá trước hạn — ghi `audit_log` rồi xoá hàng, vô hiệu cache 15s ngay. **Có JWT bắt buộc từ Tuần 5** |
 | `WS /ws/alerts` | 5 | Đẩy cảnh báo real-time, xác thực bằng JWT qua query param `?token=` |
 
 ⚠️ **Rủi ro đã biết (chấp nhận có chủ đích):** JWT qua query param của WebSocket
@@ -72,16 +75,16 @@ backend expose thật ra ngoài (không qua reverse proxy đáng tin cậy) cho
 phép BẤT KỲ ai tự khai IP nguồn tuỳ ý, né được toàn bộ rule theo IP (brute
 force theo IP, credential stuffing, GeoIP) — xem `backend/app/config.py`.
 
-### `POST /login` (nhiệm vụ 2.1 — chưa triển khai ở Tuần 1)
+### `POST /login` (nhiệm vụ 2.1, mở rộng MR16)
 
 Request:
 ```json
 { "username": "user007", "password": "matkhau123" }
 ```
 
-Response 200 (thành công):
+Response 200 (thành công — MR16 thêm 4 field mới, luôn có mặt với giá trị "không có gì đặc biệt" khi đăng nhập bình thường):
 ```json
-{ "success": true, "message": "Login successful" }
+{ "success": true, "message": "Login successful", "step_up_required": false, "challenge_id": null, "demo_otp_code": null, "locked": false }
 ```
 
 Response 401 (sai mật khẩu **hoặc** tài khoản không tồn tại — dùng chung một thông báo để tránh lộ thông tin user có tồn tại hay không):
@@ -89,7 +92,43 @@ Response 401 (sai mật khẩu **hoặc** tài khoản không tồn tại — d�
 { "success": false, "message": "Invalid username or password" }
 ```
 
+Response 200, `step_up_required=true` (MR16 — mật khẩu ĐÚNG nhưng hybrid risk engine đề xuất xác thực thêm cho CHÍNH lần thử này; vẫn HTTP 200 vì mật khẩu đã được xác nhận đúng, chỉ chưa đủ để hoàn tất):
+```json
+{ "success": false, "message": "Cần xác thực thêm — mã demo: 042857 (...)", "step_up_required": true, "challenge_id": 42, "demo_otp_code": "042857", "locked": false }
+```
+⚠️ `demo_otp_code` CHỈ tồn tại vì đây là OTP **GIẢ LẬP** (không có nhà cung cấp SMS/email nào tích hợp) — hệ thống thật không bao giờ trả mã trực tiếp trong response. Gọi `POST /login/verify-otp` với `challenge_id`+mã để hoàn tất.
+
+Response 423 (MR16 — tài khoản hoặc IP nguồn đang bị khoá tạm; từ chối NGAY TỪ TRƯỚC khi xác thực mật khẩu nếu bị chặn từ trước, hoặc SAU khi chấm điểm nếu mật khẩu đúng nhưng hành động là `lock`):
+```json
+{ "success": false, "message": "Tài khoản hoặc nguồn đăng nhập đang tạm khoá do hoạt động bất thường. Thử lại sau.", "locked": true }
+```
+
 ⚠️ Giả định: hệ thống không trả JWT/session cho tài khoản web app mẫu ở bước này — mục tiêu của web app mẫu là sinh dữ liệu đăng nhập cho detection engine, không phải xây một hệ thống auth đầy đủ. Nếu tài liệu gốc yêu cầu khác, cập nhật lại.
+
+⚠️ **Đánh đổi độ trễ (MR16):** để biết được có cần trả `step_up_required`/`locked` hay không, một lần thử ĐÚNG mật khẩu giờ phải CHỜ đồng bộ kết quả chấm điểm (`await`) thay vì chạy nền như trước (nhiệm vụ 5.2 nguyên bản) — đo được thêm ~140ms ở trung vị so với đường sai mật khẩu (không đổi, vẫn chạy nền). Chi tiết: [`automated-response.md`](automated-response.md).
+
+### `POST /login/verify-otp` (MR16)
+
+Request:
+```json
+{ "challenge_id": 42, "code": "042857" }
+```
+
+Response 200 (đúng mã):
+```json
+{ "success": true, "message": "Login successful", "step_up_required": false, "challenge_id": null, "demo_otp_code": null, "locked": false }
+```
+
+Response 200, thất bại (SAI mã **hoặc** `challenge_id` không tồn tại **hoặc** đã hết hạn (5 phút) **hoặc** đã xác thực thành công trước đó **hoặc** đã sai quá 5 lần — dùng chung MỘT thông báo cho mọi lý do, cùng triết lý mục 3 ở trên):
+```json
+{ "success": false, "message": "Mã xác thực không đúng hoặc đã hết hạn.", "step_up_required": false, "challenge_id": null, "demo_otp_code": null, "locked": false }
+```
+
+### `GET /blocklist` / `DELETE /blocklist/{id}` (MR16, admin — JWT bắt buộc)
+
+`GET /blocklist?active_only=true&page=1&page_size=20` → `{"items": [{"id", "kind", "value", "reason", "added_by", "expires_at", "created_at"}], "total", "page", "page_size"}` — `active_only=false` để xem cả mục đã hết hạn (lịch sử).
+
+`DELETE /blocklist/{id}` → `204 No Content` khi thành công, `404` nếu không thấy — ghi một hàng `audit_log` (`action="unlock"`, `detail` giữ lại toàn bộ thông tin mục chặn) TRƯỚC KHI xoá hàng, rồi vô hiệu cache blocklist (15s TTL) ngay lập tức thay vì đợi hết hạn.
 
 ## 4. Quy ước đặt tên DB (mục 7 tài liệu chính — áp dụng tạm, chờ đối chiếu)
 
