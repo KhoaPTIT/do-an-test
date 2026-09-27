@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.database import SessionLocal
-from app.routers import admin, alerts, auth, events, ws
+from app.routers import admin, alerts, auth, campaigns, events, ws
 
 settings = get_settings()
 logger = logging.getLogger("main")
@@ -25,6 +25,7 @@ app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(events.router)
 app.include_router(alerts.router)
+app.include_router(campaigns.router)
 app.include_router(ws.router)
 
 

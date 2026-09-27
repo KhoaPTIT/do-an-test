@@ -1,0 +1,157 @@
+.campaigns-page {
+  padding: 1.25rem 1.5rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.campaigns-page h1 {
+  margin-top: 0.5rem;
+}
+
+.campaigns-page__hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+.campaigns-page__placeholder {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.campaigns-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.campaigns-table th,
+.campaigns-table td {
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.campaigns-table th {
+  background: #f8fafc;
+  color: var(--text-h);
+}
+
+.campaigns-table tbody tr:hover {
+  background: var(--accent-bg);
+}
+
+.campaigns-status {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.campaigns-status--open {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.campaigns-status--closed {
+  color: var(--text-muted);
+  background: var(--border);
+}
+
+/* --- Chi tiết chiến dịch --- */
+
+.campaign-detail__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.campaign-detail__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 800px) {
+  .campaign-detail__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.campaign-detail__panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  padding: 0.75rem 1rem;
+  max-height: 420px;
+  overflow: auto;
+}
+
+/* Đứng SAU .campaign-detail__panel (cùng độ ưu tiên CSS, khai sau mới thắng) — đồ thị cần hiển thị trọn vẹn, không
+   cuộn bên trong như timeline/danh sách tài khoản. */
+.campaign-detail__panel--graph {
+  grid-column: 1 / -1;
+  max-height: none;
+}
+
+.campaign-detail__panel h2 {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+.campaign-timeline,
+.campaign-accounts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.campaign-timeline__item {
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  border-left: 3px solid var(--border);
+  line-height: 1.4;
+}
+
+.campaign-timeline__item--low {
+  border-left-color: var(--success);
+  background: var(--success-bg);
+}
+
+.campaign-timeline__item--medium {
+  border-left-color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.campaign-timeline__item--high {
+  border-left-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.campaign-accounts li {
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  background: #f8fafc;
+  font-size: 0.85rem;
+}

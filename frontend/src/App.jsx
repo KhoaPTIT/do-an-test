@@ -2,6 +2,8 @@ import { Navigate, NavLink, Route, Routes } from "react-router-dom";
 
 import "./App.css";
 import AdminLoginPage from "./pages/AdminLoginPage";
+import CampaignDetailPage from "./pages/CampaignDetailPage";
+import CampaignsPage from "./pages/CampaignsPage";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import { getAdminToken } from "./services/auth";
@@ -35,6 +37,9 @@ export default function App() {
         <NavLink to="/dashboard" className={navLinkClass}>
           Dashboard
         </NavLink>
+        <NavLink to="/dashboard/campaigns" className={navLinkClass}>
+          Chiến dịch
+        </NavLink>
       </nav>
       <div className="app-main">
         <Routes>
@@ -46,6 +51,22 @@ export default function App() {
             element={
               <RequireAdmin>
                 <DashboardPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/dashboard/campaigns"
+            element={
+              <RequireAdmin>
+                <CampaignsPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/dashboard/campaigns/:campaignId"
+            element={
+              <RequireAdmin>
+                <CampaignDetailPage />
               </RequireAdmin>
             }
           />

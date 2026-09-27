@@ -51,7 +51,9 @@ Web app mẫu (React)                Attack-sim scripts
 | `POST /login` | 2 | Đăng nhập web app mẫu, ghi `login_events` |
 | `POST /admin/login` | 5 | Đăng nhập admin (bảng `admins` riêng), trả JWT (`jwt_expire_minutes` = 60) |
 | `GET /login-events` | 4→5→8 | Danh sách log, phân trang + lọc (`username`, `success`, `risk_level`, `is_synthetic` — nâng cấp sau Tuần 7). **Có JWT bắt buộc từ Tuần 5** |
-| `GET /alerts` | 4→5 | Danh sách cảnh báo, phân trang. **Có JWT bắt buộc từ Tuần 5** |
+| `GET /alerts` | 4→5→13 | Danh sách cảnh báo, phân trang, mặc định sắp theo ưu tiên (`?sort=priority`\|`recent`, MR13). **Có JWT bắt buộc từ Tuần 5** |
+| `GET /campaigns` | 14 | Danh sách chiến dịch (nhiều tài khoản chung hạ tầng), phân trang, lọc `?status=`. **Có JWT bắt buộc từ Tuần 5** |
+| `GET /campaigns/{id}` | 14 | Chi tiết một chiến dịch: timeline, tài khoản bị nhắm, đồ thị liên kết user-IP-ASN-thiết bị. **Có JWT bắt buộc từ Tuần 5** |
 | `WS /ws/alerts` | 5 | Đẩy cảnh báo real-time, xác thực bằng JWT qua query param `?token=` |
 
 ⚠️ **Rủi ro đã biết (chấp nhận có chủ đích):** JWT qua query param của WebSocket

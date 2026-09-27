@@ -123,19 +123,20 @@ admin chỉ phát sinh nhu cầu từ Tuần 5.
 
 Tạo tài khoản admin qua script (chưa có UI): `python -m scripts.create_admin --username admin --password "..."`.
 
-## campaigns (bổ sung MR12 — dự trữ cho MR14)
+## campaigns (bổ sung MR12, gán tự động từ MR14)
 
-Gom nhiều `Alert` được coi là CÙNG một đợt tấn công CỦA NHIỀU TÀI KHOẢN dùng chung hạ tầng (IP/ASN/UA/khoảng thời gian
-gần nhau) — khác chống trùng lặp của MR13 (`alerts.occurrence_count`, chỉ gộp CÙNG MỘT tài khoản/IP). MR12 chỉ tạo
-bảng và cột `alerts.campaign_id`; MR14 "tương quan chiến dịch" mới quyết định gán alert nào vào campaign nào — bảng
-hiện CHƯA có hàng nào.
+Gom nhiều `Alert` được coi là CÙNG một đợt tấn công CỦA NHIỀU TÀI KHOẢN dùng chung hạ tầng (IP hoặc ASN, trong 24 giờ
+— `app/detection/campaign_correlation.py`) — khác chống trùng lặp của MR13 (`alerts.occurrence_count`, chỉ gộp CÙNG
+MỘT tài khoản/IP lặp lại). `app/detection/pipeline.py` gán `alerts.campaign_id` NGAY khi alert mới khớp hạ tầng với
+một alert khác (tài khoản khác) trong cửa sổ — GIA TĂNG (mở rộng chiến dịch đang có), KHÔNG GỘP LẠI hai chiến dịch đã
+tách nếu có alert bắc cầu đến sau (xem giới hạn ở `docs/campaign-correlation.md`).
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
 | id | INTEGER PK | |
-| label | VARCHAR(128) | |
-| attack_family | VARCHAR(64) | nullable |
-| status | VARCHAR(16) | default `'open'` — `open`\|`closed` |
+| label | VARCHAR(128) | tự sinh — `"Chiến dịch qua ASN <n>"` (ưu tiên) hoặc `"Chiến dịch qua IP <ip>"` khi không biết ASN |
+| attack_family | VARCHAR(64) | nullable — lấy từ `attack_family` (MR13) của alert ĐẦU TIÊN có giá trị này gia nhập chiến dịch, không tính lại khi có thêm alert |
+| status | VARCHAR(16) | default `'open'` — `open`\|`closed` (đóng chiến dịch: thủ công, chưa có router quản trị) |
 | alert_count | INTEGER | default 0 |
 | first_seen_at / last_seen_at | TIMESTAMPTZ | |
 | created_at | TIMESTAMPTZ | default now() |

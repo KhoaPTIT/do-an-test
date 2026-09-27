@@ -34,6 +34,7 @@ from app.detection.baseline import (
     record_known_location_if_new,
     update_baseline_after_successful_login,
 )
+from app.detection.campaign_correlation import LIVE_CAMPAIGN_WINDOW
 from app.detection.engine.types import LoginAttempt
 from app.detection.geoip import lookup_asn, lookup_ip
 from app.detection.rate_counter import check_fail_count, redis_client
@@ -52,7 +53,7 @@ from app.detection.rules import (
     register_login_failure,
 )
 from app.detection.scoring import SUCCESS_AFTER_FAIL_STREAK_MIN_FAILS, classify_severity, compute_risk_score, explain_factors
-from app.models import Alert, AuditLog, LoginEvent, ResponseAction, User, UserBaseline
+from app.models import Alert, AuditLog, Campaign, LoginEvent, ResponseAction, User, UserBaseline
 from app.utils.device import compute_device_fingerprint, parse_user_agent
 from app.utils.time import ensure_utc
 from app.ws_manager import ws_manager
@@ -347,6 +348,51 @@ def _run_detection_pipeline_sync(
         except Exception:  # noqa: BLE001 — MR12 không bao giờ được làm mất alert tầng 1-2-3 hay làm sập luồng đăng nhập
             logger.exception("lỗi ở khối MR12 (rule engine/hybrid) cho user_id=%s ip=%s — bỏ qua, tầng 1-2-3 không bị ảnh hưởng", user_id, ip)
 
+        # --- MR14: tương quan chiến dịch — gom alert của BẤT KỲ tầng nào (1-3 hoặc hybrid_risk) CÙNG hạ tầng (IP hoặc
+        # ASN) NHẮM VÀO NHIỀU TÀI KHOẢN KHÁC NHAU trong LIVE_CAMPAIGN_WINDOW thành một Campaign. Khác chống trùng lặp
+        # của MR13 (chỉ gộp CÙNG một tài khoản/IP lặp lại) — ở đây là NHIỀU tài khoản chia sẻ hạ tầng. Cô lập riêng:
+        # lỗi ở đây không được làm mất các alert đã tạo/commit ở trên (app/detection/campaign_correlation.py).
+        try:
+            if alert_records and (event.ip_address is not None or event.asn is not None):
+                # ⚠️ Lọc theo THỜI ĐIỂM ĐĂNG NHẬP (LoginEvent.created_at), KHÔNG PHẢI lúc hàng Alert được ghi
+                # (Alert.created_at, server_default=func.now()) — hai mốc này trùng nhau trong vận hành bình thường
+                # (chấm gần như ngay khi xảy ra) nhưng KHÔNG PHẢI luôn vậy (nạp lại/backfill); test MR14 tự tạo timestamp
+                # giả cũng lộ ra sai khác này ngay. So sánh chuẩn hoá múi giờ bằng ensure_utc() (đọc lại từ SQLite mất
+                # tzinfo — cùng lớp lỗi đã sửa ở MR9/MR12/MR13). Quét toàn bảng alerts: chấp nhận được ở quy mô hiện tại
+                # (chỉ chạy khi CÓ alert mới, không phải mọi lần đăng nhập) — cùng tinh thần GlobalCountsCache (MR12).
+                now = ensure_utc(event.created_at)
+                window_start = now - LIVE_CAMPAIGN_WINDOW
+                matches = [
+                    (a, ensure_utc(le.created_at))
+                    for a, le in db.query(Alert, LoginEvent).join(LoginEvent, Alert.login_event_id == LoginEvent.id).filter(Alert.login_event_id != event.id)
+                    if window_start <= ensure_utc(le.created_at) <= now
+                    and ((event.ip_address is not None and le.ip_address == event.ip_address) or (event.asn is not None and le.asn == event.asn))
+                    and not (le.user_id is not None and le.user_id == user_id)  # loại chính tài khoản này lặp lại — đó là việc của MR13, không phải "nhiều tài khoản"
+                ]
+                existing_campaign_id = next((a.campaign_id for a, _ in matches if a.campaign_id is not None), None)
+                campaign = db.get(Campaign, existing_campaign_id) if existing_campaign_id is not None else None
+                if campaign is None and matches:
+                    shared = f"ASN {event.asn}" if event.asn is not None else f"IP {event.ip_address}"
+                    earliest = min((ts for _, ts in matches), default=now)
+                    campaign = Campaign(label=f"Chiến dịch qua {shared}", first_seen_at=earliest, last_seen_at=now)
+                    db.add(campaign)
+                    db.flush()
+
+                if campaign is not None:
+                    for alert_obj in (*(a for a, _ in matches), *(a for a, _ in alert_records)):
+                        if alert_obj.campaign_id is None:
+                            alert_obj.campaign_id = campaign.id
+                            campaign.alert_count += 1
+                        if campaign.attack_family is None and alert_obj.attack_family is not None:
+                            campaign.attack_family = alert_obj.attack_family
+                    if now > ensure_utc(campaign.last_seen_at):
+                        campaign.last_seen_at = now
+                    if now < ensure_utc(campaign.first_seen_at):
+                        campaign.first_seen_at = now
+                    db.flush()
+        except Exception:  # noqa: BLE001 — MR14 không bao giờ được làm mất alert đã tạo ở tầng 1-3/MR12-13
+            logger.exception("lỗi ở khối MR14 (tương quan chiến dịch) cho user_id=%s ip=%s — bỏ qua, các alert khác không bị ảnh hưởng", user_id, ip)
+
         db.commit()
         perf.record("pipeline", (time.perf_counter() - pipeline_started) * 1000)
 
@@ -368,6 +414,7 @@ def _run_detection_pipeline_sync(
                     "attack_family": alert_obj.attack_family,  # MR13 — gợi ý, xem alert_obj.attack_family_confidence
                     "priority_score": alert_obj.priority_score,
                     "occurrence_count": alert_obj.occurrence_count,
+                    "campaign_id": alert_obj.campaign_id,  # MR14 — None nếu chưa thuộc chiến dịch nào
                     "created_at": alert_obj.created_at.isoformat() if alert_obj.created_at else timestamp.isoformat(),
                     **extra,
                 }

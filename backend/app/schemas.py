@@ -92,3 +92,65 @@ class PaginatedAlerts(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+# --------------------------------------------------------------------------------------------- MR14: chiến dịch
+
+
+class CampaignOut(BaseModel):
+    """Dùng cho GET /campaigns — danh sách chiến dịch (MR14)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    label: str
+    attack_family: str | None
+    status: str
+    alert_count: int
+    targeted_accounts: int  # số tài khoản KHÁC NHAU bị nhắm — tính lúc truy vấn, không lưu cột riêng (tránh state lệch)
+    first_seen_at: datetime
+    last_seen_at: datetime
+
+
+class PaginatedCampaigns(BaseModel):
+    items: list[CampaignOut]
+    total: int
+    page: int
+    page_size: int
+
+
+class CampaignTimelineItem(BaseModel):
+    """Một alert trong chiến dịch, sắp theo thời gian — nhiệm vụ 'timeline' của trang chiến dịch."""
+
+    alert_id: int
+    user_id: int | None
+    username: str | None  # None nếu tài khoản không tồn tại (tên đăng nhập bị dò)
+    alert_type: str
+    severity: str
+    risk_score: int
+    message: str
+    created_at: datetime
+
+
+class CampaignGraphNode(BaseModel):
+    id: str  # "user:alice" | "ip:1.2.3.4" | "asn:15169" | "device:mobile"
+    kind: str  # "user" | "ip" | "asn" | "device"
+    label: str
+
+
+class CampaignGraphEdge(BaseModel):
+    source: str
+    target: str
+
+
+class CampaignGraph(BaseModel):
+    nodes: list[CampaignGraphNode]
+    edges: list[CampaignGraphEdge]
+
+
+class CampaignDetail(CampaignOut):
+    """GET /campaigns/{id} — thêm timeline, danh sách tài khoản bị nhắm, đồ thị liên kết user-IP-ASN-thiết bị."""
+
+    timeline: list[CampaignTimelineItem]
+    targeted_usernames: list[str]
+    graph: CampaignGraph
