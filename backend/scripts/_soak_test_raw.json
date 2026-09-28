@@ -1,0 +1,5322 @@
+[
+  {
+    "t_sec": 0.040413800001260825,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 2068.2143999983964,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 2.108637400000589,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 9.546099998260615,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 3.1091568999981973,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1058.770600000571,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 4.1679366999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 875.7971999984875,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 5.168440599998576,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.29050000134157,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 6.168533299998671,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 625.9491000018897,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 7.168701200000214,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.86969999919529,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 8.169001800000842,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1831.3205999984348,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 10.000331299997924,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 748.9967000001343,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 11.000552999998035,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.590000000665896,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 11.006149000000732,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 959.4399999987218,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 12.000920899998164,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.629800001770491,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 13.001176800000394,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1209.9009999983537,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 14.211085599999933,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.479399998876033,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 15.21130439999979,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 856.8435999986832,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 16.211571699997876,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.580300003202865,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 17.211852500000532,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 774.5082000001275,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 18.212290399998892,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 528.7052000021504,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 19.212377200001356,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 602.4815999990096,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 20.212812199999462,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.763900000805734,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 21.212957600000664,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.001400000764988,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 21.21796489999906,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 576.6296000001603,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 22.213626500000828,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.916199999774108,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 23.213758699999744,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 790.986799998791,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 24.214350499998545,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 707.7535000025819,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 25.21497939999972,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 820.8526000016718,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 26.21511819999796,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 705.8407000004081,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 27.21534949999841,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.298800002696225,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 28.21556910000072,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 894.8086999989755,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 29.21616509999876,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.728399999497924,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 30.216438100000232,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 551.3782999987598,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 31.216771899999003,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 6.220899998879759,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 31.22300030000042,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 814.8600999993505,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 32.217140000000654,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1118.8167999971483,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 33.33596509999916,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 771.0083999991184,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 34.336438199999975,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 682.5600999982271,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 35.33691999999792,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 223.65130000252975,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 36.337232900001254,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 797.9454999986046,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 37.3377819999987,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.739899999753106,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 38.33809900000051,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 769.0003999996406,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 39.33842509999886,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 540.4563000010967,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 40.33902250000028,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 628.3441999985371,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 41.33954580000136,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.189299998164643,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 41.34474109999792,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 677.292700001999,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 42.339835399998265,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.689000001439126,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 43.340568200001144,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 932.614299999841,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 44.34080230000109,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 741.3538000000699,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 45.341430799999216,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 730.7155999988026,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 46.3419533999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 597.8214999995544,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 47.342066400000476,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 682.5194999983069,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 48.342534200000955,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 722.429599998577,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 49.34283940000023,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1056.704599999648,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 50.3995517000003,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 223.35649999877205,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 51.39993150000009,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 4.8810999978741165,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 51.404818399998476,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 762.8581000026315,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 52.40032000000065,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 640.2892000005522,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 53.40097429999878,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.181299999298062,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 54.4012616,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 744.4968999989214,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 55.40139899999849,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 525.6928000017069,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 56.40173660000073,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.782399999588961,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 57.402265500000794,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 619.3357999982254,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 58.40257180000117,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 661.3741000001028,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 59.40294449999783,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.860100001882529,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 60.40317099999811,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.563300001085736,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 61.4034544999995,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.020299999159761,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 61.40848139999798,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 556.4285000000382,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 62.4037696000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 649.4883999985177,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 63.40432879999935,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 613.6378000010154,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 64.40463219999947,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.009400000039022,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 65.40504829999918,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 670.7028999990143,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 66.4056496000012,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 583.5585999993782,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 67.40616729999965,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 679.4010000012349,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 68.4066023000014,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 229.6178999968106,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 69.40710949999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 780.8012999994389,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 70.40751420000015,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 662.0322999988275,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 71.40819230000125,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.591199998889351,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 71.41378919999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 945.6723000002967,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 72.4086712999997,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.089300000894582,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 73.40894029999981,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.896200000686804,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 74.40937620000113,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 694.0748999986681,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 75.40984399999797,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.060200001025805,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 76.41000229999918,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.246900000202004,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 77.41060870000001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 585.5590999999549,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 78.41084119999869,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 819.6704000001773,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 79.41100369999913,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 699.3451999987883,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 80.41153349999877,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 617.1696000019438,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 81.41200000000026,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.147199997736607,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 81.41715380000096,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 738.7899999994261,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 82.41255889999957,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 229.2248000012478,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 83.41262020000067,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 621.7170999989321,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 84.41290129999834,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 553.1908000011754,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 85.41341269999975,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 633.8200999998662,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 86.41393460000108,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.05869999708375,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 87.41433749999851,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 236.23210000005201,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 88.41492049999943,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 626.3590999988082,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 89.41550149999966,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.409400000644382,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 90.41591219999827,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 265.00810000288766,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 91.41616860000067,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 4.68410000030417,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 91.42085880000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 601.4531000000716,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 92.41626420000102,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 227.25749999881373,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 93.4164509000002,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 228.77929999958724,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 94.41684389999864,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 687.9281000001356,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 95.4170200999979,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 588.7911000027088,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 96.4175181999999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 572.4999000012758,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 97.41791390000071,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 724.4021999977122,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 98.41808630000014,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 4.345199999079341,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 99.41857779999918,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 676.2600000001839,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 100.4189366999999,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 247.53449999843724,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 101.4192065999996,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 4.327599999669474,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 101.42354129999876,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 719.8263999998744,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 102.4195824999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 699.469200000749,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 103.41995709999901,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 766.3620000021183,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 104.42029669999829,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.30100000166567,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 105.42049680000127,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 248.14449999757926,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 106.42109020000134,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 662.5301999993098,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 107.42149810000046,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 581.0400999980629,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 108.42157469999802,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.580600001849234,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 109.42188439999882,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 608.1574000018009,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 110.4221851000002,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 727.9677999977139,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 111.4222196999981,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.830000001878943,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 111.42805650000082,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1342.7946999981941,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 112.77085960000113,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 889.2915999967954,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 113.77113409999947,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 692.024299998593,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 114.77160949999961,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 663.840799999889,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 115.77183660000082,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 825.9629999993194,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 116.77218569999968,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 646.7185000001336,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 117.77236550000089,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 724.549599999591,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 118.7724758000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 612.0991999996477,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 119.77303559999928,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 848.2747999987623,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 120.77330159999838,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 628.0944000027375,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 121.77355560000069,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.033899997215485,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 121.77859579999858,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 517.5808000021789,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 122.77376899999945,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.213500000943895,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 123.77437650000138,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 592.2538999984681,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 124.7748904,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 541.3292999983241,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 125.77522899999894,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 584.8618999989412,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 126.77559679999831,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 611.2941999999748,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 127.77588900000046,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.6907000000355765,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 128.77597099999912,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.231899998965673,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 129.77669220000098,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 526.0428999972646,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 130.77706599999874,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 609.04180000216,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 131.77730109999902,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.5216000000655185,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 131.7828292000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 622.3992999985057,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 132.7776793999983,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 664.4855000013195,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 133.77829220000058,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 630.6810999994923,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 134.77875270000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 616.3788000012573,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 135.77901589999965,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 617.3299000001862,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 136.77957909999895,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 680.9724000013375,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 137.7801040000013,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.982499999547144,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 138.78064489999815,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 600.9120000016992,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 139.78117009999914,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 222.60449999885168,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 140.78126129999873,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.455900002038106,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 141.78163309999945,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 4.9123999997391365,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 141.78655100000105,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 4.875999999057967,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 142.78197300000102,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 557.5799999969604,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 143.78234209999937,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 507.5261000019964,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 144.78282430000036,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.859299999428913,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 145.78335479999805,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 576.3458000001265,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 146.7839414000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 511.12429999921005,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 147.7840628999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 601.2544000004709,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 148.78418840000086,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 545.3849999976228,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 149.78467369999998,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.912100001296494,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 150.78485069999806,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 221.40430000217748,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 151.7850440000002,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.357199999707518,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 151.79040739999982,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 520.3283000009833,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 152.78518149999945,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 651.5994000001228,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 153.78548109999974,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 513.9316999993753,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 154.78571010000087,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 566.5666999993846,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 155.78616789999796,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.672600000252714,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 156.7863737000007,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 228.95259999859263,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 157.78668819999803,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 562.2305000033521,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 158.786922700001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.8596999988367315,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 159.7872212000002,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.097900000895606,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 160.78770639999857,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 568.1867000021157,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 161.78827159999855,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.060400002548704,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 161.79333820000102,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 517.5294000000576,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 162.7888751999999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 648.9086000001407,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 163.7895064000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 510.22440000087954,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 164.78983890000018,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 225.63950000039767,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 165.79025209999963,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 580.2633999992395,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 166.79077730000063,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 555.1793999984511,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 167.7912866000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 620.0266999985615,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 168.7916535000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 586.8673999975726,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 169.79201029999967,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 609.340399998473,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 170.7921830000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 615.230799998244,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 171.7926746000012,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 4.821599999559112,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 171.79750290000084,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.474399997387081,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 172.79288059999817,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 622.4133000032452,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 173.79335139999966,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 584.6754000012879,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 174.79361119999885,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 625.9170000012091,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 175.793847500001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 521.3613999985682,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 176.79456149999896,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 590.4551999992691,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 177.79485990000103,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.521600000269245,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 178.7956164999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 639.5167000009678,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 179.79604689999906,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 223.9177000010386,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 180.7964897999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 535.0780000007944,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 181.796779100001,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.547299999307143,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 181.80233299999963,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 4277.739299999666,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 186.08007960000032,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 667.108300000109,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 187.08071199999904,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 539.4574000019929,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 188.0811333999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 582.7295999988564,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 189.0815092999983,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.010200002492638,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 190.08199270000114,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 595.8253999997396,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 191.08257679999952,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 229.9745999989682,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 192.08291019999888,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 603.3327000004647,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 193.08329360000062,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 594.5804000002681,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 194.08388320000086,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 557.1629999976722,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 195.0841986000014,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.014200000005076,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 195.08921940000073,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 604.2822999988857,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 196.08440100000007,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.139099998108577,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 197.0845972999996,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.388000001606997,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 198.08511849999923,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 647.4307999997109,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 199.08547700000054,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 567.2469999990426,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 200.0859472000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 631.9925999996485,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 201.0866442000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 550.6069999973988,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 202.08686110000053,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.70919999902253,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 203.08702809999886,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 597.9368000007526,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 204.0872092999998,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 237.1501999987231,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 205.08774500000072,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.474599998706253,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 205.09322640000028,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.676099997799611,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 206.0882817999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 799.9916000007943,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 207.08840879999843,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 258.8895000008051,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 208.0886301999999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 618.5761999986426,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 209.08896620000087,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 569.36709999718,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 210.08906600000046,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 626.2201999998069,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 211.08955219999916,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 550.7533999989391,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 212.08976769999936,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 234.1615000004822,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 213.09024729999874,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 593.9374000008684,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 214.09067719999803,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 552.7270000020508,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 215.09108689999994,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.112599999847589,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 215.09620590000122,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 638.1629999996221,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 216.091794699998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 614.4155000001774,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 217.09208260000014,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 10.959700000967132,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 218.092291500001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 228.13069999756408,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 219.09282929999972,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 557.0179999995162,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 220.09316829999807,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 627.5254000029236,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 221.09375129999898,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 558.5344999999506,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 222.09402169999885,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 626.6952000005404,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 223.09448580000026,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.453399997553788,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 224.09517340000093,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 617.5720999999612,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 225.09538239999893,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 6.53980000060983,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 225.1019297999992,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 632.9351000022143,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 226.09570470000108,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 610.7978999971237,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 227.09614750000037,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 754.9875000004249,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 228.0964657000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 724.9932999984594,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 229.09694369999852,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 584.7289000012097,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 230.09703739999895,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 651.426000000356,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 231.0973477999978,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 529.1055000016058,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 232.09782919999998,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.406699998478871,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 233.09801929999958,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 619.785499999125,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 234.09822859999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 575.5872999980056,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 235.09871180000118,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.539999998291023,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 235.10425789999863,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 642.3314000021492,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 236.09898450000037,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.927199999860022,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 237.09914610000124,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 770.6184999988182,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 238.0994357999989,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 664.8615000012796,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 239.09992689999854,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.867100000818027,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 240.10010770000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 663.7463999977626,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 241.10036050000053,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 556.502499999624,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 242.10057849999794,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 630.4211000024225,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 243.10097980000137,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 624.6372999994492,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 244.10130700000082,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 569.1730999969877,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 245.1017338999991,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.5333000018436,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 245.10727309999857,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 627.051700001175,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 246.1019563000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 618.318900000304,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 247.10242649999782,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 227.53020000163815,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 248.1029548000006,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 298.05669999768725,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 249.1031738999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 588.6128999991342,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 250.1036600999978,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 634.817900001508,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 251.1042024999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 523.7670999995316,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 252.1043318000011,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.6606999971554615,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 253.1048140999992,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 622.4927000002936,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 254.10531619999892,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.249699999898439,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 255.1056157999992,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.513600000995211,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 255.11113660000046,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 647.6961999978812,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 256.1060030000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 611.8163999999524,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 257.10609420000037,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 776.9824999995762,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 258.106609399998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 835.3146000008564,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 259.10710370000015,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.127599998057121,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 260.1074440000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 720.9599999987404,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 261.1078443000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 543.8476999988779,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 262.1080489999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 646.6352999996161,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 263.1083327999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 676.0551000006672,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 264.10841810000056,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 579.048799998418,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 265.1089663999992,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.56969999888679,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 265.11454270000104,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.762499997217674,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 266.10937289999856,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.853800001408672,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 267.1098162999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 656.8941000004997,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 268.11040409999987,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 654.0492999993148,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 269.11087659999976,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 547.9245999995328,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 270.11105899999893,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 598.658400002023,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 271.11117899999954,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 573.206900000514,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 272.1113296000003,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 668.8266999990446,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 273.11155190000136,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 581.4698999965913,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 274.11200729999837,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.45520000034594,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 275.1122256999988,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.039499999838881,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 275.1172719999995,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 666.584700000385,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 276.1123391000001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 252.52420000106213,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 277.1126164999987,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 737.8244999999879,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 278.1126863999998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 667.3459000012372,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 279.11278169999787,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.49520000317716,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 280.11292709999907,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 715.8627999997407,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 281.1134649000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 735.2349999964645,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 282.1138878999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 717.4340000019583,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 283.1144686999978,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 684.1672000009567,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 284.1149851000009,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 314.6032999975432,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 285.11537880000105,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 6.338899998809211,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 285.1217319999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 757.84289999865,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 286.1154963000008,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 315.7396999995399,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 287.1155906999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 808.7951000015892,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 288.11602180000045,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 697.7088999992702,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 289.1163658000005,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 637.6798999990569,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 290.11673099999825,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 795.5279000016162,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 291.1168293999981,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 701.3903000006394,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 292.1171553999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 589.3322000010812,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 293.1176455999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 650.5305999999109,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 294.11779970000134,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 748.2357999979286,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 295.1179912999978,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.223200001637451,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 295.1232216999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 652.9755000010482,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 296.11843600000066,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 662.8486999979941,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 297.1189301000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 666.3524999967194,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 298.1194331000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 713.0410999998276,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 299.1195023,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 676.3035000003583,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 300.1197456000009,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.7923999993363395,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 301.119846900001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 671.5828999986115,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 302.1199420999983,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 717.9692000026989,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 303.12037319999945,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.55270000040764,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 304.1205097999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 680.5043000022124,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 305.1207859999995,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.166599999938626,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 305.1259597999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 688.4721999995236,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 306.12106499999936,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 598.6260999998194,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 307.12147840000034,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.097699999780161,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 308.12197989999913,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 598.5182000003988,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 309.122069699999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 643.9223000015772,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 310.1225302999992,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.3192000015988015,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 311.12306499999977,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 585.8956000010949,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 312.1232278999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 674.0333000016108,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 313.12378180000087,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 294.8558999996749,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 314.12383019999834,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.126000000425847,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 315.1241381,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 7.434899998770561,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 315.1315859999995,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 661.4014000006136,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 316.1244117999995,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 649.6256999998877,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 317.1247008999999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 736.0325999979977,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 318.124755599998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 771.0520000000542,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 319.12522660000104,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.519099999422906,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 320.12564589999965,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.869699998787837,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 321.1259848000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 660.0469999975758,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 322.12613599999895,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 558.267700002034,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 323.1262199999983,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 683.1305000014254,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 324.1267224000003,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 662.813200000528,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 325.12718179999865,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.1138000017090235,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 325.1323021999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 582.9928999992262,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 326.1273723000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 695.960399996693,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 327.12744770000063,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.865499999345047,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 328.12792790000094,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 623.9590000004682,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 329.1281932999991,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 223.61799999998766,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 330.1284873000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 679.5507999995607,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 331.1288792999985,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 694.8319000002812,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 332.12935149999976,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 665.8973999983573,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 333.1297479999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 585.8345999986341,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 334.1301868999981,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 651.9330000010086,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 335.13074530000085,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.494499997439561,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 335.13624680000066,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 682.0793999977468,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 336.13091469999927,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 617.7453999989666,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 337.1310439000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 653.303600000072,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 338.13144380000085,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 711.4781999989646,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 339.1317980999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 569.4530000000668,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 340.13207559999864,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 646.3648999997531,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 341.13263799999913,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 609.0848000021651,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 342.13278659999924,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 610.2943000005325,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 343.1329880000012,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 657.895099997404,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 344.1332177000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 585.535099999106,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 345.13369819999934,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.465000002004672,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 345.13917030000084,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 644.496099997923,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 346.1341838999979,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 657.8201000011177,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 347.13464999999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 652.3379999998724,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 348.1347449999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 682.0961000012176,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 349.1350702999989,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 702.4676000000909,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 350.1354481999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 638.6385000005248,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 351.1354895000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 634.4134999999369,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 352.1356334999982,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 604.7366000020702,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 353.13603090000106,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 627.4006999992707,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 354.13654029999816,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 661.6912999998021,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 355.1367317000004,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.697399999917252,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 355.14243590000115,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 608.203499999945,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 356.1369188999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 704.617600000347,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 357.13713220000136,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 248.56629999703728,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 358.13733090000096,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 612.2491999994963,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 359.13750939999954,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 274.6937000010803,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 360.13768569999957,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 601.37979999854,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 361.13801109999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 626.955600000656,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 362.13834860000134,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 653.3157999983814,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 363.13861499999985,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 505.9823999981745,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 364.13869239999985,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 690.126199999213,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 365.13922749999983,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.452299999888055,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 365.14470580000125,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 523.461299999326,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 366.13935839999976,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 836.5277999982936,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 367.1397236999983,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 241.6469000017969,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 368.14018600000054,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 247.09149999762303,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 369.1407642000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 766.6178999970725,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 370.1409941999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 697.6250000006985,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 371.1413107999979,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 664.3221000013,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 372.1415902999979,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 663.0819000019983,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 373.14191519999804,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.501200001366669,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 374.14235610000105,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 741.896599996835,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 375.14261740000074,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.857099997228943,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 375.14848150000034,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 697.9916999989655,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 376.1428420000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 582.6058999991801,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 377.1432906000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 794.2666999988433,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 378.1436442999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 766.5234000014607,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 379.1438921000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 676.3080999990052,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 380.14432699999816,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 771.2563000022783,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 381.1444550999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 722.6425000008021,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 382.14480840000033,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 769.2815999980667,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 383.1453752999987,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 754.0364000014961,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 384.1455242999982,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 238.2887000021583,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 385.14591500000097,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.0225999984832015,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 385.15094509999835,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 637.6496000011684,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 386.1460883,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 266.2708999996539,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 387.1463506,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 511.21929999862914,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 388.1466202999982,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 687.4104000016814,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 389.1467631000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 890.539499996521,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 390.147206499998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 805.9977000011713,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 391.1476894000007,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 785.9005999998772,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 392.1482275999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 653.89530000175,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 393.1483374999989,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 728.0277999998361,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 394.148676599998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 848.7103000006755,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 395.1488505999987,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.673800002114149,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 395.15453160000106,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 825.678399996832,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 396.1492913000002,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.817400001134956,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 397.14955420000115,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 799.4527999981074,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 398.14971570000125,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 748.5861999994086,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 399.1498157999995,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 722.3981999995885,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 400.150007799999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 694.5746000019426,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 401.15014059999885,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 599.457700001949,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 402.15048110000134,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 715.2196999995795,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 403.15055829999983,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 784.468800000468,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 404.15089929999885,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 261.1127000018314,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 405.1513945000006,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.377400000725174,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 405.1567787999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 683.7577000005695,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 406.15190399999847,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 955.0960000015039,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 407.1520977,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 10.504400001082104,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 408.15241609999794,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.667000001878478,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 409.15256969999973,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 942.5843999997596,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 410.1526766999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 863.3817000009003,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 411.152854699998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 901.086400001077,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 412.15316789999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 821.98580000113,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 413.1535354000007,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 606.6500999986602,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 414.1536211999992,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 698.8175000005867,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 415.1541072,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.671899998560548,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 415.15978610000093,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 707.3170999974536,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 416.1543863000006,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.511100000148872,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 417.15450839999903,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 797.915600000124,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 418.1546015999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 990.9256999999343,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 419.15469250000024,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 840.9781999980623,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 420.15475119999974,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 983.9314999990165,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 421.1550908999998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 760.4758999987098,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 422.1553537,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 562.6109000004362,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 423.15555160000076,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 621.4126999984728,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 424.15599139999904,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 593.4020000022429,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 425.1565387999981,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 4.639700000552693,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 425.1611845999978,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 734.3626000001677,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 426.15669720000005,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 783.4884000003512,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 427.15677909999795,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 733.0890000012005,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 428.1569777000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 593.7095999979647,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 429.15742730000056,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 756.1634999983653,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 430.1579681000003,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 263.63779999883263,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 431.1585226999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 923.0256000009831,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 432.15904450000016,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1022.8495000010298,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 433.1819097999978,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1018.669700002647,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 434.20059259999834,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 897.971400001552,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 435.2010346999996,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 6.392899998900248,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 435.2074427000007,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 984.7349999981816,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 436.2011695000001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 377.9534999994212,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 437.20127239999783,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1104.3102000003273,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 438.30559979999816,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1089.113300000463,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 439.3947311000011,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.57489999907557,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 440.3947913999982,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 993.7000999998418,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 441.3951777000002,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1024.1423000006762,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 442.4193321999992,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 972.0827000019199,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 443.41983919999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1016.7541000009805,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 444.4366074999998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1048.0547000006482,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 445.48467489999894,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.817000001115957,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 445.4905030000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 888.8781999994535,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 446.48511660000077,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 649.3886999996903,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 447.48521379999875,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 755.3549000003841,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 448.48531659999935,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.623100001888815,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 449.48564279999846,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 3776.4400000014575,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 453.2620906000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 555.9321000000637,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 454.2623319999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 603.8705000028131,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 455.26257740000074,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 589.6995000002789,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 456.2631923000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 698.3956999974907,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 457.2636515000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 582.5017999995907,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 458.26371239999935,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 4.910100000415696,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 458.26862840000103,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 645.8630999986781,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 459.2639330999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 571.6962000005879,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 460.2643241000005,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.534399999509333,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 461.26470549999794,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 635.7848000006925,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 462.2650575999978,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.989300003420794,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 463.26571909999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 606.3959999992221,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 464.2662335999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 600.4140000004554,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 465.2663446000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 536.962099999073,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 466.2667819999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 635.1546000005328,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 467.2672289000002,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 925.6203000004462,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 468.2676613000003,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.764800000179093,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 468.27343720000135,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 776.5246999988449,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 469.26816509999844,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 819.3018000019947,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 470.26832079999804,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1048.7602000030165,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 471.3171003999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1134.9061000000802,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 472.45202580000114,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 932.2041999985231,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 473.4523793999979,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.258000001660548,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 474.4526270999995,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 893.7222999993537,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 475.4527144999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 789.9308000014571,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 476.4527476000003,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 714.8489999999583,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 477.4531446000001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 273.155200000474,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 478.4535684000002,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.674100000760518,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 478.4592492999982,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 681.0830000031274,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 479.45390119999865,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 804.6288000005006,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 480.45430320000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 666.4199000006192,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 481.4544410999988,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.9872000019822735,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 482.4546795999995,
+    "kind": "login",
+    "status": -1,
+    "latency_ms": 10013.326000000234,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 492.4680215999979,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 2716.2028000020655,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 495.1842370999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 684.0754000004381,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 496.18473319999976,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 676.9057999990764,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 497.1850712000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 661.6696999990381,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 498.1855140999978,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.102400002622744,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 499.18600499999957,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.972200000542216,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 499.19198329999927,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 735.1444999985688,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 500.1865328999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 615.8595000015339,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 501.1866422999992,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 259.78200000099605,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 502.1872098999993,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 354.45199999958277,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 503.1876913999986,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.440500000986503,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 504.1878327000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 823.0855999972846,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 505.18827560000136,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 774.4464999996126,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 506.188355899998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 639.42660000248,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 507.1886827999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 854.5966999990924,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 508.18917839999995,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 689.7084000011091,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 509.18946009999854,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.0991999996767845,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 509.1945661999998,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.839199999172706,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 510.18999840000106,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 864.4246999974712,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 511.1904332000013,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 275.2712999972573,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 512.1907506999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 790.3398999987985,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 513.190924399998,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 318.1146000024455,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 514.1914519999991,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.263100000272971,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 515.1917197000002,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 841.6847999978927,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 516.1921172000002,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 327.34609999897657,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 517.1923231000001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 351.31969999929424,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 518.1924746000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 713.0448999996588,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 519.1929248999986,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.3923000014037825,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 519.1983255000014,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.399899997632019,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 520.1933215999998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 551.9564999995055,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 521.1936094000012,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.907699996896554,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 522.1939978999981,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 967.0725000032689,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 523.1942949000004,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 273.18340000056196,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 524.1946494000003,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 604.610499998671,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 525.1948351999999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 801.1296000004222,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 526.1949858000007,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.4084999978367705,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 527.1955419000005,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 852.0023999990372,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 528.2039351999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1172.4777999988873,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 529.3764233000002,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 6.742499997926643,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 529.3831742000002,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.301599998958409,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 530.3767993000001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 581.2312999987626,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 531.3770626000005,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 657.6735999988159,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 532.3774862999999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 661.9477999993251,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 533.3778310999987,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 610.2777000014612,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 534.3780989000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1258.1169000004593,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 535.6362307999989,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1631.399000001693,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 537.2676455000001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 9.22290000016801,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 538.2678793999985,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1475.4976000003808,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 539.7433930000007,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1854.9993999986327,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 541.5984055999979,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 8.229099999880418,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 541.6066481999987,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 10.022700000263285,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 542.5989599999994,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 684.6578000004229,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 543.5992320000005,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 2095.9163999978045,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 545.6951660000013,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 11.489699998492142,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 546.6954225000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 793.6079999999492,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 547.695857499999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 654.4486999991932,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 548.6963408999982,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 690.1432000013301,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 549.6966934000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 803.9158999999927,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 550.6972105999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 711.8819999996049,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 551.6974224000005,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 650.2335999975912,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 552.6978688999989,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 6.071200001315447,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 552.7039469999982,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.982099999731872,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 553.6983099999998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 661.5786000002117,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 554.6988917999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 598.012700000254,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 555.6991464999992,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 760.5360000015935,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 556.699358599999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 682.6318000021274,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 557.6999101000001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.153800001105992,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 558.7004682000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 676.5525999981037,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 559.7008119999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 661.5840000013122,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 560.7009026000014,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.152599999244558,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 561.7011946999992,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 665.5036000011023,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 562.7012733999982,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.890899999940302,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 562.7071843999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 682.3607000005723,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 563.7017439999981,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 684.2351000013878,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 564.7019681999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 614.8164000005636,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 565.702113899999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 672.2086000008858,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 566.7024190999982,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 684.458600000653,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 567.7028867000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 595.9507999978086,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 568.7032486999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 677.460399998381,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 569.7033745999979,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 690.5750000005355,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 570.7037247000007,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 584.5052000004216,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 571.7042476999995,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 674.1136000018741,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 572.7047454999993,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 7.055099998979131,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 572.7118069999997,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.815799999254523,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 573.7051455000001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.446299998060567,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 574.7052135999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 645.1670000024023,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 575.7053859999978,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 680.4616000008537,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 576.7054810000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 580.3918999990856,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 577.7058493000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 683.3096000009391,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 578.706255000001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 678.0255999983638,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 579.7064253999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 575.999500000762,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 580.7066674999987,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 677.4292000009154,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 581.7069534000002,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 677.6295999989088,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 582.7072771999992,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.518900001334259,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 582.7128067999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 590.3477000028943,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 583.7078137999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 639.5158999985142,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 584.708012799998,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.768300001567695,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 585.7082047000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 758.9205000003858,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 586.7084553999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 610.6933000010031,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 587.7086921000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 724.8151999992842,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 588.7089363000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 727.0626999998058,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 589.7094870000001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 606.6415999994206,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 590.7098846000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 681.5396999991208,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 591.7104591999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 711.6528000005928,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 592.7109811000009,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.167699997400632,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 592.7161548000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 571.3187000001199,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 593.7113605999984,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 700.1577000010002,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 594.7119027000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 697.4458000004233,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 595.7123341000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 572.6718999976583,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 596.7128297999989,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 765.3166000018246,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 597.7133859999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 708.5150999992038,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 598.7135314000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 605.6955999993079,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 599.713721600001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.75299999784329,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 600.7138998999981,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 705.3053000017826,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 601.7140325,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.84719999844674,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 602.714514299998,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.007200001273304,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 602.7195285999987,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 622.5627999992867,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 603.7146872999983,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 711.4801000025182,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 604.7150670999981,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1025.2766000012343,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 605.7403580999999,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 8.292200000141747,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 606.7406551999993,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 292.17939999944065,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 607.7412278999982,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.519400001707254,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 608.7415867999989,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 691.5704999992158,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 609.742031400001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 611.5299999983108,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 610.7423434000011,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 256.9052999970154,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 611.7427653000013,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.132999998953892,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 612.7428658999997,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.4412999998021405,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 612.7483143999998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 639.8731000008411,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 613.7430738000003,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 681.1481999975513,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 614.7435475999991,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.301400000666035,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 615.7437116000001,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.574100000056205,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 616.7440395999984,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 270.60640000127023,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 617.7441752000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 715.858899999148,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 618.7446926000011,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.407699998817407,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 619.7452173999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 621.8451999993704,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 620.7455168999986,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.448100000852719,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 621.7456811999982,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.99530000181403,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 622.746158599999,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.570000001171138,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 622.7517358000005,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 691.1948999986635,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 623.7462844000001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 616.5278999978909,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 624.7463605000012,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.5663999994285405,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 625.7466530999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 693.3208000009472,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 626.7467805999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 680.2595000008296,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 627.7471718999986,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 262.84520000263,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 628.7474349000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1152.107399997476,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 629.8995507,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 817.5947999989148,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 630.899660799998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1469.4733000033011,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 632.3691502000001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1358.5019999991346,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 633.7276581000006,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.273200000374345,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 633.7329417000001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 2031.2267000008433,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 635.7641847000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1631.1009999990347,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 637.3953040999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1865.1328000014473,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 639.2604792999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1538.4765000017069,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 640.798968799998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 848.7500000010186,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 641.7990800999978,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 820.0094000021636,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 642.7992196000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 853.5239999982878,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 643.7997181999999,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.4940999984391965,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 644.8002027000002,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 671.0213999976986,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 645.8003654999993,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 952.4898999989091,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 646.8005521999985,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.205600002227584,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 646.8057640000006,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 728.3599999973376,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 647.8009115999994,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 266.80710000073304,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 648.8013542000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 746.8464999983553,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 649.8016656,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 701.1873000010382,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 650.8017595999991,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 249.76239999887184,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 651.8019381000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 756.1143999992055,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 652.8021225000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 706.1651999974856,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 653.8022087999998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 742.0320999990508,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 654.802426899998,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.30010000168113,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 655.8029748000008,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 758.4110999996483,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 656.8032155000001,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.570699999225326,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 656.808795099998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 703.1363000023703,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 657.8036783999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 759.0923999996448,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 658.8042109999988,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.457300001784461,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 659.8044771999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 768.7240000013844,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 660.8047778,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 604.4894000006025,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 661.8050393000012,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.437299998855451,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 662.8053427999985,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 724.685799999861,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 663.8056308000014,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 661.3796999990882,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 664.8058531999995,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 682.6919999984966,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 665.8062145000004,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.586399998923298,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 666.8064589999994,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.349800001567928,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 666.8118214999995,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.888100000447594,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 667.806725800001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 672.475299998041,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 668.8068056000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 646.5188999973179,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 669.8069732000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 716.6871000008541,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 670.8074802999981,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 837.0250000007218,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 671.8079857999983,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 772.9413000015484,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 672.808329200001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 740.2337999992596,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 673.8084166000008,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 263.0189999981667,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 674.8089093999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 673.5595999998623,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 675.8091860999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 805.0858999995398,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 676.8092532999981,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.106300002807984,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 676.8143662000002,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.52780000018538,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 677.8097448999979,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 756.4344000020355,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 678.809887200001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 679.7823999986576,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 679.8101371999983,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 706.4530000025115,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 680.8103411000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 667.4786999974458,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 681.810599299999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 688.8853999989806,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 682.8107679999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 690.3826000016124,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 683.8110970999987,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 634.5868000025803,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 684.8113202999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 654.6512999993865,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 685.811426799999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 666.8121000002429,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 686.8115861000006,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.653599997458514,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 686.8172465999996,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 670.3578999986348,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 687.8117993999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 554.7380999996676,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 688.8120283999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 654.8168000008445,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 689.8121232000012,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 666.0273999987112,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 690.8126068999991,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 630.8067999998457,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 691.812901199999,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 7.464900001650676,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 692.8130907000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 678.3933999977307,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 693.8136682000004,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 662.562199999229,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 694.8141905000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 649.0661999996519,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 695.8144557999985,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.203299999469891,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 696.814692699998,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.140600002050633,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 696.8198401000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 651.9869000003382,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 697.8151601999998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 667.4732999999833,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 698.815726599998,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.574900002306094,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 699.8162725000002,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.604399997740984,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 700.8164757000013,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 692.3274000000674,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 701.8166139999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 667.688099998486,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 702.817050499998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 665.0217000023986,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 703.8176098000004,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 6.525500000861939,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 704.8178608999988,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 756.9707000002381,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 705.8182142000005,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 758.7548999981664,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 706.818725000001,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 5.10529999883147,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 706.8238364999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 2186.1408000004303,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 709.0099857999994,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1090.593600001739,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 710.1005869,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1280.697499998496,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 711.381292099999,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1116.9201000011526,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 712.4982195000011,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1096.915899997839,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 713.5951433000009,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1133.8742999978422,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 714.7290396999997,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 1028.7893999993685,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 715.757836599998,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 732.8180000004068,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 716.7583176999979,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 599.5620000030613,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 717.758737600001,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 639.1057000000728,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 718.7589159999989,
+    "kind": "health",
+    "status": 200,
+    "latency_ms": 4.9992999993264675,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 718.7639213000002,
+    "kind": "login",
+    "status": 401,
+    "latency_ms": 5.487200000061421,
+    "expected_lock": false
+  },
+  {
+    "t_sec": 719.7592890999986,
+    "kind": "login",
+    "status": 200,
+    "latency_ms": 661.3047000028018,
+    "expected_lock": false
+  }
+]
