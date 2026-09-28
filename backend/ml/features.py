@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from app.detection.rules import haversine_distance
+from app.utils.time import ensure_utc
 
 FEATURE_NAMES = [
     "hour_sin",
@@ -179,7 +180,11 @@ def compute_realtime_features(
         .first()
     )
     if previous_event is not None:
-        minutes_since_last = max((created_at - previous_event.created_at).total_seconds() / 60, 0.0)
+        # MR18: previous_event.created_at đọc lại từ SQLite (test/mô phỏng) mất tzinfo trong khi created_at (tham số,
+        # vừa dựng ở lời gọi) vẫn aware — CÙNG lớp bug naive-vs-aware datetime đã gặp (và sửa bằng ensure_utc()) ở
+        # is_impossible_travel (app/detection/rules.py, MR13) và nhiều nơi khác — lần này ở compute_realtime_features
+        # (tầng 3), tự phát hiện khi dựng ml/attack_scenarios.py (MR18: kịch bản có lịch sử/baseline TRƯỚC đó).
+        minutes_since_last = max((ensure_utc(created_at) - ensure_utc(previous_event.created_at)).total_seconds() / 60, 0.0)
     else:
         minutes_since_last = _NO_HISTORY_MINUTES_SINCE_LAST
 

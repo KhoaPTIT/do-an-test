@@ -248,11 +248,40 @@ Các mục dưới đây đổi mô hình hoặc quy tắc nên cần đồng ý
   - ➡️ Chưa làm ở MR17 (để lại cho sau, ngoài phạm vi `[Nên, M]`): UI thêm mục blocklist thủ công qua web (kế thừa
     giới hạn MR16); `PUT /rules/{id}` merge từng tham số với override cũ thay vì ghi đè nguyên bộ; bộ lọc theo
     khoảng thời gian trên trang chiến dịch; PSI xu hướng theo thời gian (hiện chỉ một lát cắt hiện tại)
-- [ ] **MR18 [Lõi, M] Thư viện tấn công mô phỏng v2 và scorecard**
-  - [ ] Kịch bản: spray chậm, botnet phân tán, proxy cùng quốc gia, UA rotation, TK ngủ đông, Targeted mimic, enumeration, stuffing quy mô lớn, impossible travel
-  - [ ] Runner chạy tất cả và ghi: có phát hiện không, thời gian phát hiện, bằng rule/ML/hybrid, số cảnh báo
-  - [ ] Scorecard đưa vào báo cáo, **kể cả các ca hệ thống không bắt được**
-  - [ ] Dùng lại làm dữ liệu sinh cho mô hình B (chuyển từ MR6 sang MR18)
+- [x] **MR18 [Lõi, M] Thư viện tấn công mô phỏng v2 và scorecard** — Kết quả: [`attack-scenarios-v2.md`](attack-scenarios-v2.md), [`model-b-geo-time.md`](model-b-geo-time.md); mã: [`ml/attack_scenarios.py`](../backend/ml/attack_scenarios.py), [`scripts/attack_scenario_runner.py`](../backend/scripts/attack_scenario_runner.py)
+  - [x] 9 kịch bản (spray chậm, botnet phân tán, proxy cùng quốc gia, UA rotation, TK ngủ đông, Targeted mimic,
+    enumeration, stuffing quy mô lớn, impossible travel) — MỖI kịch bản hiệu chỉnh có chủ đích vượt HẲN ngưỡng THẬT
+    của một luật cụ thể (`docs/rule-catalog.md`), dùng IP CÔNG KHAI THẬT đã xác nhận GeoIP/ASN (không phải IP bịa)
+  - [x] Runner (`attack_scenario_runner.py`) chạy qua CHÍNH pipeline thật, ghi phát hiện/bước phát hiện/cơ chế/số alert
+  - [x] Scorecard [`attack-scenarios-v2.md`](attack-scenarios-v2.md): 7/8 kịch bản kỳ vọng phát hiện được đã có alert
+    (kịch bản thứ 9, `targeted_mimic`, cố ý khó — kết quả mơ hồ TỰ NÓ là phát hiện trung thực). **Bỏ sót thật đáng
+    chú ý**: `username_enumeration` (trọng số mặc định 0,05 chưa hiệu chỉnh, không có luật tầng 1 dự phòng) không tạo
+    alert nào dù vượt hẳn ngưỡng riêng. Trả lời câu hỏi để ngỏ ở `rule-catalog.md`: `rare_network_login` MỘT MÌNH
+    không đủ vượt ngưỡng alert (trọng số 2,6%). `distributed_bruteforce` hiệu chỉnh trọng số **0,0** (mẫu val chỉ 2
+    dòng) — kịch bản botnet chỉ được bắt "tình cờ" qua `impossible_travel` (IP chọn cách xa nhau), một botnet cùng
+    khu vực địa lý nhiều khả năng lọt qua (chưa kiểm chứng trực tiếp)
+  - [x] Dùng lại làm dữ liệu cho mô hình B (chuyển từ MR6): chỉ 2/9 kịch bản có tín hiệu ĐÚNG phạm vi geo/time của
+    tầng 3 (`ml/features.py` không có đặc trưng IP/ASN/tốc độ) — thêm 2 kiểu bất thường mới
+    (`dormant_reactivation`, `impossible_travel_geo`) vào `ml/generate_dataset.py`, huấn luyện/đánh giá lại: recall
+    Isolation Forest **100%** và **63,2%** — chi tiết, kể cả giới hạn không so sánh trước/sau chính xác được (thiếu
+    random seed cố định trong `generate_dataset.py`): [`model-b-geo-time.md`](model-b-geo-time.md)
+  - ⚠️ **2 bug thật tự phát hiện khi dựng MR18 (không phải giả thuyết)**: (1) `app/detection/rules.py` (tầng 1,
+    brute_force/credential_stuffing) đếm cửa sổ Redis theo `time.time()` THẬT thay vì timestamp SỰ KIỆN — MỌI script
+    mô phỏng có timestamp không phải giờ hiện tại (MR13 trở đi) đều vô tình cho tầng 1 đếm sai tốc độ tấn công. Sửa
+    bằng cách thêm tham số `now=` xuyên suốt (`register_login_failure`/`is_brute_force`/`is_credential_stuffing`),
+    `pipeline.py` truyền `ensure_utc(timestamp).timestamp()`. (2) `ml/features.py::compute_realtime_features` — CÙNG
+    lớp bug naive-vs-aware datetime đã gặp nhiều lần (`ensure_utc()`), lần này ở tầng 3, chỉ lộ ra khi kịch bản có
+    lịch sử baseline TRƯỚC đó (không ai chạm code này với lịch sử thật trước MR18)
+  - ⚠️ **Phát hiện phụ (không phải bug, đặc tính CÓ THẬT của tầng 3)**: `ml_anomaly` gần như LUÔN báo động cho tài
+    khoản MỚI bất kể có tấn công hay không (mô hình toàn cục, không huấn luyện lại theo từng tài khoản) — làm giảm
+    giá trị của tín hiệu này khi đọc scorecard cho tài khoản mới tạo trong mô phỏng
+  - [x] 18 test mới (`ml/attack_scenarios.py`: 10 test đối chiếu trực tiếp với REGISTRY xác nhận mỗi đặc tả vượt đúng
+    ngưỡng luật nhắm tới; `attack_scenario_runner.py`: 3 test phần render/tổng hợp thuần; `test_rules.py`: 4 test cho
+    tham số `now=` mới; `test_ml_features.py`: 1 test hồi quy cho bug naive-datetime) — 750/750 test backend đều qua
+  - ➡️ Chưa làm ở MR18 (để lại cho sau, ngoài phạm vi `[Lõi, M]`): kiểm chứng trực tiếp biến thể "botnet cùng khu
+    vực địa lý"; cố định random seed cho `ml/generate_dataset.py` (cần để so sánh trước/sau chính xác); sửa
+    `alert_intelligence_sim.py` (MR13) có cùng thiếu sót baseline thiếu device_fingerprint/GeoIP như bug đã sửa ở
+    runner MR18; hiệu chỉnh lại trọng số `distributed_bruteforce`/`username_enumeration` (cần thêm dữ liệu val thật)
 - [ ] **MR19 [Lõi, M] Tài liệu và nghiệm thu**
   - [ ] `docs/ml-evaluation-v2.md` (kết quả RBA, simulator, live; ablation; giới hạn), model card, data card, ma trận phủ hành vi
   - [ ] Bảng năng lực so với công cụ thương mại (từ tài liệu công khai) và so số với baseline học thuật

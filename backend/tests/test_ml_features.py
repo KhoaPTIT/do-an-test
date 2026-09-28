@@ -3,6 +3,8 @@ dữ liệu tương lai (data leakage) qua UserHistoryState."""
 
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from ml.features import UserHistoryState, compute_features, update_state
 
 
@@ -90,3 +92,30 @@ def test_compute_features_does_not_mutate_state():
     assert state.known_devices == set()
     assert state.login_hours == []
     assert state.recent_timestamps == []
+
+
+def test_compute_realtime_features_tolerates_a_previous_event_read_back_naive_from_sqlite(db_session):
+    """Bug thật tự phát hiện ở MR18 (ml/attack_scenarios.py — mọi kịch bản có baseline lịch sử TRƯỚC khi tấn công):
+    `previous_event.created_at` đọc lại từ SQLite mất tzinfo (naive) trong khi `created_at` (tham số, vừa dựng trong
+    Python cho lần đăng nhập ĐANG chấm) vẫn aware — trừ hai loại datetime khác nhau raise TypeError thay vì tính được
+    `minutes_since_last_login`. CÙNG lớp bug đã gặp (và sửa bằng ensure_utc()) ở is_impossible_travel
+    (app/detection/rules.py, MR13) và alert_intelligence_sim.py/pipeline.py (nhiều nơi khác) — lần này ở
+    compute_realtime_features (tầng 3, ml/features.py), một hàm KHÔNG được test này chạm tới trước MR18 vì luôn có
+    baseline history nào đó."""
+    from ml.features import compute_realtime_features
+    from app.models import LoginEvent, User
+
+    user = User(username="alice_realtime", password_hash="x")
+    db_session.add(user)
+    db_session.flush()
+    aware_previous = datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc)
+    db_session.add(LoginEvent(user_id=user.id, attempted_username="alice_realtime", success=True, ip_address="1.2.3.4", is_synthetic=True, created_at=aware_previous))
+    db_session.commit()
+
+    now = datetime(2026, 1, 1, 10, 30, tzinfo=timezone.utc)  # 90 phút sau, vẫn aware — KHÔNG raise, KHÔNG lệch vì mất tzinfo
+    features = compute_realtime_features(
+        db_session, user_id=user.id, baseline=None, country="VN", city="Hanoi", latitude=21.03, longitude=105.85,
+        device_fingerprint="fp1", created_at=now,
+    )
+
+    assert features["minutes_since_last_login"] == pytest.approx(90.0)

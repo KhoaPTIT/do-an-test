@@ -1,5 +1,13 @@
 # Đánh giá ML tầng 3 (nhiệm vụ 7.1) — điểm nhấn chính của đồ án
 
+> ⚠️ **MR18** đã thêm 2 kiểu bất thường mới (`dormant_reactivation`, `impossible_travel_geo` — "mô hình B" địa lý-thời
+> gian, xem [`docs/model-b-geo-time.md`](model-b-geo-time.md)) vào `ml/generate_dataset.py` rồi huấn luyện/đánh giá
+> LẠI — các con số CỤ THỂ dưới đây (78,3% recall, bảng theo kiểu bất thường mục dưới...) là ảnh chụp của Tuần 7, KHÔNG
+> còn khớp với `backend/ml/artifacts/` hiện tại (dữ liệu sinh lại KHÔNG cố định seed nên cũng không tái lập chính xác
+> được — xem giới hạn ở tài liệu MR18). Giữ nguyên ở đây làm tài liệu lịch sử; hợp nhất đầy đủ dự kiến ở MR19.
+>
+> Không đổi: phương pháp luận (train/test tách theo thời gian, 3 mô hình, so với tầng 2 thật) và các đặc trưng gốc.
+
 ## Vì sao làm sâu phần này
 
 Ban đầu checklist coi ML là "tuỳ chọn, không bắt buộc thành công". Nhóm quyết

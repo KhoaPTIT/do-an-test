@@ -89,3 +89,45 @@ def test_is_credential_stuffing_false_for_single_username(fake_redis):
     for _ in range(CREDENTIAL_STUFFING_FAIL_THRESHOLD):
         register_login_failure("only-one-user", ip)  # nhiều fail nhưng CÙNG 1 username
     assert is_credential_stuffing(ip) is False
+
+
+# ------------------------------------------------------------------------------------- MR18: now= (giờ SỰ KIỆN, không phải giờ thật)
+
+
+def test_register_login_failure_without_now_uses_real_time_and_is_unaffected_by_a_simulated_past(fake_redis):
+    """Hành vi CŨ (không truyền now=) phải giữ nguyên — chỉ THÊM tham số, không đổi mặc định."""
+    for _ in range(BRUTE_FORCE_THRESHOLD):
+        register_login_failure("victim_default", "1.2.3.4")
+    assert is_brute_force("victim_default") is True
+
+
+def test_credential_stuffing_respects_simulated_time_not_wall_clock_when_now_is_given(fake_redis):
+    """Bug thật tự phát hiện ở MR18 (ml/attack_scenarios.py — kịch bản 'rải mật khẩu chậm'): trước khi register_
+    login_failure/is_credential_stuffing nhận now=, MỌI lần gọi (dù truyền timestamp mô phỏng cách nhau hàng giờ vào
+    run_detection_pipeline) đều đếm theo time.time() THẬT — 10 lần gọi trong một test chạy vài mili-giây luôn rơi
+    vào CÙNG một cửa sổ 300 giây thật, dù các timestamp mô phỏng cách nhau rất xa. Giả: 10 lần thử, mỗi lần cách nhau
+    25 PHÚT theo now= mô phỏng (>> 300 giây cửa sổ) — dù cả 10 lệnh gọi Python chạy gần như tức thời — PHẢI KHÔNG bị
+    coi là credential stuffing, vì mỗi cửa sổ 300s mô phỏng chỉ từng chứa ĐÚNG 1 lần thử."""
+    ip = "9.9.9.7"
+    base = 1_700_000_000.0
+    for i in range(10):
+        register_login_failure(f"victim_spray_{i}", ip, now=base + i * 25 * 60)
+    assert is_credential_stuffing(ip, now=base + 9 * 25 * 60) is False
+
+
+def test_credential_stuffing_still_fires_when_the_simulated_attempts_are_genuinely_close_together(fake_redis):
+    """Đối chứng cho test trên — cùng số lần thử, nhưng now= mô phỏng cách nhau VÀI GIÂY (thật sự nhanh) vẫn phải bị bắt."""
+    ip = "9.9.9.6"
+    base = 1_700_000_000.0
+    for i in range(10):
+        register_login_failure(f"victim_fast_{i}", ip, now=base + i * 10)
+    assert is_credential_stuffing(ip, now=base + 9 * 10) is True
+
+
+def test_brute_force_window_slides_on_simulated_time_not_call_order(fake_redis):
+    """10 lần sai cách nhau 1 GIỜ mô phỏng (>> cửa sổ 300s) không được cộng dồn thành brute force, dù gọi liên tiếp
+    trong cùng một tiến trình test."""
+    base = 1_700_000_000.0
+    for i in range(10):
+        register_login_failure("victim_slow_bf", "1.2.3.4", now=base + i * 3600)
+    assert is_brute_force("victim_slow_bf", now=base + 9 * 3600) is False

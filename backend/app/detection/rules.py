@@ -9,10 +9,12 @@ docs/api-contract.md mục 6, cần đối chiếu khi có tài liệu "Kế ho�
 from __future__ import annotations
 
 import math
+import time
 from dataclasses import dataclass
 from datetime import datetime
 
 from app.detection.rate_counter import (
+    FAIL_WINDOW_SECONDS,
     check_fail_count,
     record_credential_stuffing_attempt,
     record_fail,
@@ -71,24 +73,31 @@ def is_impossible_travel(previous: GeoPoint | None, current: GeoPoint) -> bool:
     return speed_kmh > IMPOSSIBLE_TRAVEL_SPEED_KMH
 
 
-def register_login_failure(username: str, ip: str) -> None:
-    """Gọi sau MỖI lần đăng nhập thất bại để cập nhật các counter Redis."""
-    record_fail(f"fail:{username}")
-    record_fail(f"fail_ip:{ip}")
-    record_credential_stuffing_attempt(ip, username)
+def register_login_failure(username: str, ip: str, *, now: float | None = None) -> None:
+    """Gọi sau MỖI lần đăng nhập thất bại để cập nhật các counter Redis. `now`: epoch giây của SỰ KIỆN — mặc định
+    `None` dùng `time.time()` thật (đúng cho luồng sống); BẮT BUỘC truyền `now` khi phát lại/mô phỏng với timestamp
+    KHÔNG PHẢI giờ hiện tại thật, nếu không cửa sổ Redis (TTL thật) đếm theo tốc độ CHẠY SCRIPT chứ không theo tốc độ
+    tấn công mô phỏng — bug thật tự phát hiện ở MR18 (`ml/attack_scenarios.py`: kịch bản "rải mật khẩu chậm" cách nhau
+    hàng chục phút THEO TIMESTAMP MÔ PHỎNG vẫn bị `credential_stuffing` bắt nhầm vì cả 18 lần gọi Redis xảy ra trong
+    vài GIÂY THẬT khi script chạy)."""
+    record_fail(f"fail:{username}", now=now)
+    record_fail(f"fail_ip:{ip}", now=now)
+    record_credential_stuffing_attempt(ip, username, now=now)
 
 
-def is_brute_force(username: str) -> bool:
-    """Nhiều lần fail liên tiếp trên CÙNG một tài khoản."""
-    return check_fail_count(f"fail:{username}") >= BRUTE_FORCE_THRESHOLD
+def is_brute_force(username: str, *, now: float | None = None) -> bool:
+    """Nhiều lần fail liên tiếp trên CÙNG một tài khoản. `now`: xem docstring `register_login_failure`."""
+    return check_fail_count(f"fail:{username}", now=now) >= BRUTE_FORCE_THRESHOLD
 
 
-def is_credential_stuffing(ip: str) -> bool:
-    """Nhiều username KHÁC NHAU bị thử từ CÙNG một IP trong thời gian ngắn."""
+def is_credential_stuffing(ip: str, *, now: float | None = None) -> bool:
+    """Nhiều username KHÁC NHAU bị thử từ CÙNG một IP trong thời gian ngắn. `now`: xem docstring `register_login_failure`."""
     from app.detection.rate_counter import redis_client
 
+    now_value = now if now is not None else time.time()
+    redis_client.zremrangebyscore(f"cred_stuffing:{ip}", 0, now_value - FAIL_WINDOW_SECONDS)  # trượt cửa sổ TRƯỚC khi đếm distinct
     distinct_usernames = redis_client.zcard(f"cred_stuffing:{ip}")
-    total_fails = check_fail_count(f"fail_ip:{ip}")
+    total_fails = check_fail_count(f"fail_ip:{ip}", now=now)
     return (
         total_fails >= CREDENTIAL_STUFFING_FAIL_THRESHOLD
         and distinct_usernames >= CREDENTIAL_STUFFING_MIN_DISTINCT_USERNAMES

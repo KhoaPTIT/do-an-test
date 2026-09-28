@@ -153,6 +153,54 @@ def _make_single_anomaly(user: User, profile: dict, anomaly_type: str, now: date
     return event, label
 
 
+DORMANT_GAP_DAYS = 35  # KHÔNG dùng 90 (ngưỡng của dormant_account_login, MR9) — tier-3 không có ngưỡng cứng, chỉ cần
+# lệch RÕ RỆT so với khoảng cách 2-3 ngày/lần thường thấy (30-55 lần/90 ngày) để mô hình học được, không cần khớp con
+# số của một luật khác tầng hoàn toàn.
+DORMANT_REACTIVATION_PROBABILITY = 0.4  # MR18: không phải user nào cũng có kiểu bất thường này (mẫu tương tự SINGLE_ANOMALIES_PER_USER_RANGE)
+IMPOSSIBLE_TRAVEL_GEO_PROBABILITY = 0.4
+
+
+def _make_dormant_reactivation_anomaly(user: User, profile: dict, now: datetime) -> tuple[LoginEvent, str]:
+    """MR18 "mô hình B" — kiểu bất thường MỚI (không có ở Tuần 7): đăng nhập THÀNH CÔNG NGAY BÂY GIỜ (mới nhất trong
+    toàn bộ lịch sử user) sau khi bị lọc bỏ mọi sự kiện trong `DORMANT_GAP_DAYS` ngày gần nhất (xem main()) — tín hiệu
+    CHÍNH là `minutes_since_last_login`/`logins_last_24h` cực đoan (KHÔNG PHẢI is_new_location/is_new_device như 3
+    kiểu gốc), kèm vị trí MỚI (khác `unusual_location`: ở đó không có yêu cầu gì về thời gian kể từ lần trước)."""
+    country, _city, _lat, _lon = profile["home_location"]
+    far = random.choice([loc for loc in FAR_LOCATIONS if loc[0] != country])
+    ev_country, ev_city, ev_lat, ev_lon = far
+    device_ua = random.choice(profile["devices"])
+    event = LoginEvent(
+        user_id=user.id, attempted_username=user.username, success=True, ip_address=random_ip(), user_agent=device_ua,
+        device_fingerprint=compute_device_fingerprint(device_ua), country=ev_country, city=ev_city, latitude=ev_lat,
+        longitude=ev_lon, is_synthetic=True, created_at=now,
+    )
+    return event, "dormant_reactivation"
+
+
+def _make_impossible_travel_geo_anomaly(user: User, profile: dict, now: datetime) -> list[tuple[LoginEvent, str | None]]:
+    """MR18 "mô hình B" — kiểu bất thường MỚI: 1 lần đăng nhập THÀNH CÔNG bình thường (nhãn False — chỉ để có một mốc
+    "vừa mới đăng nhập" ngay trước đó) rồi NGAY SAU ĐÓ vài phút một lần THÀNH CÔNG khác từ vị trí RẤT XA — tín hiệu
+    CHÍNH là TỔ HỢP `minutes_since_last_login` cực nhỏ VÀ `distance_km_from_home` cực lớn CÙNG LÚC (khác
+    `unusual_location` một mình: ở đó không có ràng buộc về thời gian kể từ lần trước, có thể xảy ra sau nhiều ngày)."""
+    country, city, lat, lon = profile["home_location"]
+    far = random.choice([loc for loc in FAR_LOCATIONS if loc[0] != country])
+    ts_reference = _apply_time(now - timedelta(days=random.uniform(1, 5)), _jitter_hour(profile["home_hour"]))
+    ts_travel = ts_reference + timedelta(minutes=random.uniform(5, 15))
+    device_ua = random.choice(profile["devices"])
+
+    reference = LoginEvent(
+        user_id=user.id, attempted_username=user.username, success=True, ip_address=profile["home_ip"], user_agent=device_ua,
+        device_fingerprint=compute_device_fingerprint(device_ua), country=country, city=city, latitude=lat, longitude=lon,
+        is_synthetic=True, created_at=ts_reference,
+    )
+    travel = LoginEvent(
+        user_id=user.id, attempted_username=user.username, success=True, ip_address=random_ip(), user_agent=device_ua,
+        device_fingerprint=compute_device_fingerprint(device_ua), country=far[0], city=far[1], latitude=far[2], longitude=far[3],
+        is_synthetic=True, created_at=ts_travel,
+    )
+    return [(reference, None), (travel, "impossible_travel_geo")]
+
+
 def _make_rapid_fire_burst(user: User, profile: dict, burst_size: int, now: datetime) -> list[tuple[LoginEvent, str | None]]:
     """1 lần đăng nhập bình thường rồi (burst_size - 1) lần dồn dập ngay sau
     (vài chục giây - vài phút/lần) — bất thường về TỐC ĐỘ, không phải giờ/vị
@@ -219,10 +267,36 @@ def main(reset: bool) -> None:
                 db.flush()
 
             normal_events = make_normal_events(user, profile, random.randint(*NORMAL_LOGINS_PER_USER_RANGE))
+
+            # MR18 "mô hình B": lọc bỏ mọi sự kiện GẦN ĐÂY trước khi thêm tái kích hoạt "ngủ đông" — nếu không, sự
+            # kiện bình thường ngẫu nhiên rơi vào đúng vài chục ngày gần nhất (hoàn toàn có thể, normal_events rải đều
+            # trên 90 ngày) sẽ làm hỏng đúng tín hiệu "im lặng lâu ngày" mà kiểu bất thường này cần thể hiện.
+            gets_dormant = random.random() < DORMANT_REACTIVATION_PROBABILITY
+            if gets_dormant:
+                normal_events = [e for e in normal_events if (now - e.created_at).days >= DORMANT_GAP_DAYS]
+
             db.add_all(normal_events)
             db.flush()
             labels.extend((ev.id, username, False, "") for ev in normal_events)
             total_normal += len(normal_events)
+
+            if gets_dormant:
+                event, label = _make_dormant_reactivation_anomaly(user, profile, now)
+                db.add(event)
+                db.flush()
+                labels.append((event.id, username, True, label))
+                total_anomaly += 1
+
+            if random.random() < IMPOSSIBLE_TRAVEL_GEO_PROBABILITY:
+                for event, label in _make_impossible_travel_geo_anomaly(user, profile, now):
+                    db.add(event)
+                    db.flush()
+                    if label is None:
+                        labels.append((event.id, username, False, ""))
+                        total_normal += 1
+                    else:
+                        labels.append((event.id, username, True, label))
+                        total_anomaly += 1
 
             for anomaly_type in ["unusual_hour", "unusual_location", "unusual_device", "combined"]:
                 for _ in range(random.randint(*SINGLE_ANOMALIES_PER_USER_RANGE)):

@@ -144,8 +144,16 @@ def _run_detection_pipeline_sync(
         parsed_ua = parse_user_agent(user_agent)
         asn_result = lookup_asn(ip)
 
+        # MR18: epoch giây của SỰ KIỆN (không phải time.time() thật) — TRUYỀN vào mọi hàm đếm Redis tầng 1 bên dưới.
+        # Bug thật tự phát hiện khi dựng thư viện tấn công mô phỏng v2 (ml/attack_scenarios.py): các hàm này trước đó
+        # KHÔNG nhận now= nên luôn đếm theo time.time() thật — một kịch bản "chậm" (18 lần cách nhau ~25 phút THEO
+        # TIMESTAMP MÔ PHỎNG) vẫn bị credential_stuffing bắt NHẦM vì cả 18 lần gọi Redis xảy ra trong vài giây THẬT
+        # khi script chạy. Ảnh hưởng MỌI script mô phỏng có dùng tầng 1 kể từ MR13 (không đổi kết luận của các MR đó —
+        # xem docs/attack-scenarios-v2.md — nhưng là bug thật, không phải chỉ giới hạn đã biết).
+        now_epoch = ensure_utc(timestamp).timestamp()
+
         # Đọc counter TRƯỚC khi register_login_failure cập nhật thêm.
-        recent_fail_count = check_fail_count(f"fail:{username}")
+        recent_fail_count = check_fail_count(f"fail:{username}", now=now_epoch)
 
         event = LoginEvent(
             user_id=user_id,
@@ -200,14 +208,14 @@ def _run_detection_pipeline_sync(
 
         is_brute_force_flag = False
         if not success:
-            register_login_failure(username, ip)
-            is_brute_force_flag = is_brute_force(username)
+            register_login_failure(username, ip, now=now_epoch)
+            is_brute_force_flag = is_brute_force(username, now=now_epoch)
             if is_brute_force_flag:
-                fail_count = check_fail_count(f"fail:{username}")
+                fail_count = check_fail_count(f"fail:{username}", now=now_epoch)
                 triggered.append(("brute_force", _brute_force_message(username, fail_count), {}))
-            if is_credential_stuffing(ip):
+            if is_credential_stuffing(ip, now=now_epoch):
                 distinct_usernames = redis_client.zcard(f"cred_stuffing:{ip}")
-                fail_count_ip = check_fail_count(f"fail_ip:{ip}")
+                fail_count_ip = check_fail_count(f"fail_ip:{ip}", now=now_epoch)
                 triggered.append(
                     ("credential_stuffing", _credential_stuffing_message(ip, distinct_usernames, fail_count_ip), {})
                 )
