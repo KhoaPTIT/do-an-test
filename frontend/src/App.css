@@ -55,3 +55,31 @@
   display: flex;
   flex-direction: column;
 }
+
+/* Header của web app mẫu (mục tiêu bị giám sát) — cố tình tối giản, KHÁC hẳn .app-nav của khu quản trị: không có
+   bảng điều hướng, chỉ tên site + một lối nhỏ vào khu quản trị, giống trang đăng nhập khách hàng thật. */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header__brand {
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.site-header__admin-link {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+}
+
+.site-header__admin-link:hover {
+  color: var(--text-h);
+  background: var(--accent-bg);
+}
