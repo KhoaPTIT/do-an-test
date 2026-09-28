@@ -6,6 +6,9 @@ import CampaignDetailPage from "./pages/CampaignDetailPage";
 import CampaignsPage from "./pages/CampaignsPage";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
+import ModelHealthPage from "./pages/ModelHealthPage";
+import RulesPage from "./pages/RulesPage";
+import UserProfilePage from "./pages/UserProfilePage";
 import { getAdminToken } from "./services/auth";
 
 // Route quản trị (nhiệm vụ 5.1) — chưa có token thì đá về /admin/login.
@@ -40,6 +43,12 @@ export default function App() {
         <NavLink to="/dashboard/campaigns" className={navLinkClass}>
           Chiến dịch
         </NavLink>
+        <NavLink to="/dashboard/rules" className={navLinkClass}>
+          Luật
+        </NavLink>
+        <NavLink to="/dashboard/model-health" className={navLinkClass}>
+          Mô hình
+        </NavLink>
       </nav>
       <div className="app-main">
         <Routes>
@@ -67,6 +76,30 @@ export default function App() {
             element={
               <RequireAdmin>
                 <CampaignDetailPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/dashboard/rules"
+            element={
+              <RequireAdmin>
+                <RulesPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/dashboard/model-health"
+            element={
+              <RequireAdmin>
+                <ModelHealthPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/dashboard/users/:userId"
+            element={
+              <RequireAdmin>
+                <UserProfilePage />
               </RequireAdmin>
             }
           />

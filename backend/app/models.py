@@ -360,3 +360,20 @@ class OtpChallenge(Base):
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class RuleOverride(Base):
+    """MR17 "Dashboard v2": ghi đè chế độ (`enforce`\\|`shadow`\\|`off`) và/hoặc tham số của MỘT luật (`app.detection.
+    engine.registry.REGISTRY`), do quản trị viên đặt qua `GET/PUT/DELETE /rules` — trước MR17, luật SỐNG chỉ chạy ở
+    MẶC ĐỊNH của sổ đăng ký, `RuleConfig` (JSON file) chỉ dùng cho hiệu chỉnh/replay ngoại tuyến (MR9-10), KHÔNG có
+    đường nào ghi đè luồng thật. Không có hàng ở đây = dùng mặc định của registry (giống triết lý `UserRiskProfile`,
+    MR15: vắng mặt = mặc định, không phải một dòng toàn NULL). Nạp lại thành `RuleConfig` mỗi lần chấm, có cache TTL
+    ngắn (`app/detection/rule_engine_runtime.py`, cùng cơ chế với `blocklist`)."""
+
+    __tablename__ = "rule_overrides"
+
+    rule_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    mode: Mapped[str | None] = mapped_column(String(16), nullable=True)  # None = dùng default_mode của registry
+    params: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # None = dùng defaults(); có thì GHI ĐÈ TOÀN BỘ (không merge từng key)
+    updated_by: Mapped[str] = mapped_column(String(64), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

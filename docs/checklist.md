@@ -217,11 +217,37 @@ Các mục dưới đây đổi mô hình hoặc quy tắc nên cần đồng ý
 
 ## Giai đoạn F — Dashboard, tấn công mô phỏng, nghiệm thu
 
-- [ ] **MR17 [Nên, M] Dashboard v2**
-  - [ ] Hồ sơ rủi ro theo user (timeline, alert, thiết bị/quốc gia quen)
-  - [ ] Trang chiến dịch, hiệu năng rule/ML, sức khoẻ model (drift, phiên bản)
-  - [ ] Chỉnh ngưỡng và bật/tắt rule từ giao diện admin
-  - [ ] Bộ lọc mở rộng (họ tấn công, rule, chiến dịch, phản hồi); kiểm thử responsive
+- [x] **MR17 [Nên, M] Dashboard v2** — Kết quả: [`dashboard-v2.md`](dashboard-v2.md); mã: [`rules.py`](../backend/app/routers/rules.py), [`model_health.py`](../backend/app/routers/model_health.py), [`users.py`](../backend/app/routers/users.py)
+  - [x] Hồ sơ rủi ro theo user (timeline, alert, thiết bị/quốc gia quen): `GET /users/{id}/profile` gộp `login_events`
+    (50 gần nhất), `alerts` (20 gần nhất), `known_devices`, `known_locations`, `user_risk_profiles` (MR15, ngưỡng riêng
+    nếu đã đủ phản hồi) thành một trang xem nhanh — `UserProfilePage.jsx`, liên kết từ username trong bảng log và alert
+  - [x] Trang chiến dịch (MR14), hiệu năng rule/ML, sức khoẻ model (drift, phiên bản): `CampaignsPage.jsx` thêm bộ lọc
+    trạng thái + phân trang (backend đã hỗ trợ `?status=` từ MR14, frontend trước đó chưa dùng). `GET /model-health`
+    (`ModelHealthPage.jsx`) ghép `model_registry` (MR12) + PSI drift (MR12, `ml/rba/drift.py` — trước đó chỉ chạy tay
+    qua CLI) — **phát hiện hiệu năng thật**: tính PSI trên toàn bộ log thật (1.576 dòng) khiến request treo **>30
+    giây**; giới hạn 300 dòng GẦN NHẤT đưa xuống còn **~2 giây** (chi tiết `docs/dashboard-v2.md`)
+  - [x] Chỉnh ngưỡng và bật/tắt rule từ giao diện admin: **phát hiện quan trọng** — trước MR17, `/login` thật LUÔN
+    chấm bằng MẶC ĐỊNH của sổ đăng ký luật (`build_rule_engine` không truyền `config`), `RuleConfig` (JSON, MR9-10)
+    chỉ dùng cho hiệu chỉnh/replay ngoại tuyến, KHÔNG có đường nào ghi đè luồng thật. Bảng `rule_overrides` (DB, nhất
+    quán với `blocklist`/`user_risk_profiles`) + `GET/PUT/DELETE /rules` (`RulesPage.jsx`) là đường ĐẦU TIÊN làm được
+    việc đó — cache 15 giây cùng cơ chế `blocklist`
+  - [x] Bộ lọc mở rộng (họ tấn công, rule, chiến dịch, phản hồi): `GET /alerts` thêm `attack_family`/`rule_id`/
+    `campaign_id`/`status`, UI lọc trên `AlertListPanel.jsx` (tạm ngừng tự chèn alert mới qua WebSocket khi đang lọc
+    — alert mới chưa chắc khớp bộ lọc đang xem); kiểm thử responsive: `RulesPage`/`ModelHealthPage`/`UserProfilePage`/
+    Dashboard đều không tràn ngang ở 375px (`document.documentElement.scrollWidth === clientWidth`, kiểm trực tiếp
+    trên trình duyệt thật, không chỉ đọc CSS)
+  - ⚠️ **Bug thật tự phát hiện khi viết test cho MR17**: `ml/rba/drift.py::current_frame()` (từ MR12, vốn chỉ chạy
+    CLI) tự mở `app.database.SessionLocal` bên trong hàm — gọi từ một router/test đã inject session RIÊNG (SQLite
+    test hoặc session theo request) vẫn ÂM THẦM đọc Postgres dev THẬT thay vì session được truyền vào. Sửa bằng tham
+    số `db=None` (dùng thẳng nếu có, chỉ tự mở khi không truyền — giữ nguyên hành vi CLI cũ), thêm test hồi quy chặn
+    hẳn `SessionLocal` thật để không tái diễn im lặng
+  - [x] 30 test mới (`rules.py`: danh sách/cập nhật/khôi phục mặc định, dây nối `build_rule_engine` giờ ĐỌC ĐƯỢC
+    override; `model_health.py`: danh sách phiên bản + drift; `users.py`: hồ sơ đầy đủ/thiếu dữ liệu/giới hạn
+    timeline; `alerts.py`: 4 bộ lọc mới; `current_frame()`: session được inject, `limit` giữ dòng gần nhất) — 730/730
+    test backend đều qua
+  - ➡️ Chưa làm ở MR17 (để lại cho sau, ngoài phạm vi `[Nên, M]`): UI thêm mục blocklist thủ công qua web (kế thừa
+    giới hạn MR16); `PUT /rules/{id}` merge từng tham số với override cũ thay vì ghi đè nguyên bộ; bộ lọc theo
+    khoảng thời gian trên trang chiến dịch; PSI xu hướng theo thời gian (hiện chỉ một lát cắt hiện tại)
 - [ ] **MR18 [Lõi, M] Thư viện tấn công mô phỏng v2 và scorecard**
   - [ ] Kịch bản: spray chậm, botnet phân tán, proxy cùng quốc gia, UA rotation, TK ngủ đông, Targeted mimic, enumeration, stuffing quy mô lớn, impossible travel
   - [ ] Runner chạy tất cả và ghi: có phát hiện không, thời gian phát hiện, bằng rule/ML/hybrid, số cảnh báo

@@ -1,12 +1,13 @@
-# Schema cơ sở dữ liệu (nhiệm vụ 1.2 + bảng `admins` Tuần 5 + 5 bảng MR12 + 1 bảng MR15 + 1 bảng MR16)
+# Schema cơ sở dữ liệu (nhiệm vụ 1.2 + bảng `admins` Tuần 5 + 5 bảng MR12 + 1 bảng MR15 + 1 bảng MR16 + 1 bảng MR17)
 
 6 bảng gốc PostgreSQL (nhiệm vụ 1.2) + bảng `admins` (nhiệm vụ 5.1) + 5 bảng MR12 (`campaigns`, `blocklist`,
-`response_actions`, `audit_log`, `model_registry`) + `user_risk_profiles` (MR15) + `otp_challenges` (MR16) và cột mới
-trên `login_events`/`alerts`, định nghĩa bằng SQLAlchemy ở [`backend/app/models.py`](../backend/app/models.py), tạo
-bằng Alembic migration trong [`backend/alembic/versions/`](../backend/alembic/versions/) (`..._initial_schema.py` cho
-6 bảng gốc, `..._add_admins_table.py` cho Tuần 5, `..._add_ml_anomaly_score...py` cho `ml_anomaly_score`,
+`response_actions`, `audit_log`, `model_registry`) + `user_risk_profiles` (MR15) + `otp_challenges` (MR16) +
+`rule_overrides` (MR17) và cột mới trên `login_events`/`alerts`, định nghĩa bằng SQLAlchemy ở
+[`backend/app/models.py`](../backend/app/models.py), tạo bằng Alembic migration trong
+[`backend/alembic/versions/`](../backend/alembic/versions/) (`..._initial_schema.py` cho 6 bảng gốc,
+`..._add_admins_table.py` cho Tuần 5, `..._add_ml_anomaly_score...py` cho `ml_anomaly_score`,
 `..._mr12_realtime_integration...py` cho phần MR12 — xem [`realtime-integration.md`](realtime-integration.md);
-`..._mr16_otp_challenges.py` cho `otp_challenges`).
+`..._mr16_otp_challenges.py` cho `otp_challenges`; `..._mr17_rule_overrides.py` cho `rule_overrides`).
 
 ## users
 
@@ -258,6 +259,23 @@ hạn, quá số lần thử, sai mã, đã dùng), cùng triết lý "sai mật
 | verified_at | TIMESTAMPTZ | nullable — đã xác thực thành công; có giá trị rồi thì mọi lần thử SAU đều bị từ chối (không cho dùng lại) |
 | attempts | INTEGER | default 0 — mỗi lần xác thực SAI (kể cả sau khi đã hết hạn) tăng 1; ≥ `OTP_MAX_ATTEMPTS` (5) thì từ chối luôn cả khi gửi đúng mã |
 | created_at | TIMESTAMPTZ | default now() |
+
+## rule_overrides (bổ sung MR17)
+
+Ghi đè chế độ (`enforce`\|`shadow`\|`off`) và/hoặc tham số của MỘT luật (`app/detection/engine/registry.py`), do quản
+trị viên đặt qua `GET/PUT/DELETE /rules`. Trước MR17, luật SỐNG (`POST /login` thật) luôn chấm bằng MẶC ĐỊNH của sổ
+đăng ký — `RuleConfig` (JSON file) chỉ dùng cho hiệu chỉnh/replay ngoại tuyến (MR9-10), không có đường nào ghi đè
+luồng thật. Không có hàng ở đây = dùng mặc định của registry (giống triết lý `user_risk_profiles`, MR15: vắng mặt =
+mặc định, không phải một dòng toàn NULL). Nạp lại thành `RuleConfig` mỗi lần chấm, cache TTL 15 giây (cùng cơ chế
+`blocklist`, `app/detection/rule_engine_runtime.refresh_rule_config`).
+
+| Cột | Kiểu | Ghi chú |
+|---|---|---|
+| rule_id | VARCHAR(64) PK | mã luật (`app/detection/engine/registry.REGISTRY`) |
+| mode | VARCHAR(16) | nullable — `enforce`\|`shadow`\|`off`; NULL = dùng `default_mode` của sổ đăng ký |
+| params | JSON | nullable — GHI ĐÈ TOÀN BỘ bộ tham số (không merge từng key với lần ghi đè trước); NULL = dùng `defaults()` |
+| updated_by | VARCHAR(64) | username quản trị viên |
+| updated_at | TIMESTAMPTZ | tự cập nhật (`onupdate=func.now()`) |
 
 ## Kiểm tra sau khi hoàn thành (checklist gốc mục 1.2)
 

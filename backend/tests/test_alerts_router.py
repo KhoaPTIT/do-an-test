@@ -73,3 +73,81 @@ def test_alerts_older_than_mr13_without_a_priority_score_sort_to_the_bottom_not_
     response = client.get("/alerts", headers={"Authorization": f"Bearer {token}"})
     ids = [item["id"] for item in response.json()["items"]]
     assert ids == [new.id, legacy.id]
+
+
+# ------------------------------------------------------------------------------------------------------- MR17: bộ lọc
+
+
+def _seed_filterable_alerts(db_session):
+    user = User(username="alice", password_hash="x")
+    db_session.add(user)
+    db_session.flush()
+    event = LoginEvent(user_id=user.id, attempted_username="alice", success=True, ip_address="1.1.1.1", created_at=BASE)
+    db_session.add(event)
+    db_session.flush()
+
+    a = Alert(login_event_id=event.id, user_id=user.id, alert_type="hybrid_risk", severity="high", risk_score=90,
+              message="a", attack_family="Đoán và dò mật khẩu", rule_id="brute_force", campaign_id=None, status="open")
+    b = Alert(login_event_id=event.id, user_id=user.id, alert_type="hybrid_risk", severity="medium", risk_score=50,
+              message="b", attack_family="Danh tiếng hạ tầng", rule_id="blocklist_hit", campaign_id=None, status="resolved")
+    db_session.add_all([a, b])
+    db_session.commit()
+    return a, b
+
+
+def test_filters_by_attack_family(db_session, client):
+    token = _admin_token(db_session, client)
+    a, b = _seed_filterable_alerts(db_session)
+
+    response = client.get("/alerts", params={"attack_family": "Đoán và dò mật khẩu"}, headers={"Authorization": f"Bearer {token}"})
+    ids = {item["id"] for item in response.json()["items"]}
+    assert ids == {a.id}
+
+
+def test_filters_by_rule_id(db_session, client):
+    token = _admin_token(db_session, client)
+    a, b = _seed_filterable_alerts(db_session)
+
+    response = client.get("/alerts", params={"rule_id": "blocklist_hit"}, headers={"Authorization": f"Bearer {token}"})
+    ids = {item["id"] for item in response.json()["items"]}
+    assert ids == {b.id}
+
+
+def test_filters_by_status(db_session, client):
+    token = _admin_token(db_session, client)
+    a, b = _seed_filterable_alerts(db_session)
+
+    response = client.get("/alerts", params={"status": "resolved"}, headers={"Authorization": f"Bearer {token}"})
+    ids = {item["id"] for item in response.json()["items"]}
+    assert ids == {b.id}
+
+
+def test_filters_by_campaign_id(db_session, client):
+    token = _admin_token(db_session, client)
+    user = User(username="carol", password_hash="x")
+    db_session.add(user)
+    db_session.flush()
+    event = LoginEvent(user_id=user.id, attempted_username="carol", success=True, ip_address="3.3.3.3", created_at=BASE)
+    db_session.add(event)
+    db_session.flush()
+    from app.models import Campaign
+
+    campaign = Campaign(label="test", alert_count=1, first_seen_at=BASE, last_seen_at=BASE)
+    db_session.add(campaign)
+    db_session.flush()
+    in_campaign = Alert(login_event_id=event.id, user_id=user.id, alert_type="hybrid_risk", severity="high", risk_score=90, message="x", campaign_id=campaign.id)
+    outside = Alert(login_event_id=event.id, user_id=user.id, alert_type="hybrid_risk", severity="high", risk_score=90, message="y", campaign_id=None)
+    db_session.add_all([in_campaign, outside])
+    db_session.commit()
+
+    response = client.get("/alerts", params={"campaign_id": campaign.id}, headers={"Authorization": f"Bearer {token}"})
+    ids = {item["id"] for item in response.json()["items"]}
+    assert ids == {in_campaign.id}
+
+
+def test_an_invalid_status_value_returns_422(db_session, client):
+    token = _admin_token(db_session, client)
+
+    response = client.get("/alerts", params={"status": "khong_hop_le"}, headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 422

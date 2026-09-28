@@ -24,12 +24,13 @@ from app.detection import rate_counter
 from app.detection.engine import Blocklist, RedisStore, RuleConfig, RuleEngine, ThreatIntel
 from app.detection.engine.intel import BlockEntry
 from app.detection.engine.types import AccountHistory, LoginAttempt, ua_hash
-from app.models import BlocklistEntry, LoginEvent
+from app.models import BlocklistEntry, LoginEvent, RuleOverride
 from app.utils.time import ensure_utc
 
 logger = logging.getLogger("rule_engine_runtime")
 
 BLOCKLIST_CACHE_TTL_SECONDS = 15.0
+RULE_CONFIG_CACHE_TTL_SECONDS = 15.0  # cùng lý do/độ dài với blocklist — đổi qua GET/PUT/DELETE /rules (MR17), cần thấy tương đối nhanh
 _THREAT_INTEL: ThreatIntel | None = None
 
 
@@ -162,6 +163,36 @@ def invalidate_blocklist_cache() -> None:
     _blocklist_cached_at = -1.0
 
 
+# ------------------------------------------------------------------------------------------------ rule config DB-backed, cache TTL ngắn
+
+_rule_config_cache: RuleConfig | None = None
+_rule_config_cached_at = -1.0
+
+
+def refresh_rule_config(db: Session, force: bool = False) -> RuleConfig:
+    """`RuleConfig` dựng lại từ bảng `rule_overrides` mỗi `RULE_CONFIG_CACHE_TTL_SECONDS` giây (MR17) — trước đó luồng
+    thật LUÔN chấm bằng mặc định của sổ đăng ký (`build_rule_engine(db)` gọi không truyền `config`, tương đương
+    `RuleConfig()` rỗng); giờ đọc đè từ DB, cùng cơ chế cache với `refresh_blocklist` ở trên."""
+    global _rule_config_cache, _rule_config_cached_at
+    now = time.monotonic()
+    if not force and _rule_config_cache is not None and now - _rule_config_cached_at < RULE_CONFIG_CACHE_TTL_SECONDS:
+        return _rule_config_cache
+    config = RuleConfig()
+    for row in db.execute(select(RuleOverride)).scalars():
+        if row.mode is not None:
+            config.modes[row.rule_id] = row.mode
+        if row.params is not None:
+            config.params[row.rule_id] = dict(row.params)
+    _rule_config_cache, _rule_config_cached_at = config, now
+    return config
+
+
+def invalidate_rule_config_cache() -> None:
+    """Gọi ngay sau khi quản trị viên đổi cấu hình một luật (`PUT`/`DELETE /rules/{id}`, MR17)."""
+    global _rule_config_cached_at
+    _rule_config_cached_at = -1.0
+
+
 # ------------------------------------------------------------------------------------------------ dựng engine
 
 
@@ -171,7 +202,10 @@ def build_rule_engine(db: Session, config: RuleConfig | None = None, *, before: 
     `monkeypatch`, giữ singleton sẽ lỡ mất bản thay đó; dựng lại object `RedisStore` không tốn kém, chỉ giữ tham chiếu).
     Tiền tố khoá "rule:" (state.py) không đụng khoá của `rate_counter`. `intel` dùng chung/singleton (nạp một lần lúc
     khởi động). `history`, `stats`, `blocklist` dựng mới từ DB (rẻ, luôn đúng — xem docstring module). `before`: mốc
-    "trước đó" cho lịch sử, mặc định là hiện tại."""
+    "trước đó" cho lịch sử, mặc định là hiện tại. `config=None` (mặc định): đọc `rule_overrides` qua
+    `refresh_rule_config` (MR17) — truyền tay một `RuleConfig` khác (vd hiệu chỉnh/replay ngoại tuyến, MR9-10) để BỎ
+    QUA ghi đè của quản trị viên."""
     before = ensure_utc(before) if before is not None else datetime.now(timezone.utc)
     store = RedisStore(rate_counter.redis_client)
-    return RuleEngine(config, store=store, history=DbAccountHistory(db, before), intel=_get_threat_intel(), blocklist=refresh_blocklist(db), stats=DbGlobalStats(db))
+    resolved_config = refresh_rule_config(db) if config is None else config
+    return RuleEngine(resolved_config, store=store, history=DbAccountHistory(db, before), intel=_get_threat_intel(), blocklist=refresh_blocklist(db), stats=DbGlobalStats(db))

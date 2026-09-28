@@ -51,13 +51,18 @@ Web app mẫu (React)                Attack-sim scripts
 | `POST /login` | 2 | Đăng nhập web app mẫu, ghi `login_events` |
 | `POST /admin/login` | 5 | Đăng nhập admin (bảng `admins` riêng), trả JWT (`jwt_expire_minutes` = 60) |
 | `GET /login-events` | 4→5→8 | Danh sách log, phân trang + lọc (`username`, `success`, `risk_level`, `is_synthetic` — nâng cấp sau Tuần 7). **Có JWT bắt buộc từ Tuần 5** |
-| `GET /alerts` | 4→5→13 | Danh sách cảnh báo, phân trang, mặc định sắp theo ưu tiên (`?sort=priority`\|`recent`, MR13). **Có JWT bắt buộc từ Tuần 5** |
+| `GET /alerts` | 4→5→13→17 | Danh sách cảnh báo, phân trang, mặc định sắp theo ưu tiên (`?sort=priority`\|`recent`, MR13); lọc `?attack_family=`\|`rule_id=`\|`campaign_id=`\|`status=` (MR17). **Có JWT bắt buộc từ Tuần 5** |
 | `GET /campaigns` | 14 | Danh sách chiến dịch (nhiều tài khoản chung hạ tầng), phân trang, lọc `?status=`. **Có JWT bắt buộc từ Tuần 5** |
 | `GET /campaigns/{id}` | 14 | Chi tiết một chiến dịch: timeline, tài khoản bị nhắm, đồ thị liên kết user-IP-ASN-thiết bị. **Có JWT bắt buộc từ Tuần 5** |
 | `POST /alerts/{id}/feedback` | 15 | "Đúng"/"Báo nhầm" (`{correct, note?}`) — ghi `alerts.status`/`feedback` + `audit_log`; ngưỡng thích nghi tính lại ĐỊNH KỲ, không phải ngay lúc gọi. **Có JWT bắt buộc từ Tuần 5** |
 | `POST /login/verify-otp` | 16 | Xác thực bước OTP giả lập khi `POST /login` trả `step_up_required=true` (`{challenge_id, code}`) |
 | `GET /blocklist` | 16 | Danh sách khoá tạm/chặn (`?active_only=`, mặc định `true`), phân trang. **Có JWT bắt buộc từ Tuần 5** |
 | `DELETE /blocklist/{id}` | 16 | Mở khoá trước hạn — ghi `audit_log` rồi xoá hàng, vô hiệu cache 15s ngay. **Có JWT bắt buộc từ Tuần 5** |
+| `GET /rules` | 17 | Danh sách MỌI luật kèm trạng thái hiệu lực (mặc định GHÉP ghi đè, nếu có). **Có JWT bắt buộc từ Tuần 5** |
+| `PUT /rules/{id}` | 17 | Bật/tắt + chỉnh tham số một luật (`{mode?, params?}`, chỉ field có mặt mới đổi). **Có JWT bắt buộc từ Tuần 5** |
+| `DELETE /rules/{id}` | 17 | Khôi phục mặc định của sổ đăng ký (xoá hẳn ghi đè). **Có JWT bắt buộc từ Tuần 5** |
+| `GET /model-health` | 17 | Phiên bản mô hình đã đăng ký + trôi đặc trưng (PSI, 300 dòng gần nhất, `?refresh=` bỏ qua cache 10 phút). **Có JWT bắt buộc từ Tuần 5** |
+| `GET /users/{id}/profile` | 17 | Hồ sơ user: timeline (50 gần nhất), alert (20 gần nhất), thiết bị/quốc gia quen, ngưỡng rủi ro riêng (MR15). **Có JWT bắt buộc từ Tuần 5** |
 | `WS /ws/alerts` | 5 | Đẩy cảnh báo real-time, xác thực bằng JWT qua query param `?token=` |
 
 ⚠️ **Rủi ro đã biết (chấp nhận có chủ đích):** JWT qua query param của WebSocket

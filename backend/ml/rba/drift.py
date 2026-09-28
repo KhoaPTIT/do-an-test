@@ -93,30 +93,55 @@ def reference_frame() -> pd.DataFrame:
     return df[(df["partition"] == "train") & ~df["in_warmup"]]
 
 
-def current_frame(days: int | None = None) -> pd.DataFrame:
+def current_frame(days: int | None = None, db=None, limit: int | None = None) -> pd.DataFrame:
     """Đặc trưng RBA tính từ `login_events` THẬT (`is_synthetic=False`) — mỗi dòng chấm lại bằng CHÍNH pipeline realtime
     (`app/detection/rba_live_features.compute_rba_features`), không phải một bản sao công thức riêng, nên không thể lệch
-    với đặc trưng đã dùng lúc chấm điểm thật. `days`: chỉ lấy log trong chừng đó ngày gần nhất (None = toàn bộ log thật)."""
+    với đặc trưng đã dùng lúc chấm điểm thật. `days`: chỉ lấy log trong chừng đó ngày gần nhất (None = toàn bộ log thật).
+
+    ⚠️ MỖI dòng tốn vài lượt round-trip DB (`compute_rba_features` — lịch sử tài khoản, đếm toàn cục..., xem
+    `docs/realtime-integration.md` mục đo đạc) nên KHÔNG rẻ như một truy vấn SQL đơn thuần — đo trực tiếp lúc dựng
+    MR17: ~1.500 dòng khiến `GET /model-health` treo hơn 30 GIÂY một lần request. `limit`: chỉ lấy tối đa chừng đó dòng
+    GẦN NHẤT (None = không giới hạn, dùng cho CLI `python -m ml.rba.drift` — người dùng CHỦ ĐỘNG chờ một phân tích
+    chạy tay; endpoint LIVE, `app/routers/model_health.py`, LUÔN truyền limit vì admin đang chờ trang tải).
+
+    `db`: session có sẵn (vd đã inject qua `Depends(get_db)` ở một router/test, MR17 `app/routers/model_health.py`)
+    — DÙNG THẲNG, KHÔNG tự đóng khi xong (người gọi sở hữu vòng đời). `None` (mặc định, dùng khi chạy CLI
+    `python -m ml.rba.drift`): tự mở qua `app.database.SessionLocal` VÀ tự đóng — bắt buộc phải trì hoãn import
+    `SessionLocal` tới lúc gọi hàm (không import ở đầu module) để test có thể monkeypatch trước khi hàm này chạy;
+    KHÔNG được tự mở session ở đây khi có `db` truyền vào, nếu không sẽ đọc nhầm DB thật thay vì DB (có thể là
+    SQLite in-memory của test) mà người gọi đang thao tác — lỗi thật đã gặp khi viết test cho MR17."""
     from sqlalchemy import select
 
-    from app.database import SessionLocal
     from app.detection.rba_live_features import GlobalCountsCache, compute_rba_features, event_record_for
     from app.models import LoginEvent
 
-    db = SessionLocal()
+    owns_session = db is None
+    if owns_session:
+        from app.database import SessionLocal
+
+        db = SessionLocal()
     try:
-        stmt = select(LoginEvent).where(LoginEvent.is_synthetic.is_(False)).order_by(LoginEvent.created_at)
+        stmt = select(LoginEvent).where(LoginEvent.is_synthetic.is_(False))
         if days is not None:
             stmt = stmt.where(LoginEvent.created_at >= datetime.now(timezone.utc) - timedelta(days=days))
+        # Giới hạn thì lấy N dòng GẦN NHẤT (order desc + limit) rồi đảo lại thứ tự tăng dần — không đổi Ý NGHĨA
+        # "log thật hiện tại" của PSI, chỉ đổi CỠ MẪU (đã ghi rõ ở docstring, không lặng lẽ lấy N dòng CŨ NHẤT).
+        stmt = stmt.order_by(LoginEvent.created_at.desc() if limit is not None else LoginEvent.created_at.asc())
+        if limit is not None:
+            stmt = stmt.limit(limit)
+        events = list(db.execute(stmt).scalars())
+        if limit is not None:
+            events.reverse()
         cache = GlobalCountsCache(ttl_seconds=3600.0)  # một lượt tính toàn bộ log: không cần làm mới cache giữa chừng
         rows = []
-        for event in db.execute(stmt).scalars():
+        for event in events:
             features = compute_rba_features(db, event_record_for(event), cache=cache)
             if features is not None:
                 rows.append(features)
         return pd.DataFrame(rows, columns=list(FEATURE_NAMES)) if rows else pd.DataFrame(columns=list(FEATURE_NAMES))
     finally:
-        db.close()
+        if owns_session:
+            db.close()
 
 
 def render(rows: list[FeatureDrift]) -> str:

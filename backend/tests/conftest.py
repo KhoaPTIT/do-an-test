@@ -44,12 +44,17 @@ def db_session(monkeypatch):
     # app/main.py (MR12): sự kiện "startup" (đăng ký model_registry, nạp hybrid risk engine) cũng mở SESSION RIÊNG
     # qua app.database.SessionLocal, chạy khi TestClient(app) vào `with` — cùng lý do phải patch như trên.
     monkeypatch.setattr("app.main.SessionLocal", TestingSessionLocal)
-    # app/detection/rule_engine_runtime.py (MR12) cache blocklist DB TTL 15s ở BIẾN MODULE (persist giữa các test trong
-    # cùng tiến trình pytest) — xoá cache mỗi test để không đọc nhầm blocklist đã cache từ DB (SQLite in-memory) của
-    # một test KHÁC chạy trước đó chưa quá 15 giây.
-    from app.detection.rule_engine_runtime import invalidate_blocklist_cache
+    # app/detection/rule_engine_runtime.py cache blocklist (MR12) VÀ rule config (MR17) DB TTL 15s ở BIẾN MODULE
+    # (persist giữa các test trong cùng tiến trình pytest) — xoá cả hai cache mỗi test để không đọc nhầm dữ liệu đã
+    # cache từ DB (SQLite in-memory) của một test KHÁC chạy trước đó chưa quá 15 giây.
+    from app.detection.rule_engine_runtime import invalidate_blocklist_cache, invalidate_rule_config_cache
+    from app.routers.model_health import invalidate_drift_cache
 
     invalidate_blocklist_cache()
+    invalidate_rule_config_cache()
+    # app/routers/model_health.py (MR17): cache drift TTL 600s — RẤT dễ rò rỉ giữa các test nếu không xoá (dài hơn
+    # nhiều so với thời gian chạy cả bộ test), không đụng _reference_frame_cache (file train RBA không đổi).
+    invalidate_drift_cache()
 
     session = TestingSessionLocal()
     try:

@@ -1,0 +1,106 @@
+.model-health-page {
+  padding: 1.25rem 1.5rem 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.model-health-page h1 {
+  margin-top: 0.5rem;
+}
+
+.model-health-page__placeholder {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.model-health-page__hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+}
+
+.model-health-page__warning {
+  color: var(--warning);
+}
+
+.model-health-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.model-health-panel h2 {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+.model-health-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.model-health-panel__header button {
+  width: auto;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+}
+
+.model-health-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.model-health-table th,
+.model-health-table td {
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.model-health-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.78rem;
+}
+
+.model-health-table__mono {
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.model-health__verdict--good {
+  color: var(--success);
+}
+
+.model-health__verdict--warn {
+  color: var(--warning);
+}
+
+.model-health__verdict--bad {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .model-health-page {
+    padding: 1rem;
+  }
+
+  .model-health-table {
+    font-size: 0.78rem;
+  }
+
+  .model-health-table th,
+  .model-health-table td {
+    padding: 0.4rem 0.4rem;
+  }
+}

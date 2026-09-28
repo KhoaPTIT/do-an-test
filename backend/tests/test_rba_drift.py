@@ -71,3 +71,56 @@ def test_render_lists_every_feature_with_its_verdict_and_flags_low_confidence():
     text = drift.render(rows)
     for expected in ("a", "0.020", "ổn định", "b", "0.400", "trôi đáng kể", "mẫu hiện tại quá ít", "c", "—", "không đủ dữ liệu"):
         assert expected in text, expected
+
+
+# ------------------------------------------------------------------------------------ MR17: current_frame(db=, limit=)
+
+
+def _make_user_and_events(db_session, *, count, ip="1.2.3.4"):
+    from datetime import datetime, timedelta, timezone
+
+    from app.models import LoginEvent, User
+    from app.security import hash_password
+
+    user = User(username="alice", password_hash=hash_password("x"))
+    db_session.add(user)
+    db_session.flush()
+    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    for i in range(count):
+        db_session.add(LoginEvent(
+            user_id=user.id, attempted_username="alice", success=True, ip_address=ip, is_synthetic=False, created_at=base + timedelta(minutes=i),
+        ))
+    db_session.commit()
+    return user
+
+
+def test_current_frame_uses_the_injected_session_not_the_real_configured_one(db_session, monkeypatch):
+    """Bug thật tự phát hiện khi dựng MR17 (GET /model-health): current_frame() TỰ mở app.database.SessionLocal bên
+    trong khi không truyền `db` — một endpoint/test đã monkeypatch SessionLocal Ở NƠI KHÁC (app.detection.pipeline,
+    app.main, như conftest.py làm) vẫn bị current_frame() lặng lẽ đọc nhầm DB THẬT. Kiểm bằng cách CHẶN HẲN
+    app.database.SessionLocal — nếu hàm cố mở nó, test này tự sập thay vì âm thầm đọc nhầm DB."""
+    from ml.rba.drift import current_frame
+
+    def _boom():
+        raise AssertionError("current_frame() không được tự mở app.database.SessionLocal khi đã có `db` truyền vào")
+
+    monkeypatch.setattr("app.database.SessionLocal", _boom)
+    _make_user_and_events(db_session, count=3)
+
+    result = current_frame(db=db_session)
+
+    assert len(result) == 3  # đọc đúng DB được truyền vào (db_session, SQLite in-memory của test), không lỗi
+
+
+def test_current_frame_limit_keeps_the_most_recent_rows_not_the_oldest(db_session):
+    """10 lần đăng nhập liên tiếp của CÙNG tài khoản -> u_n_success (số lần thành công TRƯỚC ĐÓ) tăng dần đều 0..9.
+    `limit=3` phải giữ lại 3 dòng CUỐI (u_n_success cao) chứ không phải 3 dòng ĐẦU (u_n_success thấp) — kiểm GIÁN TIẾP
+    qua đặc trưng vì DataFrame trả về không có cột created_at để so trực tiếp."""
+    from ml.rba.drift import current_frame
+
+    _make_user_and_events(db_session, count=10)
+
+    result = current_frame(db=db_session, limit=3)
+
+    assert len(result) == 3
+    assert result["u_n_success"].min() >= 7  # dòng thứ 8,9,10 (0-based 7,8,9) có ÍT NHẤT 7 lần thành công trước đó

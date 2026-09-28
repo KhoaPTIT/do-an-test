@@ -30,10 +30,24 @@ def list_alerts(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     sort: str = Query("priority", pattern="^(priority|recent)$"),
+    attack_family: str | None = Query(None, description="Lọc theo họ tấn công GỢI Ý (MR13) — khớp CHÍNH XÁC"),
+    rule_id: str | None = Query(None, description="Lọc theo mã luật đã sinh ra cảnh báo (MR12)"),
+    campaign_id: int | None = Query(None, description="Lọc theo chiến dịch (MR14)"),
+    status: str | None = Query(None, pattern="^(open|acknowledged|resolved|false_positive)$", description="Lọc theo trạng thái xử lý (MR12/15)"),
     db: Session = Depends(get_db),
     _admin: dict = Depends(require_admin),
 ):
-    query = db.query(Alert).order_by(*_SORTS[sort])
+    query = db.query(Alert)
+    if attack_family:
+        query = query.filter(Alert.attack_family == attack_family)
+    if rule_id:
+        query = query.filter(Alert.rule_id == rule_id)
+    if campaign_id is not None:
+        query = query.filter(Alert.campaign_id == campaign_id)
+    if status:
+        query = query.filter(Alert.status == status)
+
+    query = query.order_by(*_SORTS[sort])
     total = query.count()
     items = query.offset((page - 1) * page_size).limit(page_size).all()
     return PaginatedAlerts(items=items, total=total, page=page, page_size=page_size)

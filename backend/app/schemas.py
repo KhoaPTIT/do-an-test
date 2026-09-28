@@ -1,6 +1,7 @@
 """Pydantic schema cho request/response — field snake_case theo docs/api-contract.md."""
 
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -200,3 +201,121 @@ class PaginatedBlocklist(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+# --------------------------------------------------------------------------------------------- MR17: cấu hình luật
+
+
+class RuleParamOut(BaseModel):
+    name: str
+    kind: str  # bool | int | float | str | list — suy từ kiểu của default (app.detection.engine.registry.Param)
+    description: str
+    unit: str
+    minimum: float | None
+    maximum: float | None
+    default: Any
+    value: Any  # giá trị HIỆU LỰC hiện tại (override nếu có, mặc định nếu không)
+
+
+class RuleOut(BaseModel):
+    """Dùng cho GET /rules — một luật với trạng thái HIỆU LỰC hiện tại (mặc định của sổ đăng ký GHÉP với ghi đè quản
+    trị viên, nếu có), để dựng giao diện bật/tắt + chỉnh tham số (checklist MR17 "chỉnh ngưỡng và bật/tắt rule")."""
+
+    id: str
+    title: str
+    category: str
+    severity: str
+    description: str
+    notes: str
+    techniques: list[str]
+    needs: list[str]
+    default_mode: str
+    mode: str  # HIỆU LỰC hiện tại (override nếu có, default_mode nếu không)
+    is_overridden: bool
+    params: list[RuleParamOut]
+    updated_by: str | None = None
+    updated_at: datetime | None = None
+
+
+class RuleUpdateRequest(BaseModel):
+    """PUT /rules/{id} — CHỈ field có mặt trong request mới bị đổi (vd chỉ gửi `mode` thì `params` override hiện có,
+    nếu có, giữ nguyên); gửi `params` thì GHI ĐÈ TOÀN BỘ bộ tham số override (không merge từng key với override cũ)."""
+
+    mode: str | None = None
+    params: dict[str, Any] | None = None
+
+
+# --------------------------------------------------------------------------------------- MR17: sức khoẻ mô hình
+
+
+class ModelVersionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    version: str
+    is_active: bool
+    feature_signature: str | None
+    metrics: dict | None
+    trained_at: datetime | None
+    created_at: datetime
+
+
+class FeatureDriftOut(BaseModel):
+    feature: str
+    psi: float | None  # None = không đủ dữ liệu (NaN)
+    verdict: str
+    n_reference: int
+    n_current: int
+
+
+class ModelHealthOut(BaseModel):
+    versions: list[ModelVersionOut]
+    drift_computed_at: datetime | None  # None = chưa từng tính (n_current quá ít hoặc lỗi đọc file tham chiếu)
+    drift_low_confidence: bool
+    drift_n_reference: int
+    drift_n_current: int
+    drift_top_features: list[FeatureDriftOut]  # sắp theo PSI giảm dần, tối đa 15 đặc trưng trôi nhiều nhất
+
+
+# ------------------------------------------------------------------------------------------- MR17: hồ sơ rủi ro user
+
+
+class KnownDeviceOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    device_fingerprint: str
+    user_agent: str | None
+    first_seen_at: datetime
+    last_seen_at: datetime
+
+
+class KnownLocationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    country: str | None
+    city: str | None
+    first_seen_at: datetime
+    last_seen_at: datetime
+
+
+class UserRiskProfileOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    threshold_delta: float
+    feedback_count: int
+    false_positive_count: int
+
+
+class UserProfileOut(BaseModel):
+    """GET /users/{id}/profile — checklist MR17 "hồ sơ rủi ro theo user (timeline, alert, thiết bị/quốc gia quen)"."""
+
+    id: int
+    username: str
+    created_at: datetime
+    importance: float
+    timeline: list[LoginEventOut]  # gần đây nhất trước, giới hạn LIMIT trong router (không phân trang — xem docstring router)
+    alerts: list[AlertOut]
+    known_devices: list[KnownDeviceOut]
+    known_locations: list[KnownLocationOut]
+    risk_profile: UserRiskProfileOut | None  # None = chưa đủ phản hồi để có ngưỡng riêng (MR15), dùng ngưỡng nhóm

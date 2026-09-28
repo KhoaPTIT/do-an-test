@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { apiClient } from "../services/api";
 import "./LogTablePanel.css";
@@ -157,7 +158,7 @@ export default function LogTablePanel({ refreshKey = 0 }) {
                 {data.items.map((event) => (
                   <tr key={event.id} className={riskClassName(event.risk_score)}>
                     <td>{new Date(event.created_at).toLocaleString("vi-VN")}</td>
-                    <td>{event.attempted_username}</td>
+                    <td>{event.user_id ? <Link to={`/dashboard/users/${event.user_id}`}>{event.attempted_username}</Link> : event.attempted_username}</td>
                     <td>{event.success ? "✅" : "❌"}</td>
                     <td>{event.risk_score ?? "-"}</td>
                     <td>{event.ml_anomaly_score != null ? event.ml_anomaly_score.toFixed(2) : "-"}</td>
