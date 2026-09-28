@@ -2,7 +2,7 @@
 
 Tài liệu kết quả cho giai đoạn mở rộng (MR1–MR19). Khung đo và cách đọc số liệu: [`rba-evaluation.md`](rba-evaluation.md). Bản chất dữ liệu (**tổng hợp**, không phải log thật): [`rba-data-card.md`](rba-data-card.md). Mô hình, dữ liệu học và giới hạn: [`model-card-rba.md`](model-card-rba.md). Bảng đầy đủ mọi mô hình × mọi bài, kèm khoảng tin cậy: [`rba-baseline-comparison.md`](rba-baseline-comparison.md).
 
-> ⚠️ **Cập nhật CP2 (26/09/2026):** các số ở tài liệu này là của **hybrid MR6** (`hybrid`). Sau khi chốt mô hình ở CP2 ([`ml-model-selection.md`](ml-model-selection.md)) hybrid vận hành là `hybrid_cp2` (Isolation Forest bỏ nhóm `infra_ip`, `gbm_attacker_sim` chỉ 28 đặc trưng quan hệ với lịch sử): ATO tương lai 26,3% → 36,8%, IP tấn công 12,3% → 12,4%, kẻ tấn công mô phỏng 47,1 / 37,2 / 17,8% → 36,4 / 27,0 / 8,4%. Kết luận định tính của tài liệu này giữ nguyên; tổng hợp lại toàn bộ số ở MR19.
+> ⚠️ **Cập nhật MR19 (28/09/2026):** tài liệu này gồm hai lớp số. Mục "Tóm tắt MR6" và mục 1–2 phần lớn giữ **nguyên bản MR6** (`hybrid`) để so 13 mô hình công bằng trên cùng một cấu hình. Mô hình **vận hành thật hiện nay là `hybrid_cp2`** (chốt ở CP2, [`ml-model-selection.md`](ml-model-selection.md): Isolation Forest bỏ nhóm `infra_ip`, `gbm_attacker_sim` chỉ 28 đặc trưng quan hệ với lịch sử) — số của nó được **thêm vào** mỗi bảng lớn (dòng `hybrid_cp2`, nguồn [`hybrid_cp2.md`](../backend/ml/artifacts/rba_reports/hybrid_cp2.md), không tính lại) thay vì ghi đè số MR6. Đọc nhanh: mục "Tóm tắt vận hành (`hybrid_cp2`)" ngay dưới đây.
 
 ## Đính chính (21/09/2026): hai sai sót của báo cáo CP1
 
@@ -47,6 +47,25 @@ Các con số dưới đây đều ở **FPR 1%** (chỉ báo nhầm 1% đăng n
 8. **Giải thích và ngưỡng vận hành ở MR8** ([`ml-explanations.md`](ml-explanations.md)): mỗi cảnh báo có tối đa 3 yếu tố (SHAP cho LightGBM, z-score cho bộ không giám sát) kèm "thường … → nay …"; xoá các yếu tố nêu ra làm mất 99–100% cảnh báo (ngẫu nhiên 49–90%) nhưng ba yếu tố chỉ là phần chủ đạo của điểm (bộ không giám sát: ~68%). Ngưỡng hybrid 2,410 / 3,365 cho ~102 / ~10 cảnh báo nhầm trên 10 nghìn đăng nhập hợp lệ thành công; độ chính xác của cảnh báo chỉ 0,26% nếu tấn công chiếm 1 trên 10.000 đăng nhập, và siết ngưỡng xuống 0,1% không cải thiện nó. ⚠️ Kiểm định dấu vân tay **có điều kiện** (so với đăng nhập hợp lệ cũng dùng IP mới) cho thấy bộ mô phỏng còn tách được ở nhóm IP/độ hiếm (AUC 0,67–0,72): mọi recall trên kẻ tấn công mô phỏng ở tài liệu này là **cận trên** (tối đa khoảng 6–12 điểm), ATO thật không bị ảnh hưởng.
 
 Mọi kết luận chịu các giới hạn ở mục 8: dữ liệu **tổng hợp**, chỉ **38** ATO tương lai (khoảng tin cậy rộng), và kẻ tấn công mô phỏng là chuẩn so sánh, không phải bảo đảm.
+
+## Tóm tắt vận hành (`hybrid_cp2`, chốt ở CP2 — MR19)
+
+Từ CP2 (giữa MR8b) hệ thống chạy `hybrid_cp2`, không phải `hybrid` MR6 ở bảng trên. Cùng khung đo (FPR 1%, test, trọng số dân số), số lấy thẳng từ [`hybrid_cp2.md`](../backend/ml/artifacts/rba_reports/hybrid_cp2.md) và [`ml-model-selection.md`](ml-model-selection.md), không tính lại:
+
+| Họ tấn công | `hybrid` (MR6) | **`hybrid_cp2` (vận hành)** | Đổi |
+|---|---|---|---|
+| ATO thật, tương lai (38 ca) | 26,3% [13–39] | **36,8% [21–51]** | tốt hơn — khoảng tin cậy còn chồng nhau |
+| ATO thật, cả 130 ca | 23,8% | **31,5%** | tốt hơn |
+| IP tấn công (test) | 12,3% | **12,4%** | không đổi (ứng viên bỏ `infra_asn` bị phủ quyết theo `late`) |
+| IP tấn công (late, trôi phân phối) | 7,3% | **7,2%** | không đổi |
+| Kẻ tấn công **Naive** (mô phỏng) | 47,1% | **36,4%** | kém hơn — đúng như dự kiến (mục 2 dưới) |
+| Kẻ tấn công **VPN** (mô phỏng) | 37,2% | **27,0%** | kém hơn |
+| Kẻ tấn công **Targeted** (mô phỏng) | 17,8% | **8,4%** | kém hơn nhiều nhất |
+
+1. **Đánh đổi có chủ đích, không phải hồi quy:** `hybrid_cp2` bắt ATO thật tốt hơn bằng cách bỏ bớt nhóm đặc trưng hạ tầng IP/độ hiếm khỏi `gbm_attacker_sim` (lý do: kiểm định dấu vân tay cho thấy nhóm đó là "lối tắt" nhận ra IP mượn của kẻ tấn công mô phỏng, không phải hành vi tấn công thật — [`ml-model-selection.md`](ml-model-selection.md) mục 2). Recall trên kẻ tấn công mô phỏng giảm vì mất đúng lối tắt đó; số mới **trung thực hơn**, không phải mô hình yếu đi.
+2. **Cold-start (chưa có lịch sử) vẫn 0% recall trên `ato/future`** ở `hybrid_cp2` — CP2 không giải quyết được khoảng trống lớn nhất đã nêu ở mục 4 dưới, dù cải thiện rõ ở tài khoản có lịch sử (mỏng 25% → 40%, dày 50% → 60%).
+3. **Ngưỡng vận hành đổi nhẹ:** 2,410/3,365 (MR6) → **2,391/3,345** (cp2); cảnh báo nhầm/10 nghìn đăng nhập 102/10 → **93/11**. Chi tiết đầy đủ: [`ml-model-selection.md`](ml-model-selection.md) mục 6.
+4. Bảng lớn ở mục 2–4 dưới đây **giữ nguyên 13 mô hình bản MR6** (để so công bằng cùng cấu hình) và **thêm dòng `hybrid_cp2`** vào cuối mỗi bảng khi có số nguồn xác nhận — không suy ra hay nội suy số nào.
 
 ## 1. Các mô hình và cách chọn
 
@@ -101,6 +120,7 @@ Giai đoạn test 09–11/2020 (tương lai so với train/val), ngưỡng và t
 | `gbm_combined` | 0.862 | 0.816 | 0.850 | 0.798 | 0.944 | 0.932 | 0.859 |
 | `gbm_combined_global` | 0.900 | 0.873 | 0.817 | 0.791 | 0.512 | 0.525 | 0.501 |
 | `hybrid` | 0.822 | 0.794 | 0.923 | 0.892 | 0.934 | 0.919 | 0.835 |
+| **`hybrid_cp2` (vận hành, MR19)** | 0.827 | 0.799 | **0.934** | **0.903** | 0.896 | 0.884 | 0.742 |
 
 **Recall khi báo nhầm 1% đăng nhập hợp lệ**
 
@@ -119,6 +139,7 @@ Giai đoạn test 09–11/2020 (tương lai so với train/val), ngưỡng và t
 | `gbm_combined` | 13.2% | 9.4% | 7.9% | 8.5% | 49.1% | 39.1% | 16.6% |
 | `gbm_combined_global` | 14.5% | 9.8% | 0.0% | 0.0% | 0.8% | 0.6% | 0.7% |
 | `hybrid` | 12.3% | 7.3% | 26.3% | 23.8% | 47.1% | 37.2% | 17.8% |
+| **`hybrid_cp2` (vận hành, MR19)** | 12.4% | 7.2% | **36.8%** | **31.5%** | 36.4% | 27.0% | 8.4% |
 
 **Recall khi báo nhầm 0,1% đăng nhập hợp lệ**
 
@@ -137,6 +158,7 @@ Giai đoạn test 09–11/2020 (tương lai so với train/val), ngưỡng và t
 | `gbm_combined` | 7.2% | 1.8% | 0.0% | 0.0% | 25.4% | 17.0% | 3.1% |
 | `gbm_combined_global` | 8.1% | 1.2% | 0.0% | 0.0% | 0.1% | 0.0% | 0.1% |
 | `hybrid` | 4.2% | 2.1% | 2.6% | 3.1% | 25.1% | 15.7% | 5.0% |
+| **`hybrid_cp2` (vận hành, MR19)** | 4.3% | 2.1% | **7.9%** | **6.2%** | 17.1% | 11.0% | 1.5% |
 
 **Tỉ lệ đăng nhập hợp lệ phải xác thực lại để bắt 90% tấn công**
 
@@ -155,6 +177,7 @@ Giai đoạn test 09–11/2020 (tương lai so với train/val), ngưỡng và t
 | `gbm_combined` | 24.2% | 36.1% | 39.8% | 37.3% | 19.4% | 21.7% | 37.7% |
 | `gbm_combined_global` | 18.1% | 25.0% | 20.2% | 19.7% | 89.2% | 87.3% | 90.1% |
 | `hybrid` | 31.1% | 39.0% | 25.0% | 26.8% | 21.4% | 27.1% | 46.8% |
+| **`hybrid_cp2` (vận hành, MR19)** | 30.4% | 38.1% | **25.2%** | **22.7%** | 34.6% | 37.1% | 60.7% |
 
 **Đọc bảng.**
 
@@ -183,6 +206,7 @@ Giai đoạn test 09–11/2020 (tương lai so với train/val), ngưỡng và t
 | `gbm_combined` | 0.850 [0.79–0.90] | 0.798 [0.77–0.82] |
 | `gbm_combined_global` | 0.817 [0.79–0.83] | 0.791 [0.76–0.82] |
 | `hybrid` | 0.923 [0.87–0.96] | 0.892 [0.86–0.92] |
+| **`hybrid_cp2` (vận hành, MR19)** | **0.934 [0.89–0.97]** | **0.903 [0.87–0.93]** |
 
 **Recall @ FPR 1% (khoảng tin cậy 95%)**
 
@@ -201,8 +225,10 @@ Giai đoạn test 09–11/2020 (tương lai so với train/val), ngưỡng và t
 | `gbm_combined` | 7.9% [0%–17%] | 8.5% [5%–13%] |
 | `gbm_combined_global` | 0.0% [0%–0%] | 0.0% [0%–0%] |
 | `hybrid` | 26.3% [13%–39%] | 23.8% [16%–32%] |
+| **`hybrid_cp2` (vận hành, MR19)** | **36.8% [21%–51%]** | **31.5% [24%–40%]** |
 
 - **Isolation Forest không nhãn là mô hình tốt nhất trên ATO thật**: ROC-AUC 0,953 [0,93–0,97], bắt 42,1% [26–55%] ca ở FPR 1%. Hybrid 0,923 [0,87–0,96], 26,3% [13–39%]; khoảng tin cậy của hai mô hình chồng nhau nên không kết luận được chúng khác nhau. Cả hai hơn rõ Freeman (0,759 [0,66–0,83], 15,8%), luật tinh chỉnh (0,735, 0%) và Tier 2 (0,532, 0%).
+- **`hybrid_cp2` thu hẹp khoảng cách với Isolation Forest riêng lẻ**: 0,934 [0,89–0,97] và 36,8% [21–51%] so với Isolation Forest gốc 0,953/42,1% — vẫn chồng khoảng tin cậy, không kết luận được khác nhau. Lý do cải thiện so với `hybrid` MR6: Isolation Forest thành phần đổi sang bản `_cp2` (bỏ nhóm `infra_ip`, tự nó đạt 57,9% [42–74%] trên `ato/future` — [`ml-model-selection.md`](ml-model-selection.md) mục 3); hybrid không đạt full 57,9% vì ngưỡng ghép còn phải chia ngân sách báo nhầm cho `ip_tan_cong` và `chiem_tai_khoan`.
 - **Các mô hình có giám sát không chuyển sang ATO thật ở FPR thấp**: `gbm_attack_ip` và `gbm_attacker_sim` đạt ROC-AUC 0,84 và 0,72 nhưng recall@FPR 1% bằng **0%**; `gbm_combined` 7,9%. Nguyên nhân (MR7 xác nhận ở [`ml-holdout-ablation.md`](ml-holdout-ablation.md) mục 4.3 và 5.1: bỏ nhóm độ hiếm/mới lạ/ASN làm Isolation Forest mất khả năng bắt ATO): ATO thật của bộ dữ liệu dùng nhà mạng và quốc gia cực hiếm (trung vị nhà mạng của chúng có 0 lượt thử trong 24 giờ trước, so với 14.463 của đăng nhập hợp lệ), khác cả lưu lượng IP tấn công (đông, nhiều lượt) lẫn kẻ tấn công mô phỏng (mượn nhà mạng phổ biến của đăng nhập thật); Isolation Forest coi "hiếm" là bất thường nên bắt được. Kẻ tấn công ngoài đời hay dùng nhà mạng phổ biến hơn, nên **điểm cao của Isolation Forest trên ATO thật của bộ dữ liệu này có thể lạc quan** so với thực tế.
 - **Thành phần nào làm nên kết quả hybrid** (ngưỡng hybrid chọn trên val cho FPR 1%): trong 26,3% ATO thật hybrid bắt được, 23,7 điểm phần trăm do `bat_thuong` (Isolation Forest) và 2,6 do `chiem_tai_khoan`; `ip_tan_cong` không bắt ca nào. Ngược lại 11,8/12,0 điểm phần trăm IP tấn công do `ip_tan_cong`, và gần như toàn bộ kẻ tấn công mô phỏng do `chiem_tai_khoan` (mục 6).
 
@@ -233,6 +259,7 @@ Chiếm tài khoản là bài toán **về quan hệ giữa đăng nhập và l�
 | `gbm_combined` | 0% / 0.76% | 5% / 0.71% | 20% / 1.31% |
 | `gbm_combined_global` | 0% / 2.29% | 0% / 1.05% | 0% / 0.46% |
 | `hybrid` | 0% / 0.56% | 25% / 0.90% | 50% / 1.24% |
+| **`hybrid_cp2` (vận hành, MR19)** | **0% / 0.50%** | **40% / 0.84%** | **60% / 1.31%** |
 
 **Theo mức lịch sử của tài khoản — bài `ato/all`, ngưỡng chung cho FPR 1%** (recall / báo nhầm)
 
@@ -245,9 +272,10 @@ Chiếm tài khoản là bài toán **về quan hệ giữa đăng nhập và l�
 | `gbm_combined` | 0% / 0.95% | 4% / 0.89% | 26% / 1.16% |
 | `gbm_combined_global` | 0% / 1.92% | 0% / 0.99% | 0% / 0.34% |
 | `hybrid` | 0% / 0.54% | 26% / 0.95% | 53% / 1.39% |
+| **`hybrid_cp2` (vận hành, MR19)** | **0% / 0.47%** | **42% / 0.89%** | **59% / 1.51%** |
 
 - Với hybrid và các bộ phát hiện dựa vào lịch sử (Isolation Forest, kNN, Freeman), tài khoản chưa có lịch sử **không bị báo nhầm nhiều hơn** mức chung (hybrid 0,56%, Isolation Forest 0,29%, thấp hơn 1%): không có lịch sử thì ít gì để coi là "lạ". Ngoại lệ: mô hình chỉ có đặc trưng toàn cục (`gbm_combined_global` 2,29%) và `gbm_attack_ip` (2,14%) báo nhầm nhóm này nhiều gấp đôi mức chung; trong hybrid, `gbm_attacker_sim` (5,5% ở nhóm này) bị chặn bằng cổng "đã có lịch sử" chính vì lý do đó.
-- Nhưng **không mô hình nào bắt được ATO ở tài khoản chưa có lịch sử** (0/8 ở `ato/future`; tối đa 1/46 ở `ato/all`). Chẩn đoán thêm: Isolation Forest chỉ trên đặc trưng toàn cục (hạ tầng, độ hiếm) đạt ROC-AUC 0,947 nhưng recall@FPR 1% cũng chỉ 5,3% (6,5% ở nhóm chưa có lịch sử), nên tôi **không** đưa nó vào hybrid như một "fallback" — nó không giải quyết được vấn đề. Cold-start vẫn là khoảng trống lớn nhất, 35% số ATO nằm ở đây; hướng khả dĩ: luật hạ tầng (MR9) và ngân sách xác thực lại riêng cho tài khoản mới.
+- Nhưng **không mô hình nào bắt được ATO ở tài khoản chưa có lịch sử** (0/8 ở `ato/future`; tối đa 1/46 ở `ato/all`). **`hybrid_cp2` không thay đổi kết luận này** (vẫn 0/8 ở `ato/future`, 0/46 ở `ato/all` — [`hybrid_cp2.md`](../backend/ml/artifacts/rba_reports/hybrid_cp2.md)): CP2 cải thiện tài khoản có lịch sử, không đụng tới cold-start. Chẩn đoán thêm: Isolation Forest chỉ trên đặc trưng toàn cục (hạ tầng, độ hiếm) đạt ROC-AUC 0,947 nhưng recall@FPR 1% cũng chỉ 5,3% (6,5% ở nhóm chưa có lịch sử), nên tôi **không** đưa nó vào hybrid như một "fallback" — nó không giải quyết được vấn đề. Cold-start vẫn là khoảng trống lớn nhất, 35% số ATO nằm ở đây; hướng khả dĩ: luật hạ tầng (MR9) và ngân sách xác thực lại riêng cho tài khoản mới.
 - Với tấn công mô phỏng (luôn nhắm tài khoản có lịch sử), mô hình bắt tốt hơn ở tài khoản dày (≥ 5 lần thành công) so với mỏng (1–4):
 
 **Theo mức lịch sử của tài khoản — bài `attacker/naive`, ngưỡng chung cho FPR 1%** (recall / báo nhầm)
@@ -261,28 +289,36 @@ Chiếm tài khoản là bài toán **về quan hệ giữa đăng nhập và l�
 | `gbm_combined` | — | 33% / 0.67% | 55% / 1.25% |
 | `gbm_combined_global` | — | 1% / 1.53% | 1% / 0.60% |
 | `hybrid` | — | 36% / 0.82% | 51% / 1.13% |
+| **`hybrid_cp2` (vận hành, MR19)** | — | **23% / 0.75%** | **41% / 1.18%** |
 
 ## 5. Chuyển ngưỡng và hiệu chỉnh xác suất
 
-**Chuyển ngưỡng.** Chọn ngưỡng chỉ trên đăng nhập hợp lệ của `val` cho FPR mục tiêu, rồi áp nguyên ngưỡng ấy lên test và late (không chọn lại). Tỉ lệ báo nhầm **thực tế** và recall của hybrid:
+**Chuyển ngưỡng.** Chọn ngưỡng chỉ trên đăng nhập hợp lệ của `val` cho FPR mục tiêu, rồi áp nguyên ngưỡng ấy lên test và late (không chọn lại). Tỉ lệ báo nhầm **thực tế** và recall — `hybrid` (MR6) và **`hybrid_cp2` (vận hành, MR19)**, số cp2 chạy trực tiếp `ml.rba.analysis hybrid_cp2`:
 
-| Họ bài | Áp lên | FPR mục tiêu 1% → thực tế | Recall | FPR mục tiêu 0,1% → thực tế | Recall |
+| Họ bài | Mô hình | FPR mục tiêu 1% → thực tế | Recall | FPR mục tiêu 0,1% → thực tế | Recall |
 |---|---|---|---|---|---|
-| IP tấn công | test | 0,92% | 12,1% | 0,08% | 3,9% |
-| IP tấn công | late (trôi phân phối) | 0,85% | 7,1% | 0,09% | 2,1% |
-| ATO thật | tương lai (38 ca) | 1,02% | 26,3% | 0,10% | 2,6% |
-| ATO thật | tất cả (130 ca) | 0,85% | 20,8% | 0,08% | 2,3% |
-| Naive (mô phỏng) | test | 1,04% | 47,8% | 0,12% | 26,2% |
-| VPN (mô phỏng) | test | 1,04% | 37,6% | 0,12% | 17,2% |
-| Targeted (mô phỏng) | test | 1,04% | 18,5% | 0,12% | 5,6% |
+| IP tấn công (test) | `hybrid` | 0,92% | 12,1% | 0,08% | 3,9% |
+| IP tấn công (test) | **`hybrid_cp2`** | 0,84% | **12,2%** | 0,08% | 3,9% |
+| IP tấn công (late, trôi phân phối) | `hybrid` | 0,85% | 7,1% | 0,09% | 2,1% |
+| IP tấn công (late, trôi phân phối) | **`hybrid_cp2`** | 0,86% | 7,1% | 0,10% | 2,1% |
+| ATO thật (tương lai, 38 ca) | `hybrid` | 1,02% | 26,3% | 0,10% | 2,6% |
+| ATO thật (tương lai, 38 ca) | **`hybrid_cp2`** | 0,93% | **31,6%** | 0,11% | **7,9%** |
+| ATO thật (tất cả, 130 ca) | `hybrid` | 0,85% | 20,8% | 0,08% | 2,3% |
+| ATO thật (tất cả, 130 ca) | **`hybrid_cp2`** | 0,84% | **29,2%** | 0,09% | **6,2%** |
+| Naive (mô phỏng, test) | `hybrid` | 1,04% | 47,8% | 0,12% | 26,2% |
+| Naive (mô phỏng, test) | **`hybrid_cp2`** | 0,96% | 35,8% | 0,12% | 18,4% |
+| VPN (mô phỏng, test) | `hybrid` | 1,04% | 37,6% | 0,12% | 17,2% |
+| VPN (mô phỏng, test) | **`hybrid_cp2`** | 0,96% | 26,5% | 0,12% | 11,8% |
+| Targeted (mô phỏng, test) | `hybrid` | 1,04% | 18,5% | 0,12% | 5,6% |
+| Targeted (mô phỏng, test) | **`hybrid_cp2`** | 0,96% | 8,1% | 0,12% | 1,8% |
 
-Ngưỡng của hybrid **giữ đúng mức báo nhầm mục tiêu** (0,85–1,04% khi đích 1%; 0,08–0,12% khi đích 0,1%) kể cả ở giai đoạn trôi phân phối `late`; recall thì giảm (IP tấn công 12,1% → 7,1%). Điều này nhờ hiệu chỉnh từng thành phần bằng phân phối điểm của đăng nhập hợp lệ trên val. Với LightGBM đơn lẻ, ngưỡng chọn trên val cũng bảo thủ: `gbm_attack_ip` (mục tiêu 1%) cho FPR 0,35% ở test và 0,33% ở late; `gbm_attacker_sim` cho 1,01% trên kẻ tấn công mô phỏng (đúng mục tiêu).
+Ngưỡng của cả hai bản **giữ đúng mức báo nhầm mục tiêu** (0,84–1,04% khi đích 1%; 0,08–0,12% khi đích 0,1%) kể cả ở giai đoạn trôi phân phối `late`; recall thì giảm khi trôi phân phối (IP tấn công `hybrid_cp2` 12,2% → 7,1%). Điều này nhờ hiệu chỉnh từng thành phần bằng phân phối điểm của đăng nhập hợp lệ trên val. `hybrid_cp2` bắt ATO thật rõ rệt hơn ở CẢ hai ngưỡng khi ngưỡng chuyển từ val (31,6%/7,9% so với 26,3%/2,6%) — nhất quán với mục 3 và [`ml-model-selection.md`](ml-model-selection.md). Với LightGBM đơn lẻ, ngưỡng chọn trên val cũng bảo thủ: `gbm_attack_ip` (mục tiêu 1%) cho FPR 0,35% ở test và 0,33% ở late; `gbm_attacker_sim` cho 1,01% trên kẻ tấn công mô phỏng (đúng mục tiêu).
 
 **Hiệu chỉnh xác suất.** Hồi quy isotonic học trên val biến điểm `gbm_attack_ip` thành xác suất một dòng thuộc IP tấn công. Trên test, Brier score 0,0532 (isotonic), 0,0604 (xác suất thô), 0,0726 (đoán theo tỉ lệ trung bình); bảng độ tin cậy theo phân vị (nhóm cao nhất: dự đoán 33,2%, thực tế 34,4%; nhóm 9: 9,3% và 8,6%) cho thấy xác suất đáng tin ở vùng cảnh báo. Ở `late`, xác suất **dưới ước lượng** (nhóm 9: dự đoán 14,6%, thực tế 21,0%; nhóm 10: 34,7% và 38,4%) vì tỉ lệ tấn công thật tăng từ 8,4% (val) lên 10,9%: xác suất cần hiệu chỉnh lại định kỳ khi phân phối trôi.
 
 ## 6. Ai bắt được gì: đóng góp của từng thành phần hybrid
 
-Ngưỡng hybrid chọn trên đăng nhập hợp lệ thành công của val cho FPR 1%. Mỗi ô là phần ca dương tính được thành phần đó báo (thành phần có xác suất đuôi nhỏ nhất); dòng đầu là phần đăng nhập hợp lệ bị báo nhầm do từng thành phần.
+Ngưỡng hybrid chọn trên đăng nhập hợp lệ thành công của val cho FPR 1%. Mỗi ô là phần ca dương tính được thành phần đó báo (thành phần có xác suất đuôi nhỏ nhất); dòng đầu là phần đăng nhập hợp lệ bị báo nhầm do từng thành phần. Bản `hybrid` (MR6):
 
 | Bài | Ca dương | Recall | `ip_tan_cong` | `chiem_tai_khoan` | `bat_thuong` |
 |---|---|---|---|---|---|
@@ -296,18 +332,33 @@ Ngưỡng hybrid chọn trên đăng nhập hợp lệ thành công của val ch
 
 Phân công rõ ràng: mỗi họ tấn công do đúng một bộ phát hiện gánh, các bộ còn lại gần như chỉ tốn ngân sách báo nhầm (mỗi bộ chiếm 0,3–0,4% trong 1%). Đó là cái giá của việc ghép bằng "bất kỳ bộ nào báo động": recall của hybrid trên từng họ thấp hơn bộ phát hiện chuyên dụng ở cùng tổng FPR (IP tấn công 12,3% so với 15,0%; Naive 47,1% so với 59,1%; ATO thật 26,3% so với 42,1%). Ghép bằng mô hình học (stacking) trên val có thể lấy lại một phần, chưa làm.
 
+**Bản `hybrid_cp2` (vận hành, MR19)** — cùng khung đo, chạy trực tiếp `ml.rba.analysis hybrid_cp2`, không tính lại:
+
+| Bài | Ca dương | Recall | `ip_tan_cong` | `chiem_tai_khoan` | `bat_thuong` |
+|---|---|---|---|---|---|
+| đăng nhập hợp lệ thành công (val) | — | báo nhầm 1,00% | 0,3% | 0,3% | 0,4% |
+| `attack_ip/test` | 5.709 | 12,1% | 11,8% | 0,1% | 0,2% |
+| `ato/future` | 38 | **31,6%** | 0,0% | 2,6% | **28,9%** |
+| `ato/all` | 130 | **29,2%** | 0,0% | 3,8% | **25,4%** |
+| `attacker/naive` | 2.000 | 37,0% | 0,0% | 35,9% | 1,1% |
+| `attacker/vpn` | 1.995 | 27,4% | 0,2% | 25,9% | 1,4% |
+| `attacker/targeted` | 1.916 | 8,7% | 0,2% | 8,5% | 0,0% |
+
+Phân công theo thành phần **không đổi về chất** (mỗi họ vẫn do đúng một bộ gánh), nhưng `bat_thuong` (Isolation Forest, đổi sang bản `_cp2` bỏ nhóm `infra_ip`) gánh nhiều hơn hẳn trên ATO thật (23,7 → 28,9 điểm phần trăm ở `ato/future`, 19,2 → 25,4 ở `ato/all`) trong khi `chiem_tai_khoan` (đổi sang `gbm_attacker_sim_cp2`, chỉ 28 đặc trưng quan hệ với lịch sử) gánh ÍT hơn hẳn trên kẻ tấn công mô phỏng (47,2 → 35,9% Naive, 38,0 → 25,9% VPN, 19,1 → 8,5% Targeted) — đúng cơ chế đánh đổi đã giải thích ở [`ml-model-selection.md`](ml-model-selection.md): bỏ nhóm hạ tầng/độ hiếm khỏi `chiem_tai_khoan` xoá "lối tắt nhận ra IP mượn", còn `bat_thuong` giữ đúng nhóm đó nên mạnh hơn trên ATO (vốn dùng nhà mạng hiếm của bộ dữ liệu).
+
 ## 7. Kết luận
 
 1. **AI hơn rule-based rõ rệt trên dữ liệu này, ở cả ba họ tấn công** — nhưng bằng ba bộ phát hiện khác nhau, không phải một mô hình "thông minh hơn hết". Rule Tier 2 hiện tại của hệ thống gần như ngẫu nhiên (đây là kết quả trên bản xấp xỉ bằng đặc trưng RBA; các luật địa lý/giờ của dự án không thử được trên RBA).
 2. **Phát hiện bất thường không giám sát bắt được ATO thật, mô hình có giám sát thì không** — kết quả ngược với kỳ vọng ban đầu ("huấn luyện trên kẻ tấn công mô phỏng sẽ tổng quát sang tấn công thật") và là lý do hybrid có cả hai.
 3. **Cá nhân hoá là điều kiện cần cho chống chiếm tài khoản**, không cần cho IP tấn công hàng loạt.
 4. **Ngưỡng chọn trên tập tiền-test đứng vững qua trôi phân phối** ở mức báo nhầm; recall thì suy giảm (IP tấn công 12,1% → 7,1%), cần theo dõi và huấn luyện lại định kỳ.
-5. **Khoảng trống chưa giải quyết:** ATO ở tài khoản chưa có lịch sử (35% số ATO, 0% recall), và kẻ tấn công bắt chước hoàn hảo IP.
+5. **Khoảng trống chưa giải quyết:** ATO ở tài khoản chưa có lịch sử (35% số ATO, 0% recall — **vẫn 0% ở `hybrid_cp2`**, mục "Tóm tắt vận hành"), và kẻ tấn công bắt chước hoàn hảo IP.
+6. **CP2 (MR8b) là một đánh đổi có chủ đích, đã triển khai**: `hybrid_cp2` (mô hình vận hành thật từ CP2, xem "Tóm tắt vận hành" ở đầu tài liệu và [`ml-model-selection.md`](ml-model-selection.md)) đổi khả năng bắt kẻ tấn công mô phỏng (47,1/37,2/17,8% → 36,4/27,0/8,4%) lấy khả năng bắt ATO thật tốt hơn (26,3% → 36,8% ở FPR 1%, 2,6% → 7,9% ở FPR 0,1%) bằng cách bỏ nhóm đặc trưng hạ tầng IP/độ hiếm khỏi thành phần chiếm-tài-khoản — số kẻ tấn công mô phỏng MỚI trung thực hơn (không còn "nhận diện IP mượn" như một lối tắt), IP tấn công hàng loạt không đổi.
 
 ## 8. Giới hạn (đọc trước khi trích số liệu)
 
 - **Dữ liệu tổng hợp** ([`rba-data-card.md`](rba-data-card.md)): mọi con số là "trên bộ RBA tổng hợp", không phải "trên đăng nhập thật". Đặc biệt ATO thật của bộ dữ liệu có nhà mạng hiếm bất thường (nghi ngờ đặc điểm nhân tạo), có thể làm Isolation Forest **lạc quan**.
-- **Chỉ 38 ATO tương lai**: khoảng tin cậy rộng (Isolation Forest 26–55%; hybrid 13–39% ở FPR 1%). Kết luận định tính (không giám sát > có giám sát trên ATO thật; mọi mô hình học > Tier 2) vững vì khoảng tin cậy không chồng; thứ hạng giữa Isolation Forest và hybrid thì không.
+- **Chỉ 38 ATO tương lai**: khoảng tin cậy rộng (Isolation Forest 26–55%; `hybrid` 13–39%, **`hybrid_cp2` 21–51%** ở FPR 1%). Kết luận định tính (không giám sát > có giám sát trên ATO thật; mọi mô hình học > Tier 2) vững vì khoảng tin cậy không chồng; thứ hạng giữa Isolation Forest và hybrid (cả hai bản) thì không — hai khoảng luôn chồng nhau.
 - **Kẻ tấn công mô phỏng là chuẩn so sánh, không phải bảo đảm**: hoà lẫn về hạ tầng, đăng nhập đúng nhịp của nạn nhân, Targeted biết trọn hồ sơ phiên. Mô hình học từ chính họ mô phỏng này nên có lợi thế; số tuyệt đối không suy ra được cho kẻ tấn công thật. Bộ mô phỏng đã qua kiểm định dấu vân tay (mục 5.2 của [`rba-evaluation.md`](rba-evaluation.md)) nhưng kiểm định chỉ bắt được lối tắt theo nhóm đặc trưng, không chứng minh không còn lối tắt nào.
 - **Kẻ tấn công bắt chước cả IP** (proxy trên máy nạn nhân, đánh cắp phiên) nằm ngoài phạm vi và là giới hạn đã biết của chấm điểm theo thuộc tính đăng nhập.
 - **Kiểu tấn công mới** đã đo ở MR7 ([`ml-holdout-ablation.md`](ml-holdout-ablation.md)): mô hình có giám sát không bắt được họ IP tấn công chưa thấy (0,0–1,1% ở 5/6 họ bắt được khi đã thấy; bộ phát hiện không nhãn cao nhất 10,1%). **Không tuyên bố "phát hiện được tấn công mới"**; chỉ nói hệ thống cần huấn luyện lại khi có họ mới.
@@ -323,6 +374,11 @@ venv\Scripts\python.exe -m ml.rba.audit                        # kiểm định 
 venv\Scripts\python.exe -m ml.rba.audit trainval               # ... và train, val
 venv\Scripts\python.exe -m ml.rba.train                        # huấn luyện mọi mô hình, ~8 phút; ml/artifacts/rba/
 venv\Scripts\python.exe -m ml.rba.report all --n-boot 300      # 13 mô hình × 11 bài, ~15 phút; ml/artifacts/rba_reports/
-venv\Scripts\python.exe -m ml.rba.analysis gbm_attack_ip gbm_attacker_sim hybrid   # chuyển ngưỡng, hiệu chỉnh, gán công
+venv\Scripts\python.exe -m ml.rba.analysis gbm_attack_ip gbm_attacker_sim hybrid   # chuyển ngưỡng, hiệu chỉnh, gán công (bản MR6)
 venv\Scripts\python.exe -m ml.rba.summary                      # bảng ma trận mô hình × bài từ báo cáo đã lưu
+
+# Mô hình vận hành thật (CP2/MR8b) — số "hybrid_cp2" trong tài liệu này, xem thêm ml-model-selection.md
+venv\Scripts\python.exe -m ml.rba.selection all                                   # chọn đặc trưng + huấn luyện hybrid_cp2, ml/artifacts/rba_cp2/
+venv\Scripts\python.exe -m ml.rba.report gbm_attack_ip_cp2 gbm_attacker_sim_cp2 isolation_forest_cp2 hybrid_cp2 --n-boot 300
+venv\Scripts\python.exe -m ml.rba.analysis hybrid_cp2                             # chuyển ngưỡng + gán công cho hybrid_cp2
 ```

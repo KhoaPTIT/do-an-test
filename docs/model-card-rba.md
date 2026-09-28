@@ -8,14 +8,14 @@ Mã: [`backend/ml/rba/`](../backend/ml/rba/) · kết quả đầy đủ và ph�
 | Mô hình vận hành | **`hybrid_cp2`** (chốt ở CP2: `python -m ml.rba.selection`): `gbm_attack_ip` (MR6, 50 đặc trưng) + `gbm_attacker_sim_cp2` (28 đặc trưng quan hệ với lịch sử) + `isolation_forest_cp2` (43 đặc trưng, bỏ `infra_ip`). Bản MR6 (`hybrid`) giữ để so trước/sau. Artifact ở `backend/ml/artifacts/rba/` (không commit, sinh lại được); hạt giống cố định |
 | Ngưỡng vận hành | `hybrid_cp2` **2,391** (báo nhầm 1%) và **3,345** (0,1%), chọn chỉ trên đăng nhập hợp lệ thành công của val (mục 6); bản MR6: 2,410 và 3,365 |
 | Giải thích | SHAP cho LightGBM, z-score cho bộ không giám sát, câu tiếng Việt kèm "thường … → nay …" (mục 7) |
-| Trạng thái | dùng **offline** để đánh giá; chưa nối vào luồng `/login` (MR12). Luồng realtime hiện chạy tầng 3 cũ (Isolation Forest 9 đặc trưng trên dữ liệu tự sinh) |
+| Trạng thái | **đang chạy live trên `/login`** (nối từ MR12, [`realtime-integration.md`](realtime-integration.md)): `hybrid_cp2` nạp qua `model_registry`, 50 đặc trưng tính trực tiếp từ DB (`rba_live_features.py`, cùng đặc tả `ml/rba/features.py`); lỗi nạp ở bất kỳ bước nào (thiếu registry, sai `feature_signature`...) rơi về hồ sơ dự phòng chỉ-luật, không tắt hẳn phát hiện. Tầng 3 cũ (Isolation Forest 9 đặc trưng, dữ liệu tự sinh) vẫn chạy song song, không thay thế — xem [`behavior-coverage-matrix.md`](behavior-coverage-matrix.md) |
 
 ## 1. Dùng để làm gì — và không dùng để làm gì
 
 **Dùng để** chấm điểm rủi ro cho MỘT lần đăng nhập từ 50 đặc trưng tính trên lịch sử TRƯỚC thời điểm đó (thuộc tính đăng nhập, độ mới lạ so với hồ sơ tài khoản, nhịp/tần suất, hoạt động của IP và nhà mạng), để (a) yêu cầu xác thực thêm, (b) cảnh báo quản trị viên, (c) kết hợp với rule engine thành hệ thống lai.
 
 **Không dùng để**
-1. tự động khoá tài khoản mà không có bước xác thực lại — mọi mô hình ở đây đều báo nhầm (hybrid: 1% đăng nhập hợp lệ ở ngưỡng chuẩn);
+1. ⚠️ khuyến nghị ban đầu (MR6-8) là "không tự động khoá tài khoản mà không có bước xác thực lại", vì mọi mô hình ở đây đều báo nhầm (hybrid: 1% đăng nhập hợp lệ ở ngưỡng chuẩn). **Từ MR16 khuyến nghị này bị ghi đè theo quyết định của dự án:** khi điểm hybrid tổng hợp (luật + `hybrid_cp2`) vượt `lock_at`, hoặc luật ghi đè `blocklist_hit` kích hoạt, hệ thống tự động khoá **tạm thời** (có hạn, admin mở khoá qua `DELETE /blocklist/{id}`) mà không chờ bước xác thực thêm ở lần đó — xem [`automated-response.md`](automated-response.md), [`hybrid-risk-engine.md`](hybrid-risk-engine.md). Mức báo nhầm 1% ở trên vẫn là lý do nên giữ hành động **có hạn và đảo được**, không phải khoá vĩnh viễn;
 2. suy ra hiệu năng ngoài đời — dữ liệu huấn luyện là **tổng hợp** ([`rba-data-card.md`](rba-data-card.md) mục 2) và tác giả bộ dữ liệu ghi rõ không dùng làm hệ thống phát hiện xâm nhập thật;
 3. phát hiện tấn công dựa trên địa lý/giờ trong ngày — RBA không có giờ và toạ độ đáng tin, phần đó thuộc mô hình B ở MR18;
 4. thay thế rule: mô hình lai dùng cả hai (luật hạ tầng ở MR9 bù cho những gì mô hình này không thấy).

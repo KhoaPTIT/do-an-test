@@ -282,11 +282,54 @@ Các mục dưới đây đổi mô hình hoặc quy tắc nên cần đồng ý
     vực địa lý"; cố định random seed cho `ml/generate_dataset.py` (cần để so sánh trước/sau chính xác); sửa
     `alert_intelligence_sim.py` (MR13) có cùng thiếu sót baseline thiếu device_fingerprint/GeoIP như bug đã sửa ở
     runner MR18; hiệu chỉnh lại trọng số `distributed_bruteforce`/`username_enumeration` (cần thêm dữ liệu val thật)
-- [ ] **MR19 [Lõi, M] Tài liệu và nghiệm thu**
-  - [ ] `docs/ml-evaluation-v2.md` (kết quả RBA, simulator, live; ablation; giới hạn), model card, data card, ma trận phủ hành vi
-  - [ ] Bảng năng lực so với công cụ thương mại (từ tài liệu công khai) và so số với baseline học thuật
-  - [ ] Cập nhật checklist, README, api-contract, db-schema, getting-started; hướng dẫn tái lập
-  - [ ] Regression, e2e, performance, soak test
+- [x] **MR19 [Lõi, M] Tài liệu và nghiệm thu** — Kết quả: [`behavior-coverage-matrix.md`](behavior-coverage-matrix.md), [`commercial-comparison.md`](commercial-comparison.md), [`reproduction-guide.md`](reproduction-guide.md), [`e2e-test-report-v2.md`](e2e-test-report-v2.md), [`soak-test.md`](soak-test.md); mã: [`scripts/soak_test.py`](../backend/scripts/soak_test.py)
+  - [x] [`ml-evaluation-v2.md`](ml-evaluation-v2.md): banner CP2 GIẢI QUYẾT THẬT (không chỉ dời tiếp) — thêm dòng
+    `hybrid_cp2` vào MỌI bảng lớn (ROC-AUC/recall@1%/recall@0,1%/xác thực lại, ATO có khoảng tin cậy, theo mức lịch
+    sử tài khoản, chuyển ngưỡng, gán công từng thành phần), lấy thẳng từ artifact đã sinh
+    (`ml/artifacts/rba_reports/hybrid_cp2.md`) và chạy lại `ml.rba.analysis hybrid_cp2` — không suy diễn số nào.
+    Model card + data card: kiểm tra lại toàn bộ, data card ĐÃ đúng không cần sửa; model card có **2 chỗ sai thật**
+    (mục dưới). Ma trận phủ hành vi mới: 27 hành vi × 4 tầng phát hiện, liệt kê 7 khoảng trống đã biết trong một chỗ
+  - [x] [`commercial-comparison.md`](commercial-comparison.md): so 11 khả năng với Okta/Microsoft Entra ID
+    Protection/Auth0 (tài liệu công khai, có nguồn dẫn — không đo được recall/FPR thật của họ, chỉ so "có/không có
+    tính năng"); so với baseline học thuật Freeman et al. 2016 đo TRỰC TIẾP trên cùng bộ RBA (không phải đọc tài
+    liệu): `hybrid_cp2` hơn rõ ở ATO thật (36,8% so với 15,8%) và IP tấn công (12,4% so với 0,3%), ngang nhau ở kẻ
+    tấn công mô phỏng Naive/VPN, cả hai đều yếu ở Targeted — xác nhận giới hạn là của CÁCH TIẾP CẬN, không phải một
+    mô hình cụ thể
+  - [x] README (mục mới tóm tắt MR1-19, không viết đè lịch sử Tuần 1-7), `getting-started.md` (nạp `hybrid_cp2`,
+    admin pages mới, attack scenario runner v2, các sim script MR13-16), `reproduction-guide.md` mới (9 giai đoạn
+    theo đúng thứ tự phụ thuộc, gom lệnh từ 10 tài liệu rời rạc). `api-contract.md`/`db-schema.md`: đối chiếu từng
+    route/bảng với mã nguồn thật — **cả hai đã đúng 100%, không cần sửa** (mọi endpoint/bảng MR9-18 đã được cập nhật
+    kịp thời qua từng MR, khác với model card)
+  - [x] Regression: **756/756** test backend qua (750 kế thừa + 6 mới cho `soak_test.py`). E2E:
+    [`e2e-test-report-v2.md`](e2e-test-report-v2.md), 10 kịch bản qua trình duyệt thật (không phải `TestClient`) —
+    khoá tự động → dashboard → admin mở khoá → đăng nhập lại, cả 4 trang quản trị mới, giải thích cảnh báo, phản hồi
+    — toàn bộ pass, không lỗi backend. Performance: đo lại `benchmark_login.py`, **chậm đi rõ rệt** so với Tuần 5
+    (median 614ms so với 260ms tuần tự; 3 request đồng thời → median 1062ms, `--concurrency 10` timeout thật) — xem
+    mục dưới. Soak test MỚI (chưa từng có trong dự án): script [`soak_test.py`](../backend/scripts/soak_test.py),
+    12 phút tải nhẹ (1 req/s, luân phiên 30 tài khoản), **760 mẫu, chỉ 1 lỗi kết nối (0,14%), không khoá nhầm, độ trễ
+    dao động quanh mức nền chứ không tăng dần đơn điệu — hệ thống ổn định dưới tải thấp, dù chậm**
+  - ⚠️ **2 lỗi thật tự phát hiện ở `model-card-rba.md` khi đối chiếu với mã nguồn (tài liệu viết ở CP2/MR8b, chưa
+    từng cập nhật lại dù MR12/MR16 đổi đúng những gì nó mô tả)**: (1) mục "Trạng thái" vẫn ghi "dùng offline để đánh
+    giá; chưa nối vào luồng `/login`" — SAI từ MR12, `hybrid_cp2` đã chạy live thật (xác nhận trực tiếp qua
+    `/dashboard/model-health` ở E2E: `feature_signature` khớp, `is_active=true`). (2) mục "Không dùng để" ghi "không
+    tự động khoá tài khoản mà không có bước xác thực lại" — bị MR16 GHI ĐÈ có chủ đích (điểm hybrid vượt `lock_at`
+    hoặc `blocklist_hit` → khoá tạm ngay, không chờ xác thực thêm ở lần đó); tài liệu chưa từng ghi nhận thay đổi
+    này. Cả hai đã sửa, kèm lý do đánh đổi (khoá **có hạn, admin mở khoá được** — không phải khoá vĩnh viễn)
+  - ⚠️ **Nguyên nhân hiệu năng chậm đi xác nhận qua đọc mã nguồn** (`app/detection/rba_live_features.py`):
+    `_user_events()` lấy TOÀN BỘ lịch sử tài khoản không giới hạn dòng (tài khoản benchmark `alice` đã có 1.422 dòng
+    sau 8 tuần bị dùng lại liên tục — độ trễ không có trần theo số lần đăng nhập của MỘT tài khoản); truy vấn đếm
+    toàn cục (`GlobalCountsCache`) quét TOÀN BẢNG mỗi 30 giây hết cache, KHÔNG có khoá chống nhiều request cùng lúc
+    cùng làm mới (thundering herd) — khớp với việc độ trễ tệ đi không tuyến tính khi có tải đồng thời. Kiến trúc
+    async (`asyncio.to_thread` từ MR12) đúng đắn, KHÔNG chặn event loop — chậm là chi phí DB/CPU thật, không phải
+    lỗi async. Chi tiết đầy đủ, khuyến nghị chưa làm: [`performance.md`](performance.md)
+  - ⚠️ **Phát hiện phụ ở Model Health (không phải bug)**: PSI drift so sánh train RBA (1,1 triệu dòng) với log demo
+    của chính dự án (300 dòng) — hai quần thể khác bản chất nên PSI luôn cực lớn (8-10, ngưỡng "đáng kể" chuẩn chỉ
+    0,25) bất kể mô hình có cũ hay không; tính đúng công thức nhưng số không mang tính hành động trong bối cảnh này
+  - ➡️ Chưa làm ở MR19 (ngoài phạm vi, để lại cho sau): sửa 2 nguyên nhân hiệu năng vừa tìm được (giới hạn
+    `_user_events`, khoá cho `GlobalCountsCache`); đổi "hiện tại" của model-health drift sang nguồn cùng bản chất
+    với train; viết lại `scripts/create_admin.py` để không crash cosmetic khi thiếu `PYTHONIOENCODING` (đã có sẵn
+    ở nhiều script khác, không mới nhưng lần đầu thấy nó có thể che giấu thao tác ĐÃ thành công); mọi mục "Bổ sung
+    tuỳ chọn" (MR-S1-S4) bên dưới — không được duyệt trong kế hoạch MR1-19
 
 ## Bổ sung tuỳ chọn (làm sau CP2 nếu còn thời gian)
 

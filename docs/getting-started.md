@@ -74,6 +74,12 @@ python -m scripts.create_admin --username admin --password "MatKhauManh123!"
 WebSocket đã kết nối, cảnh báo mới sẽ hiện popup + cập nhật bảng/biểu đồ
 ngay lập tức, không cần reload trang.
 
+> Từ giai đoạn mở rộng AI (MR14-17), khu quản trị còn có: **Campaigns** (chiến
+> dịch tấn công gom nhiều tài khoản/alert theo hạ tầng chung), **Rules** (bật/tắt
+> và chỉnh tham số 19 luật rule engine v2 mà không cần sửa code, xem
+> [`docs/dashboard-v2.md`](dashboard-v2.md)), **Model Health** (drift PSI của
+> mô hình so với dữ liệu train), và trang hồ sơ rủi ro theo từng user.
+
 ## Bước 5 — (Tuỳ chọn) Sinh lại dữ liệu mẫu
 
 Chỉ cần chạy lại khi muốn dữ liệu mới hoặc lần đầu setup máy mới. Dữ liệu
@@ -103,6 +109,25 @@ python -m ml.train                        # huấn luyện 3 mô hình -> backen
 python -m ml.evaluate                     # (tuỳ chọn) xuất lại biểu đồ so sánh
 ```
 
+## Bước 5c — (Tuỳ chọn) Nạp mô hình ML hybrid (`hybrid_cp2`, giai đoạn mở rộng AI)
+
+Từ MR12, `/login` chấm điểm rủi ro bằng mô hình `hybrid_cp2` (huấn luyện trên bộ dữ liệu học thuật RBA — xem
+[`docs/model-card-rba.md`](model-card-rba.md)) **nếu artifact đã có trên đĩa**. Máy đã setup sẵn thì không cần làm gì
+thêm. Trên máy mới (hoặc nếu log backend báo `chưa có artifact ... hybrid risk engine tạm tắt thành phần ML`):
+
+```bash
+cd D:\github\phat-hien-dang-nhap-bat-thuong\backend
+venv\Scripts\activate
+set PYTHONIOENCODING=utf-8
+python -m ml.check_env                # kiểm tra tìm thấy rba-dataset.zip chưa (xem docs/rba-data-card.md mục 7)
+python -m ml.rba.selection all        # ~15-20 phút — chọn đặc trưng + huấn luyện hybrid_cp2 -> ml/artifacts/rba_cp2/
+```
+
+⚠️ **Nếu thiếu artifact, hệ thống KHÔNG lỗi** — `hybrid_runtime.py` tự rơi về hồ sơ dự phòng (chỉ luật + danh tiếng,
+không có thành phần ML) để không tắt hẳn detection, nhưng recall sẽ thấp hơn số đã công bố ở
+[`docs/ml-evaluation-v2.md`](ml-evaluation-v2.md). Không có script nạp riêng — mô hình tự đăng ký vào bảng
+`model_registry` ở lần khởi động backend kế tiếp sau khi artifact xuất hiện.
+
 ## Bước 6 — Thử kịch bản tấn công (attack-sim)
 
 Mở dashboard (Bước 4b) trước để xem cảnh báo hiện real-time, rồi ở
@@ -119,6 +144,27 @@ set PYTHONIOENCODING=utf-8
 `impossible_travel.py` cần thêm `TRUST_FORWARDED_FOR=true` trong `.env`
 (mặc định tắt — chỉ bật khi demo cục bộ, xem cảnh báo trong
 `backend/app/config.py`) rồi khởi động lại backend.
+
+## Bước 6b — (Tuỳ chọn) Thư viện kịch bản tấn công mô phỏng v2 (MR18)
+
+`attack-sim/` (Tuần 6) chỉ có 4 kịch bản cơ bản. Giai đoạn mở rộng AI thêm một thư viện 9 kịch bản thực tế hơn (IP/ASN
+thật qua GeoIP, botnet, dò danh sách tài khoản, kẻ tấn công tinh vi...), chạy thẳng qua HTTP như người dùng thật, tự
+tính điểm phát hiện theo từng tầng và xuất báo cáo:
+
+```bash
+cd D:\github\phat-hien-dang-nhap-bat-thuong\backend
+venv\Scripts\activate
+set PYTHONIOENCODING=utf-8
+python -m scripts.attack_scenario_runner   # ghi lại docs/attack-scenarios-v2.md
+```
+
+Các script mô phỏng khác (không phải test, dùng để khảo sát/minh chứng — mỗi script tự dựng CSDL/Redis riêng trong bộ
+nhớ, không đụng dữ liệu dev thật, KHÔNG chạy qua pytest): tương quan cảnh báo/chiến dịch
+(`scripts.alert_intelligence_sim`, MR13), vòng phản hồi + ngưỡng thích nghi (`scripts.feedback_loop_sim`, MR15),
+phản ứng tự động — OTP/khoá tài khoản (`scripts.automated_response_sim`, MR16). Đọc kết quả tương ứng ở
+[`docs/attack-scenarios-v2.md`](attack-scenarios-v2.md), [`docs/feedback-loop.md`](feedback-loop.md),
+[`docs/automated-response.md`](automated-response.md) trước khi chạy lại — mỗi script mất vài phút và một số dùng dữ
+liệu ngẫu nhiên không hạt giống cố định nên số liệu có thể lệch nhẹ giữa các lần chạy.
 
 ## Dừng hệ thống khi xong việc
 

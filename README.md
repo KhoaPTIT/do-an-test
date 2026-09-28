@@ -1,13 +1,17 @@
 # Hệ thống phát hiện đăng nhập bất thường
 
 Đồ án tốt nghiệp — Anomaly Login Detection System. Giám sát các lần đăng nhập,
-chấm điểm rủi ro qua 3 tầng (rule-based → behavioral scoring → ML mở rộng) và
-cảnh báo gần như tức thời trên dashboard, thay vì chỉ xác thực đúng/sai mật khẩu
-như một web app thông thường.
+chấm điểm rủi ro qua nhiều tầng phát hiện chạy **song song** (rule-based tầng 1
+→ rule engine v2 có thể cấu hình → behavioral scoring tầng 2 → ML tầng 3 → mô
+hình hybrid học từ dữ liệu học thuật RBA) và cảnh báo gần như tức thời trên
+dashboard, thay vì chỉ xác thực đúng/sai mật khẩu như một web app thông thường.
+Toàn cảnh tầng nào bắt hành vi nào: [`docs/behavior-coverage-matrix.md`](docs/behavior-coverage-matrix.md).
 
-Tiến độ triển khai bám theo checklist 8 tuần trong
-[`docs/checklist.md`](docs/checklist.md). Quyết định kiến trúc & API contract
-(nhiệm vụ 1.1) nằm ở [`docs/api-contract.md`](docs/api-contract.md).
+Tiến độ triển khai theo hai giai đoạn: **Tuần 1-8** (khung hệ thống, xem "Trạng
+thái" bên dưới) rồi **giai đoạn mở rộng AI, MR1-19** (nâng cấp lên rule engine
+v2, mô hình ML hybrid huấn luyện trên bộ dữ liệu học thuật RBA, phản ứng tự
+động, dashboard quản trị) — checklist đầy đủ ở [`docs/checklist.md`](docs/checklist.md).
+Quyết định kiến trúc & API contract (nhiệm vụ 1.1) nằm ở [`docs/api-contract.md`](docs/api-contract.md).
 
 ## Thành phần
 
@@ -125,4 +129,29 @@ venv\Scripts\python.exe -m ml.evaluate                      # so sánh + xuất 
 
 Trên Windows, nếu gặp lỗi `UnicodeEncodeError` khi in tiếng Việt ra console, chạy với `set PYTHONIOENCODING=utf-8` trước (cmd) hoặc `$env:PYTHONIOENCODING="utf-8"` (PowerShell).
 
-🚧 Tiếp theo: Tuần 8 — Báo cáo, slide & diễn tập demo. Theo dõi ở [`docs/checklist.md`](docs/checklist.md).
+## ✅ Giai đoạn mở rộng AI hoàn thành (MR1-19)
+
+Sau Tuần 1-8, dự án tiếp tục 19 MR (merge request) nâng cấp phần AI/detection theo kế hoạch đã duyệt — mỗi MR có tài
+liệu findings riêng, liệt kê đầy đủ ở [`docs/checklist.md`](docs/checklist.md). Tóm tắt không đầy đủ, chỉ nêu phần lớn nhất:
+
+- **Mô hình ML trên dữ liệu học thuật thật** (MR1-8, MR8b/CP2): huấn luyện và đánh giá 13 mô hình/baseline trên bộ
+  **RBA** (Wiefling et al., ACM TOPS 2022 — dữ liệu **tổng hợp**, không phải log thật, xem
+  [`docs/rba-data-card.md`](docs/rba-data-card.md)), có khoảng tin cậy, kiểm định rò rỉ/dấu vân tay của bộ mô phỏng
+  kẻ tấn công. Mô hình chốt `hybrid_cp2` đang chạy live trên `/login` thật (MR12). Kết quả đầy đủ:
+  [`docs/ml-evaluation-v2.md`](docs/ml-evaluation-v2.md), model card: [`docs/model-card-rba.md`](docs/model-card-rba.md).
+- **Rule engine v2** (MR9-10): 19 luật hành vi/hạ tầng cấu hình được qua admin UI (MR17), một số chạy `shadow` chưa
+  đủ chứng cứ để bật `enforce` — danh mục đầy đủ: [`docs/rule-catalog.md`](docs/rule-catalog.md).
+- **Hybrid risk engine** (MR11): ghép luật + ML thành một điểm rủi ro, ngưỡng cảnh báo/xác thực thêm/khoá — [`docs/hybrid-risk-engine.md`](docs/hybrid-risk-engine.md).
+- **Giải thích cảnh báo** (MR8): mỗi cảnh báo kèm tối đa 3 lý do bằng tiếng Việt, đã kiểm định độ trung thực — [`docs/ml-explanations.md`](docs/ml-explanations.md).
+- **Phản ứng tự động** (MR16): OTP xác thực thêm (mô phỏng), khoá tài khoản/IP có hạn, admin mở khoá — [`docs/automated-response.md`](docs/automated-response.md).
+- **Vòng phản hồi & ngưỡng thích nghi** (MR15): nút "Đúng/Báo nhầm" nới ngưỡng theo user/nhóm, không bao giờ tự siết dưới mức mặc định — [`docs/feedback-loop.md`](docs/feedback-loop.md).
+- **Tương quan chiến dịch** (MR14) và **thư viện kịch bản tấn công mô phỏng v2** (MR18, 9 kịch bản có scorecard) — [`docs/attack-scenarios-v2.md`](docs/attack-scenarios-v2.md).
+- **Dashboard quản trị v2** (MR17): cấu hình luật, sức khoẻ mô hình (PSI drift), hồ sơ rủi ro theo user.
+- **Tổng hợp cuối cùng** (MR19): ma trận phủ toàn bộ hành vi × tầng phát hiện — [`docs/behavior-coverage-matrix.md`](docs/behavior-coverage-matrix.md); so với công cụ thương mại (Okta, Microsoft Entra ID Protection, Auth0) và baseline học thuật — [`docs/commercial-comparison.md`](docs/commercial-comparison.md).
+
+⚠️ Mọi số liệu ML trong các tài liệu trên đo trên dữ liệu **tổng hợp** hoặc **tự mô phỏng**, không phải log tấn công
+thật ngoài đời — xem giới hạn ở từng tài liệu trước khi trích dẫn.
+
+Hướng dẫn chạy các phần MR1-19 (rule engine v2, hybrid model, admin config, simulator...): [`docs/getting-started.md`](docs/getting-started.md). Tái lập toàn bộ pipeline nghiên cứu (huấn luyện lại mọi mô hình, kịch bản mô phỏng, từ đầu) theo đúng thứ tự: [`docs/reproduction-guide.md`](docs/reproduction-guide.md).
+
+🚧 Còn lại (ngoài phạm vi MR1-19, chưa làm): mục "Bổ sung tuỳ chọn" ở cuối [`docs/checklist.md`](docs/checklist.md).
