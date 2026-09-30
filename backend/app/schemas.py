@@ -22,6 +22,10 @@ class LoginResponse(BaseModel):
     demo_otp_code: str | None = None
     # MR16 — tài khoản hoặc IP đang bị khoá tạm (Blocklist, app/detection/engine/intel.py).
     locked: bool = False
+    # Trang đăng nhập GỘP: cùng một form cho cả người dùng web app mẫu lẫn quản trị viên — backend tự phân quyền theo
+    # tài khoản. `role="admin"` kèm `access_token` (JWT như POST /admin/login) để frontend chuyển thẳng vào /dashboard.
+    role: str = "user"
+    access_token: str | None = None
 
 
 class OtpVerifyRequest(BaseModel):

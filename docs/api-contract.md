@@ -41,14 +41,14 @@ Web app mẫu (React)                Attack-sim scripts
 - Phân trang: query param `page` (bắt đầu từ 1) và `page_size` (mặc định 20, tối đa 100). Response bọc trong `{"items": [...], "total": N, "page": N, "page_size": N}`.
 - Auth: 2 hệ thống tách biệt hoàn toàn —
   - Tài khoản **web app mẫu** (`users` table) — không có quyền admin, không gọi được API quản trị.
-  - Tài khoản **admin** (Tuần 5, chưa có bảng riêng ở Tuần 1) — đăng nhập qua `/admin/login`, nhận JWT, dùng cho toàn bộ route quản trị + WebSocket.
+  - Tài khoản **admin** (Tuần 5, chưa có bảng riêng ở Tuần 1) — đăng nhập qua `POST /login` (trang đăng nhập chung — response có `role="admin"` + `access_token`) hoặc `/admin/login`, nhận JWT, dùng cho toàn bộ route quản trị + WebSocket.
 
 ## 3. Endpoint (theo từng tuần triển khai)
 
 | Endpoint | Tuần | Mô tả |
 |---|---|---|
 | `GET /health` | 1 | Kiểm tra service + kết nối DB |
-| `POST /login` | 2 | Đăng nhập web app mẫu, ghi `login_events` |
+| `POST /login` | 2 | Đăng nhập chung: tài khoản web app mẫu (ghi `login_events`, `role="user"`) hoặc admin (trả `role="admin"` + `access_token` JWT, không ghi `login_events`) |
 | `POST /admin/login` | 5 | Đăng nhập admin (bảng `admins` riêng), trả JWT (`jwt_expire_minutes` = 60) |
 | `GET /login-events` | 4→5→8 | Danh sách log, phân trang + lọc (`username`, `success`, `risk_level`, `is_synthetic` — nâng cấp sau Tuần 7). **Có JWT bắt buộc từ Tuần 5** |
 | `GET /alerts` | 4→5→13→17 | Danh sách cảnh báo, phân trang, mặc định sắp theo ưu tiên (`?sort=priority`\|`recent`, MR13); lọc `?attack_family=`\|`rule_id=`\|`campaign_id=`\|`status=` (MR17). **Có JWT bắt buộc từ Tuần 5** |

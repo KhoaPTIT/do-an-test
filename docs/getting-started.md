@@ -58,10 +58,10 @@ không phải dashboard giám sát.
 
 ## Bước 4b — Vào Dashboard giám sát (cần tài khoản admin riêng)
 
-`/dashboard` (giám sát, real-time) **khác** `/login` ở Bước 4 — đây là khu
-vực quản trị, yêu cầu đăng nhập admin riêng ở `http://localhost:5173/admin/login`
-(Tuần 5, tách biệt hoàn toàn khỏi tài khoản web app mẫu). Nếu chưa có tài
-khoản admin, tạo bằng:
+`/dashboard` (giám sát, real-time) là khu vực quản trị, yêu cầu đăng nhập bằng
+tài khoản admin. Chỉ có MỘT trang đăng nhập chung `http://localhost:5173/login`
+— hệ thống tự phân quyền theo tài khoản (user web app mẫu hay admin). Nếu chưa
+có tài khoản admin, tạo bằng:
 
 ```bash
 cd D:\github\phat-hien-dang-nhap-bat-thuong\backend
@@ -69,7 +69,7 @@ venv\Scripts\activate
 python -m scripts.create_admin --username admin --password "MatKhauManh123!"
 ```
 
-Đăng nhập ở `/admin/login` bằng tài khoản vừa tạo, hệ thống tự chuyển sang
+Đăng nhập ở `/login` bằng tài khoản vừa tạo, hệ thống tự chuyển sang
 `/dashboard` — góc trên bên phải tiêu đề hiện `● real-time` nghĩa là
 WebSocket đã kết nối, cảnh báo mới sẽ hiện popup + cập nhật bảng/biểu đồ
 ngay lập tức, không cần reload trang.

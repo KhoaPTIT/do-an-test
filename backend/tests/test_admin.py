@@ -76,3 +76,30 @@ def test_websocket_accepts_connection_with_valid_token(client, db_session):
     with client.websocket_connect(f"/ws/alerts?token={token}") as ws:
         # Kết nối thành công — không raise là đủ để xác nhận.
         assert ws is not None
+
+
+# Trang đăng nhập gộp: tài khoản admin đăng nhập qua chính POST /login, backend tự phân quyền.
+def test_unified_login_with_admin_account_returns_admin_token(client, db_session):
+    from app.models import LoginEvent
+
+    _create_admin(db_session)
+
+    response = client.post("/login", json={"username": "admin", "password": ADMIN_PASSWORD})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["role"] == "admin"
+    token = body["access_token"]
+    assert client.get("/login-events", headers={"Authorization": f"Bearer {token}"}).status_code == 200
+    # Luồng quản trị không bị ghi vào login_events (không phải mục tiêu giám sát).
+    assert db_session.query(LoginEvent).count() == 0
+
+
+def test_unified_login_with_wrong_admin_password_returns_401_without_token(client, db_session):
+    _create_admin(db_session)
+
+    response = client.post("/login", json={"username": "admin", "password": "sai"})
+
+    assert response.status_code == 401
+    assert "access_token" not in response.json()

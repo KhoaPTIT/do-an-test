@@ -64,7 +64,7 @@ npm install
 npm run dev
 ```
 
-Mở `http://localhost:5173` — `/login` là web app mẫu, `/admin/login` là đăng nhập quản trị (bắt buộc trước khi vào `/dashboard`).
+Mở `http://localhost:5173` — `/login` là trang đăng nhập chung, hệ thống tự phân quyền theo tài khoản: user web app mẫu ở lại trang, admin được chuyển vào `/dashboard`.
 
 ## Trạng thái
 
