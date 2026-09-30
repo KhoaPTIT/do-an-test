@@ -1,0 +1,673 @@
+{
+  "generated_at": "2026-09-30T09:50:29.098536+00:00",
+  "git": {
+    "commit": "7b692a98fb45666bf046ff742e6b539e6ca94969",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "behavior": "success_after_failures",
+  "detector": "success_after_failures",
+  "status": "VERIFIED",
+  "failed_criteria": [],
+  "scenario_count": {
+    "positive": 20,
+    "negative": 20
+  },
+  "tp": 20,
+  "fp": 0,
+  "tn": 20,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "attribution_accuracy": 1.0,
+  "attribution_correct": 20,
+  "attribution_total": 20,
+  "normal_traffic_false_alerts": 0,
+  "cross_detector_alerts_in_positives": {
+    "brute_force": 17,
+    "success_after_failures": 20,
+    "scripted_client": 10
+  },
+  "example_alert": {
+    "id": 5,
+    "login_event_id": 13,
+    "user_id": 1,
+    "alert_type": "hybrid_risk",
+    "rule_id": "success_after_failures",
+    "severity": "high",
+    "risk_score": 5,
+    "message": "[success_after_failures] Đăng nhập thành công 'victim' sau 5 lần sai/10 phút từ 1 IP (có thể đã đoán trúng mật khẩu). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Đăng nhập thành công 'victim' sau 5 lần sai/10 phút từ 1 IP (có thể đã đoán trúng mật khẩu). (5%). Lần đầu nhà mạng này (AS64514), trước đó dùng AS64512 7 lần. Họ tấn công gợi ý: Đoán và dò mật khẩu (5%).",
+    "explanation": {
+      "contributions": [
+        {
+          "source": "success_after_failures",
+          "label": "Đăng nhập thành công 'victim' sau 5 lần sai/10 phút từ 1 IP (có thể đã đoán trúng mật khẩu).",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "action": "allow",
+      "behavior": "success_after_failures",
+      "primary_detector": "success_after_failures",
+      "matched_rules": [
+        "success_after_failures"
+      ],
+      "enforced_rules": [
+        "success_after_failures"
+      ],
+      "shadow_rules": [],
+      "contributing_rules": [
+        {
+          "rule": "success_after_failures",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "risk_score": 5,
+      "ml_probability": null,
+      "alert_reason": "rule_enforced",
+      "evidence": {
+        "username": "victim",
+        "fails_before": 5,
+        "distinct_ips_before": 1,
+        "window_s": 600
+      }
+    },
+    "occurrence_count": 1
+  },
+  "scenarios": [
+    {
+      "kind": "positive",
+      "variant": "5 lần sai cách 53s rồi đúng sau 7s",
+      "steps": 6,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 1,
+        "high_risk_score": 2
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai cách 41s rồi đúng sau 54s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 5
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai cách 15s rồi đúng sau 19s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 6
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai cách 76s rồi đúng sau 52s",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai cách 22s rồi đúng sau 38s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 6
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai cách 18s rồi đúng sau 57s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 5
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai cách 49s rồi đúng sau 51s",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 3,
+        "high_risk_score": 4
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai cách 20s rồi đúng sau 56s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 5
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "5 lần sai cách 77s rồi đúng sau 10s",
+      "steps": 6,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai cách 21s rồi đúng sau 22s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 5
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai cách 56s rồi đúng sau 21s",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 3,
+        "high_risk_score": 4
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai cách 75s rồi đúng sau 8s",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai cách 14s rồi đúng sau 25s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 5
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai cách 31s rồi đúng sau 46s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 6
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai cách 17s rồi đúng sau 54s",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 2,
+        "high_risk_score": 3
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai cách 50s rồi đúng sau 41s",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 2,
+        "high_risk_score": 3
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai cách 28s rồi đúng sau 7s",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 3,
+        "high_risk_score": 4
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai cách 13s rồi đúng sau 44s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 5
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai cách 23s rồi đúng sau 19s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 6
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai cách 25s rồi đúng sau 46s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "brute_force": 1,
+        "success_after_failures": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 6
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "4 lần sai rồi đúng (ngưỡng − 1)",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 2 lần rồi đúng",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần sai, thành công sau hơn 10 phút",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 3,
+        "high_risk_score": 3
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai, không thành công",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 4
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "4 lần sai rồi đúng (ngưỡng − 1)",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 1 lần rồi đúng",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "6 lần sai, thành công sau hơn 10 phút",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 2,
+        "high_risk_score": 2
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần sai, không thành công",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 3,
+        "high_risk_score": 3
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "4 lần sai rồi đúng (ngưỡng − 1)",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 1 lần rồi đúng",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "5 lần sai, thành công sau hơn 10 phút",
+      "steps": 6,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 1,
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "9 lần sai, không thành công",
+      "steps": 9,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 5
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "4 lần sai rồi đúng (ngưỡng − 1)",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 2 lần rồi đúng",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "5 lần sai, thành công sau hơn 10 phút",
+      "steps": 6,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 1,
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần sai, không thành công",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 3,
+        "high_risk_score": 3
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "4 lần sai rồi đúng (ngưỡng − 1)",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 1 lần rồi đúng",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần sai, thành công sau hơn 10 phút",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 3,
+        "high_risk_score": 3
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai, không thành công",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 4
+      }
+    }
+  ]
+}

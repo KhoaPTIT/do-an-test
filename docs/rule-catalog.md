@@ -275,7 +275,7 @@ IP, dải CIDR, ASN hoặc tên đăng nhập của lần thử nằm trong bloc
 
 #### <a id="impossible_travel"></a>`impossible_travel` — Di chuyển bất khả thi
 
-Hai lần đăng nhập liên tiếp của một tài khoản cách nhau quá xa so với thời gian trôi qua (tốc độ vượt ngưỡng của máy bay).
+Hai lần đăng nhập THÀNH CÔNG liên tiếp của một tài khoản cách nhau quá xa so với thời gian trôi qua (tốc độ vượt ngưỡng của máy bay). Lần thử SAI không được tính: nó không chứng minh chủ tài khoản đã ở nơi đó (thử sai từ nhiều nước là việc của country_hop/brute_force).
 
 - **Mức nghiêm trọng:** cao · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1078 (Valid Accounts)

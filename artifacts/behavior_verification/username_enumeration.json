@@ -1,0 +1,538 @@
+{
+  "generated_at": "2026-09-30T09:50:29.098536+00:00",
+  "git": {
+    "commit": "7b692a98fb45666bf046ff742e6b539e6ca94969",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "behavior": "username_enumeration",
+  "detector": "username_enumeration",
+  "status": "VERIFIED",
+  "failed_criteria": [],
+  "scenario_count": {
+    "positive": 20,
+    "negative": 20
+  },
+  "tp": 20,
+  "fp": 0,
+  "tn": 20,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "attribution_accuracy": 1.0,
+  "attribution_correct": 20,
+  "attribution_total": 20,
+  "normal_traffic_false_alerts": 0,
+  "cross_detector_alerts_in_positives": {
+    "username_enumeration": 20,
+    "scripted_client": 11
+  },
+  "example_alert": {
+    "id": 1,
+    "login_event_id": 8,
+    "user_id": null,
+    "alert_type": "hybrid_risk",
+    "rule_id": "username_enumeration",
+    "severity": "medium",
+    "risk_score": 5,
+    "message": "[username_enumeration] IP 203.0.113.222 thử 12 tên đăng nhập không tồn tại/10 phút (dò danh sách tài khoản; ngưỡng 8). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — IP 203.0.113.222 thử 12 tên đăng nhập không tồn tại/10 phút (dò danh sách tài khoản; ngưỡng 8). (5%). Họ tấn công gợi ý: Đoán và dò mật khẩu (5%). Đã lặp lại 5 lần trong 15 phút gần đây.",
+    "explanation": {
+      "contributions": [
+        {
+          "source": "username_enumeration",
+          "label": "IP 203.0.113.222 thử 12 tên đăng nhập không tồn tại/10 phút (dò danh sách tài khoản; ngưỡng 8).",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "action": "allow",
+      "behavior": "username_enumeration",
+      "primary_detector": "username_enumeration",
+      "matched_rules": [
+        "username_enumeration"
+      ],
+      "enforced_rules": [
+        "username_enumeration"
+      ],
+      "shadow_rules": [],
+      "contributing_rules": [
+        {
+          "rule": "username_enumeration",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "risk_score": 5,
+      "ml_probability": null,
+      "alert_reason": "rule_enforced",
+      "evidence": {
+        "ip": "203.0.113.222",
+        "distinct_unknown_usernames": 12,
+        "window_s": 600
+      }
+    },
+    "occurrence_count": 5
+  },
+  "scenarios": [
+    {
+      "kind": "positive",
+      "variant": "12 tên không tồn tại, cách 43s, UA=trình duyệt",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "13 tên không tồn tại, cách 37s, UA=kịch bản",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "11 tên không tồn tại, cách 57s, UA=trình duyệt",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "13 tên không tồn tại, cách 42s, UA=kịch bản",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "9 tên không tồn tại, cách 62s, UA=kịch bản",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "8 tên không tồn tại, cách 47s, UA=kịch bản",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "10 tên không tồn tại, cách 38s, UA=trình duyệt",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "9 tên không tồn tại, cách 58s, UA=trình duyệt",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "12 tên không tồn tại, cách 44s, UA=kịch bản",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "9 tên không tồn tại, cách 42s, UA=kịch bản",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "11 tên không tồn tại, cách 38s, UA=trình duyệt",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "13 tên không tồn tại, cách 48s, UA=trình duyệt",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "11 tên không tồn tại, cách 38s, UA=kịch bản",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "12 tên không tồn tại, cách 53s, UA=kịch bản",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "13 tên không tồn tại, cách 47s, UA=kịch bản",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "13 tên không tồn tại, cách 49s, UA=kịch bản",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "13 tên không tồn tại, cách 41s, UA=trình duyệt",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "9 tên không tồn tại, cách 45s, UA=kịch bản",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "10 tên không tồn tại, cách 52s, UA=trình duyệt",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "positive",
+      "variant": "8 tên không tồn tại, cách 55s, UA=trình duyệt",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "username_enumeration": 1
+      },
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "7 tên không tồn tại trong cửa sổ (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "gõ sai tên đăng nhập 1 lần rồi đăng nhập đúng",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "8 tên, cách 91s (vượt cửa sổ)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "12 tên sai từ 12 IP khác nhau",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "8 tài khoản CÓ THẬT sai một lần từ một IP (dưới ngưỡng nhồi)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "7 tên không tồn tại trong cửa sổ (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "gõ sai tên đăng nhập 2 lần rồi đăng nhập đúng",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "8 tên, cách 104s (vượt cửa sổ)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "12 tên sai từ 12 IP khác nhau",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "8 tài khoản CÓ THẬT sai một lần từ một IP (dưới ngưỡng nhồi)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "7 tên không tồn tại trong cửa sổ (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "gõ sai tên đăng nhập 1 lần rồi đăng nhập đúng",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "8 tên, cách 118s (vượt cửa sổ)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "11 tên sai từ 11 IP khác nhau",
+      "steps": 11,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "8 tài khoản CÓ THẬT sai một lần từ một IP (dưới ngưỡng nhồi)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "7 tên không tồn tại trong cửa sổ (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "gõ sai tên đăng nhập 1 lần rồi đăng nhập đúng",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "8 tên, cách 113s (vượt cửa sổ)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "11 tên sai từ 11 IP khác nhau",
+      "steps": 11,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    },
+    {
+      "kind": "negative",
+      "variant": "8 tài khoản CÓ THẬT sai một lần từ một IP (dưới ngưỡng nhồi)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {}
+    }
+  ]
+}
