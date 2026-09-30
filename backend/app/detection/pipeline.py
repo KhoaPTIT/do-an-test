@@ -429,7 +429,9 @@ def _run_detection_pipeline_sync(
                                 db.add(block_entry)
                                 db.flush()
                                 invalidate_blocklist_cache()  # để lần thử NGAY SAU (có thể trong vài mili-giây) đã thấy mục khoá mới, không đợi hết TTL cache 15s
-                            elif block_entry.expires_at is not None and block_entry.expires_at < new_expiry:
+                            # ensure_utc: expires_at đọc lại từ SQLite mất tzinfo (cùng lớp lỗi đã sửa ở MR9/MR12/MR13) — lộ ra
+                            # ở Phase 3 khi verification runner khoá lại một mục CÓ HẠN: TypeError bị nuốt, không gia hạn.
+                            elif block_entry.expires_at is not None and ensure_utc(block_entry.expires_at) < new_expiry:
                                 block_entry.expires_at = new_expiry
                                 invalidate_blocklist_cache()
                             response_action.status = "executed"

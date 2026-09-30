@@ -62,3 +62,26 @@ def test_attribution_blocked_source_doing_brute_force_is_attributed_to_the_block
     alerts = env.detector_alerts(RULE)
     assert len(alerts) == 1 and "brute_force" in alerts[0].explanation["matched_rules"]
     assert env.detector_alerts("brute_force") == []
+
+
+def test_lock_extends_a_time_limited_entry_instead_of_crashing(env):
+    """Lỗi thật lộ ra khi chạy verification runner: mục chặn CÓ HẠN (sắp hết) + hành động lock (MR16) so sánh
+    `expires_at` đọc lại từ DB (SQLite mất tzinfo) với datetime có múi giờ → TypeError bị nuốt trong khối MR12, việc gia
+    hạn khoá không xảy ra. Sau khi sửa: mục chặn được gia hạn tới hết LOCK_TTL, ResponseAction ghi "executed"."""
+    from app.detection.response_execution import LOCK_TTL
+    from app.models import BlocklistEntry, ResponseAction
+    from app.utils.time import ensure_utc
+
+    seed_user(env, "victim")
+    # tài khoản tồn tại -> lock của MR16 là mục kind="username" (response_execution.lock_kind_and_value), trùng mục có hạn này
+    env.add_block("username", "victim", expires_at=T0 + timedelta(minutes=5))
+    env.login("victim", success=False, ip=US_IP, ts=T0)
+
+    db = env.session_factory()
+    try:
+        entry = db.query(BlocklistEntry).filter(BlocklistEntry.kind == "username", BlocklistEntry.value == "victim").one()
+        assert ensure_utc(entry.expires_at) == T0 + LOCK_TTL
+        action = db.query(ResponseAction).filter(ResponseAction.action == "lock").one()
+        assert action.status == "executed"
+    finally:
+        db.close()
