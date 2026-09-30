@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     # bộ rule theo IP (brute force theo IP, credential stuffing, GeoIP).
     trust_forwarded_for: bool = False
 
+    # Phase 3 — thư mục danh sách Tor/datacenter/VPN cho luật danh tiếng hạ tầng. Rỗng = `backend/threat_intel/` (dữ
+    # liệu THẬT tải bằng `python -m scripts.update_threat_feeds`, ngoài git). Đặt `threat_intel_demo` để demo cục bộ
+    # bằng DỮ LIỆU DEMO đã commit (dải địa chỉ tài liệu RFC 5737 — KHÔNG phải threat intelligence thực tế). Đường dẫn
+    # tương đối tính từ thư mục `backend/`.
+    threat_intel_dir: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

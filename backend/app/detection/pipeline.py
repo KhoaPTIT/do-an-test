@@ -46,7 +46,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from app.database import SessionLocal
-from app.detection import alert_intelligence, hybrid_runtime, ml_model, perf
+from app.detection import alert_intelligence, attribution, hybrid_runtime, ml_model, perf
 from app.detection.adaptive_threshold import apply_delta
 from app.detection.baseline import (
     is_known_location,
@@ -55,6 +55,7 @@ from app.detection.baseline import (
     update_baseline_after_successful_login,
 )
 from app.detection.campaign_correlation import LIVE_CAMPAIGN_WINDOW
+from app.detection.engine.registry import REGISTRY
 from app.detection.engine.types import LoginAttempt
 from app.detection.geoip import lookup_asn, lookup_ip
 from app.detection.rate_counter import check_fail_count, redis_client
@@ -179,10 +180,13 @@ def _run_detection_pipeline_sync(
         # (alert_type, message, extra field cho payload WebSocket)
         triggered: list[tuple[str, str, dict]] = []
 
-        if user is not None:
+        # Phase 3: impossible travel chỉ so hai lần đăng nhập THÀNH CÔNG — một lần thử SAI từ nơi xa không chứng minh chủ
+        # tài khoản đã di chuyển tới đó (kẻ tấn công thử sai từ nước ngoài được quy kết cho country_hop/brute_force/
+        # distributed_bruteforce, không phải di chuyển bất khả thi của chủ tài khoản).
+        if user is not None and success:
             previous_event = (
                 db.query(LoginEvent)
-                .filter(LoginEvent.user_id == user.id, LoginEvent.id != event.id)
+                .filter(LoginEvent.user_id == user.id, LoginEvent.id != event.id, LoginEvent.success.is_(True))
                 .order_by(LoginEvent.created_at.desc())
                 .first()
             )
@@ -322,57 +326,66 @@ def _run_detection_pipeline_sync(
                 event.hybrid_risk_score = risk_result.score
                 event.hybrid_action = risk_result.action
 
-                if risk_result.action != "allow":
+                # --- Phase 3: quy kết (app/detection/attribution.py). Cảnh báo khi điểm vượt ngưỡng NHƯ CŨ, HOẶC khi một luật
+                # `enforce` khớp (đúng nghĩa ghi ở registry.py — trước đây luồng thật bỏ qua chế độ này). Tạo cảnh báo
+                # KHÔNG đổi hành động: `risk_result.action` (và do đó step_up/lock bên dưới) vẫn chỉ do điểm hybrid quyết định.
+                verdict = attribution.build_verdict(evaluation.hits, risk_result)
+                if verdict.alert:
                     # --- MR13: gán họ tấn công gợi ý, novelty, ưu tiên (app/detection/alert_intelligence.py — thuần, không đụng DB) ---
-                    ml_component = hybrid_runtime.get_engine().ml_component(features)
-                    family, confidence = alert_intelligence.suggest_attack_family(risk_result, ml_component=ml_component)
+                    # Họ tấn công đi cùng DETECTOR CHÍNH (nhóm của luật đó) để không "đá nhau" với rule_id; chỉ ML thì như MR13.
+                    if verdict.is_rule_primary:
+                        spec = REGISTRY.get(verdict.primary_detector)
+                        family, confidence = (spec.category if spec is not None else None), verdict.primary_weight
+                    else:
+                        ml_component = hybrid_runtime.get_engine().ml_component(features)
+                        family, confidence = alert_intelligence.suggest_attack_family(risk_result, ml_component=ml_component)
                     novelty_facts = alert_intelligence.compute_novelty(event_record, history_summary) if history_summary is not None else []
                     importance = user.importance if user is not None else 1.0
                     priority = alert_intelligence.priority_score(novelty_facts, confidence, importance)
-                    top_rule = next((c.source for c in risk_result.contributions if c.source != "ml"), None)
+                    rule_id = verdict.primary_detector if verdict.is_rule_primary else None
+                    severity = attribution.max_severity(_HYBRID_SEVERITY.get(risk_result.action), verdict.severity)
 
-                    # --- MR13: chống trùng lặp — cùng (tài khoản, hoặc IP nếu tài khoản không tồn tại) + họ tấn công,
-                    # trong DEDUP_WINDOW gần nhất và còn "open" thì GỘP vào alert đó thay vì tạo hàng mới.
+                    # --- MR13 (khoá đổi ở Phase 3): chống trùng lặp — cùng (tài khoản, hoặc IP nếu tài khoản không tồn tại)
+                    # + CÙNG DETECTOR CHÍNH (trước đây: cùng họ tấn công — gộp nhầm hai hành vi khác nhau cùng nhóm luật,
+                    # vd dò phân tán vào brute force), trong DEDUP_WINDOW gần nhất và còn "open" thì GỘP vào alert đó.
                     # ⚠️ Lọc theo THỜI ĐIỂM ĐĂNG NHẬP (LoginEvent.created_at, JOIN), KHÔNG PHẢI lúc hàng Alert được ghi
                     # (Alert.created_at, server_default=func.now()) — bug thật cùng lớp đã sửa ở MR14 (app/detection/
                     # campaign_correlation.py): hai mốc trùng nhau khi chấm gần thời gian thực, nhưng lệch hẳn khi nạp
-                    # lại/mô phỏng nhiều "ngày" trong thời gian chạy thật ngắn (lộ ra qua MR15's feedback_loop_sim.py,
-                    # vốn cố tình cách các vòng 1 NGÀY GIẢ trong khi cả script chạy thật chỉ mất vài giây — dedup theo
-                    # Alert.created_at sẽ coi MỌI vòng trước đó là "trong cửa sổ 15 phút" vì đều được GHI gần như cùng
-                    # một thời điểm THẬT, dù các vòng cách nhau cả ngày về mặt "thời điểm đăng nhập"). ---
-                    existing_alert = None
-                    if family is not None:
-                        dedup_query = (
-                            db.query(Alert)
-                            .join(LoginEvent, Alert.login_event_id == LoginEvent.id)
-                            .filter(Alert.attack_family == family, Alert.status == "open", LoginEvent.created_at >= event.created_at - alert_intelligence.DEDUP_WINDOW)
-                        )
-                        if user_id is not None:
-                            dedup_query = dedup_query.filter(Alert.user_id == user_id)
-                        else:
-                            dedup_query = dedup_query.filter(Alert.user_id.is_(None), LoginEvent.ip_address == ip)
-                        existing_alert = dedup_query.order_by(Alert.created_at.desc()).first()
+                    # lại/mô phỏng nhiều "ngày" trong thời gian chạy thật ngắn (lộ ra qua MR15's feedback_loop_sim.py). ---
+                    dedup_query = (
+                        db.query(Alert)
+                        .join(LoginEvent, Alert.login_event_id == LoginEvent.id)
+                        .filter(Alert.alert_type == "hybrid_risk", Alert.status == "open", LoginEvent.created_at >= event.created_at - alert_intelligence.DEDUP_WINDOW)
+                    )
+                    dedup_query = dedup_query.filter(Alert.rule_id == rule_id) if rule_id is not None else dedup_query.filter(Alert.rule_id.is_(None), Alert.attack_family == family)
+                    if user_id is not None:
+                        dedup_query = dedup_query.filter(Alert.user_id == user_id)
+                    else:
+                        dedup_query = dedup_query.filter(Alert.user_id.is_(None), LoginEvent.ip_address == ip)
+                    existing_alert = dedup_query.order_by(Alert.created_at.desc()).first()
 
                     # "action" đã lưu ở lần trước là mức TỆ NHẤT của cả đợt tính đến lúc đó (xem combined_action bên dưới) — không phải riêng lần đó.
-                    previous_action = (existing_alert.explanation or {}).get("action", "alert") if existing_alert is not None else "allow"
+                    previous_action = (existing_alert.explanation or {}).get("action", "allow") if existing_alert is not None else "allow"
                     escalated = existing_alert is not None and alert_intelligence.action_escalated(previous_action, risk_result.action)
                     combined_action = risk_result.action if existing_alert is None or escalated else previous_action
                     occurrence_count = (existing_alert.occurrence_count + 1) if existing_alert is not None else 1
                     message = alert_intelligence.build_alert_message(
                         risk_result, novelty_facts=novelty_facts, family=family, confidence=confidence, occurrence_count=occurrence_count
                     )
+                    if verdict.primary_message:
+                        message = f"[{verdict.behavior}] {verdict.primary_message} {message}"
                     explanation = {
                         "contributions": [{"source": c.source, "label": c.label, "weight": round(c.weight, 4), "group": c.group} for c in risk_result.contributions],
                         "action": combined_action,  # mức TỆ NHẤT tính đến lần này (không phải riêng risk_result.action) — dùng lại ở lần dedup SAU
+                        **verdict.to_explanation(risk_result),
                     }
 
                     if existing_alert is not None:
                         hybrid_alert = existing_alert
                         hybrid_alert.risk_score = max(hybrid_alert.risk_score, risk_result.score)
-                        hybrid_alert.severity = _HYBRID_SEVERITY[combined_action]
+                        hybrid_alert.severity = attribution.max_severity(hybrid_alert.severity, severity)
                         hybrid_alert.message = message
                         hybrid_alert.explanation = explanation
-                        hybrid_alert.rule_id = risk_result.overridden_by or top_rule or hybrid_alert.rule_id
                         hybrid_alert.attack_family_confidence = confidence
                         hybrid_alert.occurrence_count = occurrence_count
                         hybrid_alert.last_seen_at = event.created_at
@@ -380,8 +393,8 @@ def _run_detection_pipeline_sync(
                     else:
                         hybrid_alert = Alert(
                             login_event_id=event.id, user_id=user_id, alert_type="hybrid_risk",
-                            severity=_HYBRID_SEVERITY[risk_result.action], risk_score=risk_result.score, message=message,
-                            rule_id=risk_result.overridden_by or top_rule, explanation=explanation, attack_family=family,
+                            severity=severity, risk_score=risk_result.score, message=message,
+                            rule_id=rule_id, explanation=explanation, attack_family=family,
                             attack_family_confidence=confidence, occurrence_count=1, last_seen_at=event.created_at, priority_score=priority,
                         )
                         db.add(hybrid_alert)

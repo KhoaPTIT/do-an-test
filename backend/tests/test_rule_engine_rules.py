@@ -295,7 +295,11 @@ def test_impossible_travel_flags_a_jump_of_thousands_of_km_in_minutes():
     assert found.message.startswith("Cách ") and "km chỉ sau 10.0 phút" in found.message and found.message.endswith("ngưỡng 900).")
     assert found.evidence["previous_latitude"] == HANOI[0] and found.evidence["previous_longitude"] == HANOI[1] and found.evidence["speed_kmh"] > 900
     assert found.techniques == ("T1078",) and found.severity == "high"
-    assert fired(travel_pair(600, NEW_YORK, first_success=False, second_success=False), "impossible_travel") == [1]  # luật gốc so với lần thử trước bất kể kết quả
+    # Phase 3 (quyết định thiết kế có chủ ý, thay expectation cũ "so với lần thử trước bất kể kết quả"): chỉ tính
+    # THÀNH CÔNG → THÀNH CÔNG — lần thử SAI không chứng minh chủ tài khoản đã ở nơi đó.
+    assert fired(travel_pair(600, NEW_YORK, first_success=False, second_success=False), "impossible_travel") == []
+    assert fired(travel_pair(600, NEW_YORK, first_success=True, second_success=False), "impossible_travel") == []  # thử SAI từ xa sau lần thành công
+    assert fired(travel_pair(600, NEW_YORK, first_success=False, second_success=True), "impossible_travel") == []  # chưa có lần thành công trước đó để so
 
 
 def test_impossible_travel_accepts_plausible_trips_and_missing_data():
@@ -311,7 +315,7 @@ def test_impossible_travel_accepts_plausible_trips_and_missing_data():
 
 def test_impossible_travel_speed_limit_is_configurable():
     strict = RuleEngine(RuleConfig.from_dict({"rules": {"impossible_travel": {"params": {"max_speed_kmh": 5000.0}}}}))
-    trip = [make(0, latitude=HANOI[0], longitude=HANOI[1]), make(3600, latitude=NEW_YORK[0], longitude=NEW_YORK[1])]  # ~13.000 km trong 1 giờ ≈ 13.000 km/h
+    trip = [make(0, success=True, latitude=HANOI[0], longitude=HANOI[1]), make(3600, success=True, latitude=NEW_YORK[0], longitude=NEW_YORK[1])]  # ~13.000 km trong 1 giờ ≈ 13.000 km/h
     assert fired(run(strict, trip), "impossible_travel") == [1]
     loose = RuleEngine(RuleConfig.from_dict({"rules": {"impossible_travel": {"params": {"max_speed_kmh": 20_000.0}}}}))
     assert fired(run(loose, trip), "impossible_travel") == []

@@ -107,6 +107,10 @@ class AccountHistory:
     last_event_lat: float | None = None
     last_event_lon: float | None = None
     last_success_ts: float | None = None  # lần THÀNH CÔNG gần nhất — cho tài khoản ngủ đông
+    # Toạ độ của lần THÀNH CÔNG gần nhất — cho impossible travel (Phase 3: chỉ tính THÀNH CÔNG → THÀNH CÔNG; một lần
+    # thử sai từ nơi xa không chứng minh chủ tài khoản đã ở đó). Để CUỐI lớp: không đổi thứ tự các trường sẵn có.
+    last_success_lat: float | None = None
+    last_success_lon: float | None = None
     n_success: int = 0
     # Hai tập nhỏ của MỘT tài khoản, chỉ dùng phép `in`: tuple nhẹ hơn frozenset ~4 lần khi có hàng triệu tài khoản (replay giai đoạn train RBA có 2,5 triệu).
     known_countries: tuple[str, ...] = ()  # quốc gia đã từng đăng nhập thành công

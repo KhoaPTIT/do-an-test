@@ -1,0 +1,19 @@
+{
+  "_comment": "TEST FIXTURE — bảng GeoIP/ASN giả lập cho pytest và scripts/behavior_verification.py. Toàn bộ là dải địa chỉ tài liệu RFC 5737 và ASN dành riêng (RFC 6996, 64512-65534 private use). KHÔNG phải dữ liệu GeoIP thật, KHÔNG dùng cho runtime.",
+  "ranges": [
+    {"cidr": "192.0.2.0/26",     "country": "VN", "city": "Hanoi",            "lat": 21.0285,  "lon": 105.8542,  "asn": 64512, "org": "FIXTURE-VN-HOME-ISP",   "role": "residential"},
+    {"cidr": "192.0.2.64/26",    "country": "VN", "city": "Hanoi",            "lat": 21.0285,  "lon": 105.8542,  "asn": 64513, "org": "FIXTURE-VN-MOBILE",     "role": "mobile"},
+    {"cidr": "192.0.2.128/27",   "country": "VN", "city": "Ho Chi Minh City", "lat": 10.8231,  "lon": 106.6297,  "asn": 64514, "org": "FIXTURE-VN-HCM-ISP",    "role": "residential"},
+    {"cidr": "192.0.2.160/27",   "country": "VN", "city": "Hai Phong",        "lat": 20.8449,  "lon": 106.6881,  "asn": 64512, "org": "FIXTURE-VN-HOME-ISP",   "role": "residential"},
+    {"cidr": "192.0.2.192/27",   "country": "VN", "city": "Da Nang",          "lat": 16.0544,  "lon": 108.2022,  "asn": 64515, "org": "FIXTURE-VN-DN-ISP",     "role": "residential"},
+    {"cidr": "192.0.2.224/27",   "country": "VN", "city": "Hanoi",            "lat": 21.0285,  "lon": 105.8542,  "asn": 64516, "org": "FIXTURE-VN-OFFICE-NAT", "role": "office"},
+    {"cidr": "198.51.100.0/26",  "country": "DE", "city": "Frankfurt",        "lat": 50.1109,  "lon": 8.6821,    "asn": 64520, "org": "FIXTURE-DE-HOSTING",    "role": "tor_and_neighbours"},
+    {"cidr": "198.51.100.64/26", "country": "NL", "city": "Amsterdam",        "lat": 52.3676,  "lon": 4.9041,    "asn": 64521, "org": "FIXTURE-NL-DATACENTER", "role": "datacenter"},
+    {"cidr": "198.51.100.128/26","country": "SG", "city": "Singapore",        "lat": 1.3521,   "lon": 103.8198,  "asn": 64522, "org": "FIXTURE-SG-VPN",        "role": "vpn"},
+    {"cidr": "198.51.100.192/26","country": "US", "city": "New York",         "lat": 40.7128,  "lon": -74.0060,  "asn": 64523, "org": "FIXTURE-US-ISP",        "role": "residential"},
+    {"cidr": "203.0.113.0/26",   "country": "JP", "city": "Tokyo",            "lat": 35.6762,  "lon": 139.6503,  "asn": 64530, "org": "FIXTURE-JP-ISP",        "role": "residential"},
+    {"cidr": "203.0.113.64/26",  "country": "FR", "city": "Paris",            "lat": 48.8566,  "lon": 2.3522,    "asn": 64531, "org": "FIXTURE-FR-ISP",        "role": "residential"},
+    {"cidr": "203.0.113.128/26", "country": "BR", "city": "Sao Paulo",        "lat": -23.5505, "lon": -46.6333,  "asn": 64532, "org": "FIXTURE-BR-ISP",        "role": "residential"},
+    {"cidr": "203.0.113.192/26", "country": "US", "city": "Los Angeles",      "lat": 34.0522,  "lon": -118.2437, "asn": 64533, "org": "FIXTURE-US-WEST-ISP",   "role": "residential"}
+  ]
+}

@@ -49,6 +49,7 @@ class MemoryHistory:
         h.last_event_lat, h.last_event_lon = attempt.latitude, attempt.longitude
         if attempt.success:
             h.last_success_ts = attempt.ts
+            h.last_success_lat, h.last_success_lon = attempt.latitude, attempt.longitude
             h.n_success += 1
             if attempt.country and attempt.country not in h.known_countries:
                 h.known_countries += (sys.intern(attempt.country),)  # intern: hàng triệu tài khoản dùng chung vài trăm mã quốc gia/UA phổ biến

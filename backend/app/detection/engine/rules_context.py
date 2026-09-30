@@ -21,19 +21,22 @@ _DAY = 86_400
     category=CATEGORY,
     severity="high",
     techniques=("T1078",),
-    description="Hai lần đăng nhập liên tiếp của một tài khoản cách nhau quá xa so với thời gian trôi qua (tốc độ vượt ngưỡng của máy bay).",
+    description=(
+        "Hai lần đăng nhập THÀNH CÔNG liên tiếp của một tài khoản cách nhau quá xa so với thời gian trôi qua (tốc độ vượt ngưỡng của máy bay). "
+        "Lần thử SAI không được tính: nó không chứng minh chủ tài khoản đã ở nơi đó (thử sai từ nhiều nước là việc của country_hop/brute_force)."
+    ),
     params=(Param("max_speed_kmh", IMPOSSIBLE_TRAVEL_SPEED_KMH, "tốc độ di chuyển tối đa hợp lý", "km/h", 100.0, 20_000.0),),
     needs=("account", "geo", "history"),
     notes="Luật tầng 1 gốc (ngưỡng 900 km/h lấy nguyên văn từ checklist). Bỏ qua khi thiếu GeoIP ở một trong hai lần. VPN/proxy làm sai lệch vị trí. Không chạy được trên RBA (không có toạ độ).",
 )
 def impossible_travel(ctx: RuleContext) -> Finding | None:
     a, h, p = ctx.attempt, ctx.history, ctx.p
-    if h is None or h.last_event_ts is None or h.last_event_lat is None or h.last_event_lon is None:
+    if not a.success or h is None or h.last_success_ts is None or h.last_success_lat is None or h.last_success_lon is None:
         return None
-    elapsed_hours = (a.ts - h.last_event_ts) / 3600
+    elapsed_hours = (a.ts - h.last_success_ts) / 3600
     if elapsed_hours <= 0:
         return None  # timestamp trùng/không hợp lệ: không kết luận được
-    distance = haversine_distance(h.last_event_lat, h.last_event_lon, a.latitude, a.longitude)
+    distance = haversine_distance(h.last_success_lat, h.last_success_lon, a.latitude, a.longitude)
     speed = distance / elapsed_hours
     if speed <= p.max_speed_kmh:
         return None
@@ -41,7 +44,7 @@ def impossible_travel(ctx: RuleContext) -> Finding | None:
         f"Cách {distance:.0f}km chỉ sau {elapsed_hours * 60:.1f} phút (~{speed:,.0f} km/h, ngưỡng {p.max_speed_kmh:.0f}).",
         {
             "distance_km": round(distance, 1), "elapsed_minutes": round(elapsed_hours * 60, 2), "speed_kmh": round(speed, 1),
-            "previous_latitude": h.last_event_lat, "previous_longitude": h.last_event_lon,  # frontend vẽ đường nối hai điểm trên bản đồ
+            "previous_latitude": h.last_success_lat, "previous_longitude": h.last_success_lon,  # frontend vẽ đường nối hai điểm trên bản đồ
         },
     )
 

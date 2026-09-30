@@ -1,0 +1,2 @@
+# DỮ LIỆU DEMO — KHÔNG PHẢI threat intelligence thực tế. Dải địa chỉ tài liệu RFC 5737 (203.0.113.0/24, TEST-NET-3).
+203.0.113.128/27
