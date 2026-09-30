@@ -17,6 +17,7 @@ _DAY = 86_400
 
 @rule(
     id="impossible_travel",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/impossible_travel.json
     title="Di chuyển bất khả thi",
     category=CATEGORY,
     severity="high",
@@ -105,6 +106,7 @@ def country_hop(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="dormant_account_login",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/dormant_account_login.json
     title="Tài khoản ngủ đông đăng nhập lại",
     category=CATEGORY,
     severity="medium",

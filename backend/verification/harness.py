@@ -36,6 +36,7 @@ MOBILE_UA = "Mozilla/5.0 (Linux; Android 14; SM-S911B) AppleWebKit/537.36 (KHTML
 EDGE_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edg/120.0.0.0 Safari/537.36"
 CURL_UA = "curl/8.7.1"
 PY_REQUESTS_UA = "python-requests/2.31.0"
+DETECTION_ALERT_TYPES = ("hybrid_risk", "behavior_anomaly")
 
 
 @dataclass(frozen=True)
@@ -182,10 +183,14 @@ class VerificationEnv:
         finally:
             db.close()
 
+    def detection_alerts(self) -> list[AlertRow]:
+        """Mọi cảnh báo của lớp phát hiện có quy kết (`hybrid_risk`, `behavior_anomaly`) — không gồm alert tầng 1/2/3 cũ."""
+        return [a for a in self.alerts() if a.alert_type in DETECTION_ALERT_TYPES]
+
     def detector_alerts(self, rule_id: str) -> list[AlertRow]:
-        """Cảnh báo quy kết cho ĐÚNG detector này (`hybrid_risk` với `rule_id` = detector) — không tính alert của
-        detector khác, không tính alert tầng 1/2/3 cũ (`alert_type` khác)."""
-        return [a for a in self.alerts() if a.alert_type == "hybrid_risk" and a.rule_id == rule_id]
+        """Cảnh báo quy kết cho ĐÚNG detector này (`rule_id` = detector) — không tính alert của detector khác, không tính
+        alert tầng 1/2/3 cũ (`alert_type` khác)."""
+        return [a for a in self.detection_alerts() if a.rule_id == rule_id]
 
     def events(self) -> list[LoginEvent]:
         db = self.session_factory()

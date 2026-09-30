@@ -18,6 +18,7 @@ def _outcome(success: bool) -> str:
 
 @rule(
     id="tor_exit",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/tor_exit.json
     title="Đăng nhập từ Tor exit node",
     category=CATEGORY,
     severity="medium",
@@ -71,6 +72,7 @@ def vpn_ip(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="blocklist_hit",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/blocklist_hit.json
     title="Nguồn nằm trong blocklist",
     category=CATEGORY,
     severity="high",

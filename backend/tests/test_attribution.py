@@ -117,3 +117,27 @@ def test_explanation_carries_every_required_field():
 def test_max_severity():
     assert max_severity("low", None, "high", "medium") == "high"
     assert max_severity(None) == "low"
+
+
+def test_experimental_enforce_rule_alone_does_not_alert_but_is_recorded():
+    assert not REGISTRY["scripted_client"].is_verified
+    verdict, _ = _verdict([_hit("scripted_client")])
+    assert verdict.alert is False
+    assert verdict.matched_rules == ("scripted_client",) and verdict.experimental_rules == ("scripted_client",)
+
+
+def test_verified_rule_leads_and_experimental_rule_becomes_a_secondary_signal():
+    verdict, _ = _verdict([_hit("bot_user_agent"), _hit("brute_force")])
+    assert verdict.alert_reason == ALERT_REASON_RULE and verdict.primary_detector == "brute_force"
+    assert verdict.standalone_rules == ("brute_force",) and verdict.secondary_signals == ("bot_user_agent",)
+
+
+def test_score_threshold_prefers_a_verified_rule_then_an_experimental_one_as_primary():
+    verdict, _ = _verdict([_hit("scripted_client")], ml_probability=0.7)
+    assert verdict.alert_reason == ALERT_REASON_SCORE and verdict.primary_detector == "scripted_client"
+
+
+def test_every_rule_declares_a_valid_verification_state():
+    from app.detection.engine.registry import VERIFICATION_STATES
+
+    assert all(spec.verification in VERIFICATION_STATES for spec in REGISTRY.values())

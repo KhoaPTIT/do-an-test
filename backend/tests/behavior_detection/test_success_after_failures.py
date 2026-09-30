@@ -30,14 +30,18 @@ def test_positive_success_right_after_a_failure_streak_is_attributed(env):
 
     alerts = env.detector_alerts(RULE)
     assert len(alerts) == 1
-    success_event = env.events()[-1]
-    assert success_event.success is True and alerts[0].login_event_id == success_event.id
     exp = alerts[0].explanation
     assert exp["primary_detector"] == RULE and exp["behavior"] == "success_after_failures"
     assert exp["evidence"]["fails_before"] >= PARAMS["min_fails"]
     assert alerts[0].severity == "high"
-    # các lần SAI trước đó quy kết cho brute_force (đúng hành vi của chúng), không phải success_after_failures
-    assert all(a.login_event_id != success_event.id for a in env.detector_alerts("brute_force"))
+    # Milestone B (B0.3): chuỗi sai (brute_force) rồi thành công là MỘT chiến dịch vào cùng tài khoản — cảnh báo
+    # brute_force đang mở được nâng cấp thành success_after_failures (kẻ tấn công đã vào được), không thành hai cảnh báo.
+    assert env.detector_alerts("brute_force") == []
+    assert exp["superseded_detectors"] == ["brute_force"]
+    success_event = env.events()[-1]
+    assert success_event.success is True
+    # chỉ lần THÀNH CÔNG khớp success_after_failures (verdict thật của pipeline)
+    assert [v.primary_detector for v in env.verdicts if RULE in v.matched_rules] == [RULE]
 
 
 def test_negative_owner_typing_wrong_password_twice(env):

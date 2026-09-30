@@ -17,7 +17,7 @@ CATEGORY = "Tự động hoá"
 
 # Dấu hiệu (chữ thường) của HTTP client/công cụ dò quét/trình duyệt không đầu hay gặp trong tấn công. `okhttp` cố ý KHÔNG có: là thư viện của ứng dụng Android thật.
 SCRIPT_MARKERS = (
-    "curl/", "wget/", "python-requests", "python-urllib", "python-httpx", "aiohttp", "go-http-client", "libwww-perl", "java/", "apache-httpclient",
+    "curl/", "wget/", "httpie/", "python-requests", "python-urllib", "python-httpx", "aiohttp", "go-http-client", "libwww-perl", "java/", "apache-httpclient",
     "postmanruntime", "insomnia", "axios/", "node-fetch", "undici", "scrapy", "hydra", "sqlmap", "nikto", "nmap", "masscan",
     "headlesschrome", "phantomjs", "selenium", "playwright", "puppeteer",
 )
@@ -45,12 +45,16 @@ def bot_user_agent(ctx: RuleContext) -> Finding | None:
     category=CATEGORY,
     severity="medium",
     techniques=("T1110",),
-    description="User-Agent thuộc công cụ HTTP/dò quét (curl, python-requests, Hydra, trình duyệt không đầu...) hoặc thiếu hẳn — trình duyệt thật luôn gửi User-Agent.",
+    description="User-Agent thuộc một công cụ HTTP/dò quét ĐÃ BIẾT (curl, python-requests, HTTPie, Hydra, trình duyệt không đầu...).",
     params=(
         Param("markers", SCRIPT_MARKERS, "chuỗi con (chữ thường) của User-Agent coi là client kịch bản"),
-        Param("flag_empty_ua", True, "coi User-Agent trống là client kịch bản"),
+        Param("flag_empty_ua", False, "coi User-Agent trống là client kịch bản (mặc định KHÔNG: thiếu UA chỉ là thiếu telemetry)"),
     ),
-    notes="Các script demo trong attack-sim/ dùng httpx nên khớp luật này.",
+    notes=(
+        "Milestone B (B0.2): User-Agent TRỐNG không còn được coi là client kịch bản — đó là THIẾU telemetry (proxy/SDK có thể bỏ header), "
+        "không phải bằng chứng tự động hoá; pipeline ghi `telemetry_gaps=[\"missing_user_agent\"]` trong giải thích cảnh báo thay vào đó. "
+        "`okhttp` cố ý không nằm trong danh sách (thư viện của ứng dụng Android thật). Các script demo trong attack-sim/ dùng httpx nên khớp luật này."
+    ),
 )
 def scripted_client(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p

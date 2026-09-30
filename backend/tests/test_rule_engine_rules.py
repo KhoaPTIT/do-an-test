@@ -227,12 +227,13 @@ def test_scripted_client_ignores_real_browsers_and_android_apps():
     assert all(fired(run(RuleEngine(), [make(0, user_agent=agent)]), "scripted_client") == [] for agent in real)
 
 
-def test_scripted_client_treats_a_missing_user_agent_as_suspicious_unless_configured_otherwise():
+def test_scripted_client_does_not_treat_a_missing_user_agent_as_scripted_unless_configured():
+    # Milestone B (B0.2), thay expectation cũ: UA trống là THIẾU telemetry, không phải bằng chứng client kịch bản.
     for empty in (None, "", "   "):
-        results = run(RuleEngine(), [make(0, user_agent=empty)])
-        assert fired(results, "scripted_client") == [0] and hit(results[0], "scripted_client").evidence["marker"] == "(trống)"
-    relaxed = RuleEngine(RuleConfig.from_dict({"rules": {"scripted_client": {"params": {"flag_empty_ua": False}}}}))
-    assert fired(run(relaxed, [make(0, user_agent=None)]), "scripted_client") == []
+        assert fired(run(RuleEngine(), [make(0, user_agent=empty)]), "scripted_client") == []
+    strict = RuleEngine(RuleConfig.from_dict({"rules": {"scripted_client": {"params": {"flag_empty_ua": True}}}}))  # hành vi cũ vẫn bật được qua cấu hình
+    results = run(strict, [make(0, user_agent=None)])
+    assert fired(results, "scripted_client") == [0] and hit(results[0], "scripted_client").evidence["marker"] == "(trống)"
 
 
 def test_the_attack_simulation_scripts_are_recognised_by_their_default_user_agent():

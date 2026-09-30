@@ -15,7 +15,17 @@ Chấm điểm (không dùng nhãn trong phát hiện — nhãn chỉ để ch�
 Đầu ra (runner TỰ SINH, không sửa tay): `artifacts/behavior_verification/<behavior>.json`, `normal_traffic.json`,
 `summary.json` ở gốc repo.
 
-Chạy: cd backend && python -m scripts.behavior_verification [--only brute_force,tor_exit] [--seed 20260302]
+Detector ỨNG VIÊN (`--candidates`, Milestone B): luật chưa `verified` không tự tạo cảnh báo ở runtime (B0.1), nên để đo
+được nó, runner chạy nó ở ĐÚNG trạng thái nó sẽ có nếu được nâng cấp (enforce + verified) — CHỈ trong tiến trình runner,
+không ghi gì vào registry. Mọi kịch bản VÀ lưu lượng bình thường chạy với toàn bộ ứng viên cùng bật (trường hợp nhiễu
+nhất). Registry (`verification=` trên luật) chỉ được sửa tay SAU KHI runner báo VERIFIED — test
+`test_registry_verified_status_matches_committed_verification_evidence` chặn việc nâng trạng thái không có bằng chứng.
+
+Đo nhiễu cảnh báo (B9), trên các kịch bản dương tính: tổng số hàng alert (gồm alert tầng 1/2/3 cũ), số cảnh báo phát
+hiện có quy kết, số tín hiệu phụ, số lần thử bị gộp vào cảnh báo sẵn có (`duplicate_suppressed` = Σ(occurrence_count−1)),
+số cảnh báo trung bình mỗi chiến dịch tấn công.
+
+Chạy: cd backend && python -m scripts.behavior_verification [--only brute_force,tor_exit] [--candidates country_hop] [--seed 20260302]
 """
 
 from __future__ import annotations
@@ -30,7 +40,7 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from verification.harness import VerificationEnv
+from verification.harness import DETECTION_ALERT_TYPES, VerificationEnv
 from verification.normal_traffic import generate as generate_normal_traffic
 from verification.scenarios import GENERATORS, T0, Scenario
 
@@ -64,17 +74,37 @@ def run_scenario(sc: Scenario) -> dict:
         env.login(step.username, success=step.success, ip=step.ip, ts=T0 + timedelta(seconds=step.offset_s), user_agent=step.user_agent)
 
     alerts = env.alerts()
-    hits = [a for a in alerts if a.alert_type == "hybrid_risk" and a.rule_id == sc.behavior]
-    matching = [v for v in env.verdicts if sc.behavior in v.enforced_rules]
+    detection = [a for a in alerts if a.alert_type in DETECTION_ALERT_TYPES]
+    hits = [a for a in detection if a.rule_id == sc.behavior]
+    # verdict THẬT từng lần thử mà detector kỳ vọng đủ tư cách tự cảnh báo (enforce + verified/ứng viên)
+    matching = [v for v in env.verdicts if sc.behavior in getattr(v, "standalone_rules", v.enforced_rules)]
     misattributed = [v.primary_detector for v in matching if v.primary_detector != sc.behavior]
     return {
         "kind": sc.kind, "variant": sc.variant, "steps": len(sc.steps),
         "detected": bool(hits),
         "attribution_events": len(matching), "misattributed_to": misattributed,
-        "alerts_by_detector": dict(Counter(a.rule_id or a.alert_type for a in alerts if a.alert_type == "hybrid_risk")),
-        "legacy_alerts": dict(Counter(a.alert_type for a in alerts if a.alert_type != "hybrid_risk")),
+        "alerts_by_detector": dict(Counter(a.rule_id or "hybrid_ml" for a in detection)),
+        "legacy_alerts": dict(Counter(a.alert_type for a in alerts if a.alert_type not in DETECTION_ALERT_TYPES)),
+        "noise": {
+            "total_alerts": len(alerts),
+            "detection_alerts": len(detection),
+            "legacy_alerts": len(alerts) - len(detection),
+            "secondary_signals": sum(len((a.explanation or {}).get("secondary_signals", [])) for a in detection),
+            "duplicate_suppressed": sum(a.occurrence_count - 1 for a in detection),
+            "superseded_detectors": sum(len((a.explanation or {}).get("superseded_detectors", [])) for a in detection),
+        },
         "example_alert": hits[0].as_dict() if hits else None,
     }
+
+
+def _noise_summary(results: list[dict]) -> dict:
+    keys = ("total_alerts", "detection_alerts", "legacy_alerts", "secondary_signals", "duplicate_suppressed", "superseded_detectors")
+    totals = {k: sum(r["noise"][k] for r in results) for k in keys}
+    n = len(results) or 1
+    totals["campaigns"] = len(results)
+    totals["alerts_per_attack_campaign"] = round(totals["detection_alerts"] / n, 3)
+    totals["all_alert_rows_per_attack_campaign"] = round(totals["total_alerts"] / n, 3)
+    return totals
 
 
 def evaluate_behavior(behavior: str, seed: int, normal_fp: int) -> dict:
@@ -115,6 +145,7 @@ def evaluate_behavior(behavior: str, seed: int, normal_fp: int) -> dict:
         "attribution_accuracy": round(attribution, 4), "attribution_correct": attributed_ok, "attribution_total": len(detected),
         "normal_traffic_false_alerts": normal_fp,
         "cross_detector_alerts_in_positives": dict(sum((Counter(r["alerts_by_detector"]) for r in positives), Counter())),
+        "alert_noise_positive_scenarios": _noise_summary(positives),
         "example_alert": next((r["example_alert"] for r in positives if r["example_alert"]), None),
         "scenarios": [{k: v for k, v in r.items() if k != "example_alert"} for r in positives + negatives],
     }
@@ -127,37 +158,53 @@ def run_normal_traffic(seed: int) -> dict:
     for step in traffic.steps:
         env.login(step.username, success=step.success, ip=step.ip, ts=T0 + timedelta(seconds=step.offset_s), user_agent=step.user_agent)
     alerts = env.alerts()
-    by_detector = Counter(a.rule_id or "hybrid_ml" for a in alerts if a.alert_type == "hybrid_risk")
+    detection = [a for a in alerts if a.alert_type in DETECTION_ALERT_TYPES]
+    by_detector = Counter(a.rule_id or "hybrid_ml" for a in detection)
     return {
         "seed": seed, "profile": dict(traffic.profile_counts),
         "hybrid_alerts_by_detector": dict(by_detector),
-        "legacy_alerts_by_type": dict(Counter(a.alert_type for a in alerts if a.alert_type != "hybrid_risk")),
-        "examples": [a.as_dict() for a in alerts if a.alert_type == "hybrid_risk"][:10],
+        "legacy_alerts_by_type": dict(Counter(a.alert_type for a in alerts if a.alert_type not in DETECTION_ALERT_TYPES)),
+        "examples": [a.as_dict() for a in detection][:10],
     }
+
+
+def promote_candidates(candidates: list[str]) -> None:
+    """Bật detector ứng viên ở trạng thái như SAU khi được nâng cấp (enforce + verified) — chỉ trong tiến trình này."""
+    import dataclasses
+
+    from app.detection.engine.registry import REGISTRY
+
+    for rule_id in candidates:
+        REGISTRY[rule_id] = dataclasses.replace(REGISTRY[rule_id], verification="verified", default_mode="enforce")
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--only", default="", help="danh sách hành vi, phân tách bằng dấu phẩy (mặc định: toàn bộ Milestone A)")
     parser.add_argument("--seed", type=int, default=20260302)
+    parser.add_argument("--out-dir", default=str(OUT_DIR), help="thư mục ghi bằng chứng (mặc định artifacts/behavior_verification)")
+    parser.add_argument("--candidates", default="", help="detector ứng viên chạy ở trạng thái enforce+verified trong runner (xem docstring)")
     args = parser.parse_args(argv)
+    candidates = [c for c in args.candidates.split(",") if c]
+    promote_candidates(candidates)
+    out_dir = Path(args.out_dir)
     logging.disable(logging.WARNING)  # log cảnh báo "thiếu model ML" lặp lại mỗi kịch bản — không liên quan kết quả
 
     behaviors = [b for b in args.only.split(",") if b] or list(MILESTONE_A)
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    meta = {"generated_at": datetime.now(timezone.utc).isoformat(), "git": _git_commit(), "seed": args.seed, "criteria": CRITERIA,
+    out_dir.mkdir(parents=True, exist_ok=True)
+    meta = {"generated_at": datetime.now(timezone.utc).isoformat(), "git": _git_commit(), "seed": args.seed, "criteria": CRITERIA, "candidates_promoted_in_runner": candidates,
             "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)"}
 
     print("Chạy lưu lượng bình thường (50 người dùng × 30 ngày)...", flush=True)
     normal = run_normal_traffic(args.seed)
-    (OUT_DIR / "normal_traffic.json").write_text(json.dumps({**meta, **normal}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    (out_dir / "normal_traffic.json").write_text(json.dumps({**meta, **normal}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     print(f"  alert quy kết theo detector: {normal['hybrid_alerts_by_detector'] or 'không có'}")
 
     summary = []
     for behavior in behaviors:
         result = evaluate_behavior(behavior, args.seed, normal["hybrid_alerts_by_detector"].get(behavior, 0))
-        (OUT_DIR / f"{behavior}.json").write_text(json.dumps({**meta, **result}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
-        summary.append({k: result[k] for k in ("behavior", "status", "failed_criteria", "tp", "fp", "tn", "fn", "precision", "recall", "f1", "attribution_accuracy", "normal_traffic_false_alerts")})
+        (out_dir / f"{behavior}.json").write_text(json.dumps({**meta, **result}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+        summary.append({k: result[k] for k in ("behavior", "status", "failed_criteria", "tp", "fp", "tn", "fn", "precision", "recall", "f1", "attribution_accuracy", "normal_traffic_false_alerts", "alert_noise_positive_scenarios")})
         print(
             f"\n{'=' * 40}\n{behavior.upper()}\n{'=' * 40}\n"
             f"Positive scenarios: {result['scenario_count']['positive']}  Detected correctly: {result['tp']}\n"
@@ -166,12 +213,18 @@ def main(argv: list[str] | None = None) -> int:
             f"Precision: {result['precision']:.2f}  Recall: {result['recall']:.2f}  F1: {result['f1']:.3f}\n"
             f"Correct attribution: {result['attribution_correct']}/{result['attribution_total']}\n"
             f"Normal-traffic false alerts: {result['normal_traffic_false_alerts']}\n"
+            f"Noise (positives): {result['alert_noise_positive_scenarios']}\n"
             f"STATUS: {result['status']}" + (f"  ({'; '.join(result['failed_criteria'])})" if result["failed_criteria"] else ""),
             flush=True,
         )
 
-    (OUT_DIR / "summary.json").write_text(json.dumps({**meta, "behaviors": summary, "verified": sum(s["status"] == "VERIFIED" for s in summary)}, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\nVERIFIED: {sum(s['status'] == 'VERIFIED' for s in summary)}/{len(summary)} — bằng chứng: {OUT_DIR}")
+    if args.only:  # chạy một phần: gộp vào summary sẵn có thay vì ghi đè kết quả các hành vi khác
+        previous = out_dir / "summary.json"
+        if previous.is_file():
+            kept = [b for b in json.loads(previous.read_text(encoding="utf-8")).get("behaviors", []) if b["behavior"] not in behaviors]
+            summary = kept + summary
+    (out_dir / "summary.json").write_text(json.dumps({**meta, "behaviors": summary, "verified": sum(s["status"] == "VERIFIED" for s in summary)}, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\nVERIFIED: {sum(s['status'] == 'VERIFIED' for s in summary)}/{len(summary)} — bằng chứng: {out_dir}")
     return 0
 
 

@@ -96,10 +96,12 @@ def test_attribution_fast_distributed_attack_also_matching_brute_force(env):
     seed_user(env, "victim")
     _attack(env, "victim", 10, SAME_REGION_IPS, gap_s=30)
 
-    events = env.events()
+    # Milestone B (B0.3): cùng một chuỗi sự kiện vào cùng tài khoản -> MỘT cảnh báo chiến dịch. Các lần 5–7 mở cảnh
+    # báo brute_force; từ lần thứ 8 dò PHÂN TÁN (đặc hiệu hơn) tiếp quản chính cảnh báo đó thay vì tạo cảnh báo thứ hai.
     distributed = env.detector_alerts(RULE)
-    assert len(distributed) == 1
-    assert distributed[0].login_event_id == events[PARAMS["min_fails"] - 1].id
-    assert "brute_force" in distributed[0].explanation["matched_rules"]
-    # các lần 5-7 (chưa đủ điều kiện dò phân tán) được quy kết đúng cho brute_force
-    assert len(env.detector_alerts("brute_force")) == 1
+    assert len(distributed) == 1 and env.detector_alerts("brute_force") == []
+    exp = distributed[0].explanation
+    assert exp["primary_detector"] == RULE
+    assert exp["superseded_detectors"] == ["brute_force"] and "brute_force" in exp["secondary_signals"]
+    # verdict THẬT từng lần thử: đủ điều kiện dò phân tán thì detector chính luôn là distributed_bruteforce
+    assert all(v.primary_detector == RULE for v in env.verdicts if RULE in v.matched_rules)

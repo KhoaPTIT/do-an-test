@@ -67,14 +67,12 @@ def test_attribution_scripted_client_also_matching_keeps_enumeration_as_primary(
 
     alerts = env.detector_alerts(RULE)
     assert len(alerts) == 1
-    assert "scripted_client" in alerts[0].explanation["matched_rules"]
-    assert alerts[0].explanation["primary_detector"] == RULE
-    # Trước khi đạt ngưỡng chỉ có scripted_client khớp -> các lần đó quy kết cho scripted_client; alert enumeration bắt
-    # đầu ĐÚNG ở lần thử thứ THRESHOLD (không sớm hơn).
-    events = env.events()
-    scripted = env.detector_alerts("scripted_client")
-    assert len(scripted) == 1 and scripted[0].login_event_id == events[0].id
-    assert alerts[0].login_event_id == events[THRESHOLD - 1].id
+    exp = alerts[0].explanation
+    assert exp["primary_detector"] == RULE
+    assert "scripted_client" in exp["matched_rules"] and "scripted_client" in exp["secondary_signals"]
+    # Milestone B (B0): cả đợt dò chỉ còn MỘT cảnh báo — không có cảnh báo scripted_client riêng lẻ cho các lần thử
+    # trước ngưỡng (trước B0 mỗi đợt như vậy sinh thêm cảnh báo scripted_client độc lập).
+    assert [a.rule_id for a in env.detection_alerts()] == [RULE]
 
 
 def test_integration_through_the_http_login_endpoint(client, db_session, fake_redis, monkeypatch):

@@ -18,6 +18,7 @@ CATEGORY = "Đoán và dò mật khẩu"
 
 @rule(
     id="brute_force",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/brute_force.json
     title="Dò mật khẩu một tài khoản",
     category=CATEGORY,
     severity="high",
@@ -44,6 +45,7 @@ def brute_force(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="credential_stuffing",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/credential_stuffing.json
     title="Nhồi thông tin đăng nhập",
     category=CATEGORY,
     severity="high",
@@ -100,6 +102,7 @@ def credential_stuffing(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="password_spray_slow",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/password_spray_slow.json
     title="Rải mật khẩu chậm",
     category=CATEGORY,
     severity="high",
@@ -150,6 +153,7 @@ def password_spray_slow(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="distributed_bruteforce",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/distributed_bruteforce.json
     title="Dò mật khẩu phân tán vào một tài khoản",
     category=CATEGORY,
     severity="high",
@@ -180,6 +184,7 @@ def distributed_bruteforce(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="username_enumeration",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/username_enumeration.json
     title="Dò danh sách tài khoản",
     category=CATEGORY,
     severity="medium",
@@ -206,6 +211,7 @@ def username_enumeration(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="success_after_failures",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/success_after_failures.json
     title="Thành công sau chuỗi sai",
     category=CATEGORY,
     severity="high",
