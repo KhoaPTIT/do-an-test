@@ -16,7 +16,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`distributed_bruteforce`](#distributed_bruteforce) | Dò mật khẩu phân tán vào một tài khoản | Đoán và dò mật khẩu | cao | enforce | verified | T1110.001, T1090 |
 | [`username_enumeration`](#username_enumeration) | Dò danh sách tài khoản | Đoán và dò mật khẩu | trung bình | enforce | verified | T1589 |
 | [`success_after_failures`](#success_after_failures) | Thành công sau chuỗi sai | Đoán và dò mật khẩu | cao | enforce | verified | T1110.001 |
-| [`bot_user_agent`](#bot_user_agent) | User-Agent là bot | Tự động hoá | thấp | enforce | experimental | T1110 |
+| [`bot_user_agent`](#bot_user_agent) | User-Agent là bot | Tự động hoá | thấp | enforce | verified | T1110 |
 | [`scripted_client`](#scripted_client) | Client kịch bản / công cụ | Tự động hoá | thấp | enforce | verified | T1110 |
 | [`ua_rotation`](#ua_rotation) | Xoay User-Agent | Tự động hoá | trung bình | enforce | verified | T1110.004 |
 | [`regular_rhythm`](#regular_rhythm) | Nhịp thử đều như máy | Tự động hoá | trung bình | shadow | experimental | T1110 |
