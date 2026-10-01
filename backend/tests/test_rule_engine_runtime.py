@@ -81,25 +81,36 @@ def test_known_devices_uses_the_shared_ua_hash_function(db_session):
 # ------------------------------------------------------------------------------------------------ DbGlobalStats
 
 
-def test_counts_only_successful_real_account_logins_by_asn_and_caches_within_ttl(db_session):
+def test_counts_only_successful_real_account_logins_by_asn(db_session):
     user = _user(db_session)
     _event(db_session, minutes=0, user_id=user.id, success=True, asn=100)
     _event(db_session, minutes=1, user_id=user.id, success=False, asn=100)  # thất bại: không tính
     _event(db_session, minutes=1, user_id=None, success=True, asn=100)  # tên không tồn tại: không tính
 
-    stats = DbGlobalStats(db_session, ttl_seconds=1000.0)
+    stats = DbGlobalStats(db_session, BASE + timedelta(minutes=10))
     assert stats.total_successes == 1 and stats.asn_successes(100) == 1 and stats.asn_successes(999) == 0
 
-    _event(db_session, minutes=2, user_id=user.id, success=True, asn=100)
-    assert stats.total_successes == 1  # còn trong TTL: không quét lại
+
+def test_does_not_count_the_attempt_being_scored_or_anything_after_it(db_session):
+    """MR20: lần thử đang chấm đã `flush` vào DB trước khi luật chạy — bản MR12 (không lọc `before`) đếm cả nó, nên ASN
+    chưa từng thấy vẫn ra `asn_successes == 1` và `never_seen` của `rare_network_login` không bao giờ đúng."""
+    user = _user(db_session)
+    _event(db_session, minutes=0, user_id=user.id, success=True, asn=100)
+    current = _event(db_session, minutes=5, user_id=user.id, success=True, asn=777)  # lần đang chấm, ASN mới
+    _event(db_session, minutes=6, user_id=user.id, success=True, asn=777)  # sau lần đang chấm
+
+    stats = DbGlobalStats(db_session, current.created_at)
+    assert stats.total_successes == 1
+    assert stats.asn_successes(777) == 0
 
 
 def test_a_fresh_instance_always_recomputes(db_session):
     user = _user(db_session)
     _event(db_session, minutes=0, user_id=user.id, success=True, asn=1)
-    assert DbGlobalStats(db_session).total_successes == 1
+    later = BASE + timedelta(minutes=10)
+    assert DbGlobalStats(db_session, later).total_successes == 1
     _event(db_session, minutes=1, user_id=user.id, success=True, asn=1)
-    assert DbGlobalStats(db_session).total_successes == 2  # instance MỚI, không dùng lại cache của instance trước
+    assert DbGlobalStats(db_session, later).total_successes == 2  # instance MỚI thấy ngay dòng mới
 
 
 # ------------------------------------------------------------------------------------------------ blocklist DB-backed
@@ -134,6 +145,21 @@ def test_refresh_blocklist_is_cached_until_invalidated(db_session):
     refreshed = refresh_blocklist(db_session)
     assert refreshed is not before
     assert refreshed.match(LoginAttempt(ts=BASE.timestamp(), username="newblock", success=False, ip="1.2.3.4")) is not None
+
+
+def test_invalidate_works_even_right_after_machine_boot(db_session, monkeypatch):
+    """MR20: `time.monotonic()` đếm từ lúc máy khởi động. Với mốc "chưa cache" cũ là -1.0, trong TTL giây đầu sau boot
+    `now - (-1.0) < TTL` nên `invalidate_blocklist_cache()` không có tác dụng — mục chặn admin vừa thêm bị bỏ qua."""
+    monkeypatch.setattr("app.detection.rule_engine_runtime.time.monotonic", lambda: 3.0)  # máy mới bật 3 giây
+    invalidate_blocklist_cache()
+    before = refresh_blocklist(db_session)
+    db_session.add(BlocklistEntry(kind="username", value="justadded"))
+    db_session.flush()
+
+    invalidate_blocklist_cache()
+    refreshed = refresh_blocklist(db_session)
+    assert refreshed is not before
+    assert refreshed.match(LoginAttempt(ts=BASE.timestamp(), username="justadded", success=False, ip="1.2.3.4")) is not None
 
 
 # ------------------------------------------------------------------------------------------------ build_rule_engine (tích hợp, dùng fakeredis)

@@ -148,6 +148,7 @@ liệu findings riêng, liệt kê đầy đủ ở [`docs/checklist.md`](docs/c
 - **Tương quan chiến dịch** (MR14) và **thư viện kịch bản tấn công mô phỏng v2** (MR18, 9 kịch bản có scorecard) — [`docs/attack-scenarios-v2.md`](docs/attack-scenarios-v2.md).
 - **Dashboard quản trị v2** (MR17): cấu hình luật, sức khoẻ mô hình (PSI drift), hồ sơ rủi ro theo user.
 - **Tổng hợp cuối cùng** (MR19): ma trận phủ toàn bộ hành vi × tầng phát hiện — [`docs/behavior-coverage-matrix.md`](docs/behavior-coverage-matrix.md); so với công cụ thương mại (Okta, Microsoft Entra ID Protection, Auth0) và baseline học thuật — [`docs/commercial-comparison.md`](docs/commercial-comparison.md).
+- **Hiệu năng & sửa lỗi sau nghiệm thu** (MR20): bcrypt khỏi event loop (10 request đồng thời nhanh gấp ~3 lần), đếm toàn cục bằng `GROUP BY` + khoá, sửa 2 lỗi đúng/sai ở cache và luật `rare_network_login` — [`docs/performance.md`](docs/performance.md).
 
 ⚠️ Mọi số liệu ML trong các tài liệu trên đo trên dữ liệu **tổng hợp** hoặc **tự mô phỏng**, không phải log tấn công
 thật ngoài đời — xem giới hạn ở từng tài liệu trước khi trích dẫn.

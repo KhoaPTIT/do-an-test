@@ -9,8 +9,9 @@ Bốn truy vấn nhắm đúng phạm vi (không quét toàn bảng), cùng quy 
   2. `ip_events`    — cùng IP trong 24 giờ gần nhất (dùng chỉ mục `ix_login_events_ip_address`).
   3. `asn_events`   — cùng ASN trong 24 giờ gần nhất (dùng chỉ mục `ix_login_events_asn`); rỗng nếu ASN không rõ.
   4. `global_counts` — đếm toàn cục theo TỪNG THUỘC TÍNH (ip/country/asn/ua/browser/os/device) của MỌI đăng nhập THÀNH CÔNG,
-     tài khoản có thật, trên TOÀN BẢNG — không nhắm được vào một chỉ mục hẹp. Cache TTL ngắn (`GlobalCountsCache`) để một
-     đợt đăng nhập dồn dập không quét lại bảng cho mỗi lần; xem giới hạn ở docstring của lớp đó.
+     tài khoản có thật, trên TOÀN BẢNG — không nhắm được vào một chỉ mục hẹp. Đếm bằng `GROUP BY` trong DB (MR20), cache
+     TTL ngắn có khoá (`GlobalCountsCache`) để một đợt đăng nhập dồn dập không quét lại bảng cho mỗi lần; xem giới hạn ở
+     docstring của lớp đó.
 
 ⚠️ Giả định luồng THẬT: lần thử được chấm gần như ngay khi xảy ra (cache "trước sự kiện" ≈ "trước hiện tại"). KHÔNG dùng
 module này để chấm lại log cũ hàng loạt — việc đó là của `backend/ml/rba/rule_replay.py` (đọc thẳng từ RBA, không qua DB).
@@ -19,7 +20,8 @@ module này để chấm lại log cũ hàng loạt — việc đó là của `b
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+import threading
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
@@ -27,7 +29,7 @@ from sqlalchemy.orm import Session
 
 from app.models import LoginEvent
 from app.utils.time import ensure_utc
-from ml.rba.features import US_PER_SECOND, EventRecord, GlobalCounts, HistorySummary, features_from_summary
+from ml.rba.features import FREEMAN_ATTRS, US_PER_SECOND, EventRecord, GlobalCounts, HistorySummary, attr_key, features_from_summary
 
 logger = logging.getLogger("rba_live_features")
 
@@ -82,38 +84,74 @@ def _asn_events(db: Session, asn: int, before: datetime) -> list[EventRecord]:
     return [_event_record(r) for r in rows]
 
 
+# Cột DB của từng thuộc tính Freeman + tên trường tương ứng trong `EventRecord` (để đổi giá trị cột thành khoá đếm bằng
+# CHÍNH `attr_key` của đặc tả MR3 — không viết lại quy tắc NULL_KEY ở đây, tránh hai bản lệch nhau).
+_FREEMAN_COLUMNS = {
+    "ip": (LoginEvent.ip_address, "ip"), "country": (LoginEvent.country, "country"), "asn": (LoginEvent.asn, "asn"),
+    "ua": (LoginEvent.user_agent, "ua"), "browser": (LoginEvent.browser_name, "browser"), "os": (LoginEvent.os_name, "os"),
+    "device": (LoginEvent.device_type, "device_type"),
+}
+assert set(_FREEMAN_COLUMNS) == set(FREEMAN_ATTRS)
+_BLANK_RECORD = EventRecord(ts_us=0, user_id=None, ip=None, asn=None, country=None, ua=None, browser=None, os=None, device_type=None, success=True)
+
+
 @dataclass
 class GlobalCountsCache:
     """`GlobalCounts` (MR3) của MỌI đăng nhập thành công, tài khoản có thật, TOÀN BẢNG — không nhắm được vào một chỉ mục
-    hẹp nên cache lại (khoá theo `before`, xem `get`) thay vì quét cho mỗi lần đăng nhập.
+    hẹp nên cache lại (khoá theo `before`, xem `get`) thay vì tính cho mỗi lần đăng nhập.
 
     ⚠️ Giới hạn: (1) một snapshot cache có thể THIẾU vài dòng rất mới (giữa lúc cache được tính và `before` đang hỏi,
     tối đa `ttl_seconds`) — chấp nhận được cho luồng thật (chỉ ảnh hưởng độ hiếm/LLR lệch rất nhỏ); (2) KHÔNG BAO GIỜ
     THỪA — snapshot tính với mốc `before` cũ hơn hoặc bằng mốc đang hỏi nên không thể chứa chính dòng đang được chấm
-    (điều kiện `_cutoff <= before` ở `get`); (3) quét toàn bảng — với bảng lớn cần thay bằng bộ đếm tăng dần lưu riêng
-    (ngoài phạm vi MR12, demo hiện có vài nghìn dòng, đủ nhanh: đo ở `docs/realtime-integration.md`)."""
+    (điều kiện `cutoff <= before` ở `_fresh`); (3) vẫn quét toàn bảng khi cache hết hạn, nhưng từ MR20 việc đếm làm
+    TRONG DB (`GROUP BY`, chỉ trả về các giá trị khác nhau) thay vì kéo mọi dòng về Python — đo ở `docs/performance.md`
+    mục MR20: 50.000 dòng trên Postgres 584 → 165 ms một lần tính lại. Với bảng rất lớn vẫn nên thay bằng bộ đếm tăng
+    dần lưu riêng.
+
+    Thread-safe (MR20): pipeline chạy trong `asyncio.to_thread` nên nhiều lần đăng nhập đồng thời cùng gọi `get`. Khi
+    cache hết hạn, CHỈ MỘT thread tính lại (khoá), các thread khác chờ rồi dùng luôn kết quả đó nếu hợp lệ với `before`
+    của chúng — trước MR20 mỗi thread tự quét lại toàn bảng cùng lúc."""
 
     ttl_seconds: float = GLOBAL_COUNTS_CACHE_TTL_SECONDS
-    _cached: GlobalCounts | None = None
-    _cutoff: datetime | None = None  # mốc "trước" mà `_cached` đã tính (đã loại mọi dòng có created_at >= mốc này)
+    # (mốc `before` đã dùng để tính, kết quả) — MỘT thuộc tính để thread khác luôn đọc được một cặp nhất quán.
+    _snapshot: tuple[datetime, GlobalCounts] | None = field(default=None, repr=False)
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False, compare=False)
+
+    def _fresh(self, before: datetime) -> GlobalCounts | None:
+        snapshot = self._snapshot
+        if snapshot is None:
+            return None
+        cutoff, counts = snapshot
+        return counts if cutoff <= before and (before - cutoff).total_seconds() <= self.ttl_seconds else None
 
     def get(self, db: Session, before: datetime) -> GlobalCounts:
-        """`GlobalCounts` của mọi dòng có `created_at < before`. Dùng lại cache nếu mốc đã cache (`_cutoff`) KHÔNG SAU
-        `before` (an toàn tuyệt đối: không thể lẫn dòng đang được chấm hoặc dòng SAU nó) và còn trong `ttl_seconds`."""
-        if self._cached is not None and self._cutoff is not None and self._cutoff <= before and (before - self._cutoff).total_seconds() <= self.ttl_seconds:
-            return self._cached
-        self._cached = self._compute(db, before)
-        self._cutoff = before
-        return self._cached
+        """`GlobalCounts` của mọi dòng có `created_at < before`. Dùng lại cache nếu mốc đã cache KHÔNG SAU `before` (an
+        toàn tuyệt đối: không thể lẫn dòng đang được chấm hoặc dòng SAU nó) và còn trong `ttl_seconds`."""
+        counts = self._fresh(before)
+        if counts is not None:
+            return counts
+        with self._lock:
+            counts = self._fresh(before)  # thread khác có thể vừa tính xong trong lúc chờ khoá
+            if counts is None:
+                counts = self._compute(db, before)
+                self._snapshot = (before, counts)
+            return counts
 
     def invalidate(self) -> None:
-        self._cached = None
-        self._cutoff = None
+        self._snapshot = None
 
     @staticmethod
     def _compute(db: Session, before: datetime) -> GlobalCounts:
-        rows = db.execute(select(*_COLUMNS).where(LoginEvent.success.is_(True), LoginEvent.user_id.isnot(None), LoginEvent.created_at < before)).all()
-        return GlobalCounts.from_events(_event_record(r) for r in rows)
+        """Kết quả GIỐNG HỆT `GlobalCounts.from_events` trên các dòng đó (kiểm ở tests/test_rba_live_features.py), nhưng
+        DB tự đếm theo từng cột: chỉ các giá trị KHÁC NHAU đi qua mạng, không phải mọi dòng."""
+        scope = (LoginEvent.success.is_(True), LoginEvent.user_id.isnot(None), LoginEvent.created_at < before)
+        counts = GlobalCounts()
+        counts.total = db.execute(select(func.count()).select_from(LoginEvent).where(*scope)).scalar_one()
+        for attr, (column, record_field) in _FREEMAN_COLUMNS.items():
+            counter = counts.by_attr[attr]
+            for value, n in db.execute(select(column, func.count()).where(*scope).group_by(column)).all():
+                counter[attr_key(replace(_BLANK_RECORD, **{record_field: value}), attr)] += n
+        return counts
 
 
 _global_counts_cache = GlobalCountsCache()

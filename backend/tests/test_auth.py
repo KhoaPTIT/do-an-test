@@ -72,3 +72,29 @@ def test_login_error_message_identical_for_wrong_password_and_unknown_user(clien
 
     assert wrong_password.status_code == unknown_user.status_code == 401
     assert wrong_password.json()["message"] == unknown_user.json()["message"]
+
+
+def test_password_check_runs_off_the_event_loop(client, db_session, monkeypatch):
+    """MR20: `login` là `async def` — bcrypt (~250ms CPU) gọi thẳng trong route sẽ chặn event loop, mọi request khác
+    (dashboard, WebSocket, đăng nhập khác) phải xếp hàng chờ. Hàm kiểm mật khẩu phải chạy ở thread KHÔNG có event loop."""
+    import asyncio
+
+    import app.routers.auth as auth_router
+
+    _create_user(db_session, "carol")
+    real_verify = auth_router.verify_password
+    seen = []
+
+    def spy_verify(password, password_hash):
+        try:
+            asyncio.get_running_loop()
+            seen.append("event_loop")
+        except RuntimeError:
+            seen.append("worker_thread")
+        return real_verify(password, password_hash)
+
+    monkeypatch.setattr(auth_router, "verify_password", spy_verify)
+
+    assert client.post("/login", json={"username": "carol", "password": PASSWORD}).status_code == 200
+    assert client.post("/login", json={"username": "carol", "password": "sai"}).status_code == 401
+    assert seen == ["worker_thread", "worker_thread"]

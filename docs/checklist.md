@@ -331,6 +331,29 @@ Các mục dưới đây đổi mô hình hoặc quy tắc nên cần đồng ý
     ở nhiều script khác, không mới nhưng lần đầu thấy nó có thể che giấu thao tác ĐÃ thành công); mọi mục "Bổ sung
     tuỳ chọn" (MR-S1-S4) bên dưới — không được duyệt trong kế hoạch MR1-19
 
+### MR20 — Sửa các việc còn mở sau MR19: hiệu năng đăng nhập + 3 lỗi đúng/sai tìm được khi đo
+
+- [x] **MR20** Đo từng bước trên Postgres/Redis thật trước khi sửa, sửa nguyên nhân thật — xem
+  [`performance.md`](performance.md) mục "MR20"
+  - ⚠️ **Đính chính MR19**: `_user_events` chỉ ~15 ms ở 1.422 dòng — KHÔNG phải nguyên nhân chính, KHÔNG cắt bớt (cắt
+    theo cửa sổ làm lệch 20 đặc trưng định nghĩa trên toàn bộ lịch sử lúc huấn luyện). Nguyên nhân lớn nhất chưa từng
+    được nêu: `async def login` gọi bcrypt (~280 ms CPU) **thẳng trên event loop** → mọi request xếp hàng. Câu "KHÔNG chặn
+    event loop" ở MR19 chỉ đúng cho pipeline, sai cho route
+  - [x] bcrypt (`verify_password`, `hash_otp_code`) chạy qua `asyncio.to_thread`. Cùng máy, cùng dữ liệu: 3 đồng thời
+    median 861 → **433 ms**, 10 đồng thời 2.820 → **963 ms** (p95 4.928 → 1.375 ms); tuần tự không đổi (~350 ms, bcrypt)
+  - [x] `GlobalCountsCache`: đếm bằng `GROUP BY` trong DB (50.000 dòng 584 → 165 ms mỗi lần hết hạn, kết quả giống hệt
+    đặc tả MR3 — có test) + khoá single-flight (8 thread đồng thời → 1 lần tính, trước là 8)
+  - [x] **Lỗi đúng/sai** `DbGlobalStats` (luật `rare_network_login`): thiếu `created_at < before` nên đếm cả lần thử đang
+    chấm → `never_seen` không bao giờ đúng ở luồng thật. Luật đang `shadow` + cần ≥ 20.000 lượt nên chưa ảnh hưởng demo
+  - [x] **Lỗi đúng/sai** mốc cache `-1.0` so với `time.monotonic()` (đếm từ lúc máy boot): trong 15 giây đầu sau boot
+    `invalidate_blocklist_cache()` vô tác dụng → khoá tự động MR16 và mục chặn admin vừa thêm bị bỏ qua. Đổi `-math.inf`
+  - [x] `scripts/create_admin.py` không còn thoát lỗi (exit 1) khi console không phải UTF-8 dù admin ĐÃ được tạo
+  - [x] Regression: 761 test (756 + 5 mới); trên container không có GeoLite2/artifact RBA (không commit) 9 test cần các
+    file đó fail như trước khi sửa — không test nào fail do MR20
+  - ➡️ Chưa làm: DB đồng bộ khác trong `async def login` (vài ms); **lộ tài khoản có tồn tại qua thời gian phản hồi**
+    (tên không tồn tại bỏ qua bcrypt → 401 nhanh hơn ~280 ms) — cần quyết đánh đổi CPU khi bị credential stuffing;
+    drift của model-health vẫn so train RBA với log demo (từ MR19)
+
 ## Bổ sung tuỳ chọn (làm sau CP2 nếu còn thời gian)
 
 - [ ] **MR-S1** Nhật ký truy cập sau đăng nhập và phát hiện IDOR/enumeration (module riêng, dữ liệu mô phỏng, ghi rõ ngoài phạm vi "đăng nhập")

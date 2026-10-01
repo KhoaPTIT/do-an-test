@@ -157,3 +157,66 @@ def test_build_features_and_summary_returns_none_none_instead_of_raising_on_erro
     monkeypatch.setattr(mod, "build_history_summary", boom)
     current = _mk(db_session, minutes=0)
     assert build_features_and_summary(db_session, event_record_for(current)) == (None, None)
+
+
+def test_global_counts_from_group_by_equal_the_spec_counting_every_row(db_session):
+    """MR20: `_compute` đếm bằng `GROUP BY` trong DB thay vì kéo mọi dòng về Python — kết quả phải GIỐNG HỆT
+    `GlobalCounts.from_events` của đặc tả MR3 trên cùng các dòng, kể cả cột NULL (-> NULL_KEY) và lọc thành công/tài
+    khoản thật/trước `before`."""
+    from sqlalchemy import select
+
+    from app.detection.rba_live_features import _COLUMNS, _event_record
+    from ml.rba.features import GlobalCounts
+
+    alice, bob = _user(db_session, "alice"), _user(db_session, "bob")
+    _mk(db_session, minutes=0, user_id=alice.id, ip="1.1.1.1", asn=100, country="VN", ua="UA-1", browser="Chrome 120", os="Windows 10", device="desktop")
+    _mk(db_session, minutes=1, user_id=alice.id, ip="1.1.1.1", asn=100, country="VN", ua="UA-1", browser="Chrome 120", os="Windows 10", device="desktop")
+    _mk(db_session, minutes=2, user_id=bob.id, ip="2.2.2.2", asn=None, country=None, ua=None, browser=None, os=None, device=None)  # mọi cột NULL
+    _mk(db_session, minutes=3, user_id=bob.id, ip="2.2.2.2", asn=200, country="US", ua="UA-2", browser="Safari 17", os="iOS 17", device="mobile")
+    _mk(db_session, minutes=4, user_id=bob.id, ip="3.3.3.3", asn=200, success=False, country="RU")  # thất bại: không tính
+    _mk(db_session, minutes=5, user_id=None, ip="4.4.4.4", asn=300, country="CN")  # tên không tồn tại: không tính
+    _mk(db_session, minutes=9, user_id=alice.id, ip="5.5.5.5", asn=400, country="JP")  # SAU before: không tính
+    before = BASE + timedelta(minutes=8)
+
+    rows = db_session.execute(
+        select(*_COLUMNS).where(LoginEvent.success.is_(True), LoginEvent.user_id.isnot(None), LoginEvent.created_at < before)
+    ).all()
+    expected = GlobalCounts.from_events(_event_record(r) for r in rows)
+    actual = GlobalCountsCache._compute(db_session, before)
+
+    assert actual.total == expected.total == 4
+    assert actual.by_attr == expected.by_attr
+
+
+def test_global_counts_cache_recomputes_once_for_concurrent_misses(db_session, monkeypatch):
+    """MR20: nhiều thread cùng gặp cache hết hạn -> CHỈ MỘT lần tính lại toàn bảng, các thread khác dùng lại kết quả."""
+    import threading
+    import time
+
+    from ml.rba.features import GlobalCounts
+
+    calls = []
+
+    def slow_compute(db, before):
+        calls.append(before)
+        time.sleep(0.05)
+        return GlobalCounts()
+
+    monkeypatch.setattr(GlobalCountsCache, "_compute", staticmethod(slow_compute))
+    cache = GlobalCountsCache()
+    before = BASE + timedelta(minutes=5)
+    barrier = threading.Barrier(8)
+    results = []
+
+    def worker():
+        barrier.wait()
+        results.append(cache.get(db_session, before))
+
+    threads = [threading.Thread(target=worker) for _ in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert len(calls) == 1  # trước MR20 (không khoá): cả 8 thread cùng quét lại toàn bảng
+    assert len(results) == 8 and all(r is results[0] for r in results)

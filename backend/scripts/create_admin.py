@@ -8,6 +8,7 @@ Chạy:
 from __future__ import annotations
 
 import argparse
+import sys
 
 from app.database import Base, SessionLocal, engine
 from app.models import Admin
@@ -33,6 +34,9 @@ def main(username: str, password: str) -> None:
 
 
 if __name__ == "__main__":
+    # Thông báo tiếng Việt in SAU khi đã commit: console Windows mã cp1252/cp1258 (không đặt PYTHONIOENCODING) từng làm
+    # print raise UnicodeEncodeError -> script thoát lỗi dù admin ĐÃ được tạo. Không bao giờ để việc in làm hỏng kết quả.
+    sys.stdout.reconfigure(errors="replace")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--username", required=True)
     parser.add_argument("--password", required=True)

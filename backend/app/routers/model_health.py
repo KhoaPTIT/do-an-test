@@ -13,6 +13,7 @@ config, vì trôi đặc trưng không đổi nhanh) + `?refresh=true` để qu�
 Yêu cầu JWT admin hợp lệ (nhiệm vụ 5.1).
 """
 
+import math
 import time
 from datetime import datetime, timezone
 
@@ -33,7 +34,7 @@ TOP_N_FEATURES = 15
 CURRENT_ROWS_LIMIT = 300
 
 _drift_cache: ModelHealthOut | None = None  # chỉ phần drift được cache — versions luôn đọc DB mới (rẻ)
-_drift_cached_at = -1.0
+_drift_cached_at = -math.inf  # -inf, không phải -1.0 — lý do ở app/detection/rule_engine_runtime.py (_blocklist_cached_at)
 _reference_frame_cache = None  # pd.DataFrame train RBA — KHÔNG đổi khi tiến trình đang chạy, cache vĩnh viễn (không TTL)
 
 
@@ -42,7 +43,7 @@ def invalidate_drift_cache() -> None:
     trong test setup (`conftest.py`) để một test không đọc nhầm kết quả đã cache từ DB của test KHÁC (TTL 600s dài hơn
     nhiều so với thời gian chạy một bộ test, nên rất dễ rò rỉ nếu không xoá)."""
     global _drift_cached_at
-    _drift_cached_at = -1.0
+    _drift_cached_at = -math.inf
 
 
 def _get_reference_frame():

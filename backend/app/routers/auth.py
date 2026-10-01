@@ -18,6 +18,7 @@ MR16 "Phản ứng tự động (mô phỏng)" đổi đường đi cho HAI trư
 `POST /login/verify-otp` hoàn tất bước xác thực thêm ở (2).
 """
 
+import asyncio
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
@@ -69,8 +70,10 @@ async def login(payload: LoginRequest, request: Request, background_tasks: Backg
         return _locked_response()
 
     user = db.query(User).filter(User.username == payload.username).first()
-    # So khớp hash chứ không so plain text.
-    success = verify_password(payload.password, user.password_hash) if user else False
+    # So khớp hash chứ không so plain text. bcrypt tốn ~250ms CPU: chạy trong THREAD, không chạy thẳng trên event loop
+    # (route này là `async def` — gọi đồng bộ sẽ chặn MỌI request khác, kể cả dashboard/WebSocket, trong lúc băm; đo ở
+    # docs/performance.md mục MR20). bcrypt nhả GIL khi băm nên nhiều lần đăng nhập đồng thời băm song song thật.
+    success = await asyncio.to_thread(verify_password, payload.password, user.password_hash) if user else False
 
     if not success:
         background_tasks.add_task(
@@ -88,7 +91,8 @@ async def login(payload: LoginRequest, request: Request, background_tasks: Backg
 
     if result.hybrid_action == "step_up":
         code = generate_otp_code()
-        challenge = OtpChallenge(login_event_id=result.login_event_id, user_id=user.id, code_hash=hash_otp_code(code), expires_at=now + OTP_TTL)
+        code_hash = await asyncio.to_thread(hash_otp_code, code)  # cũng là bcrypt — cùng lý do như verify_password ở trên
+        challenge = OtpChallenge(login_event_id=result.login_event_id, user_id=user.id, code_hash=code_hash, expires_at=now + OTP_TTL)
         db.add(challenge)
         db.flush()
 

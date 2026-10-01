@@ -13,11 +13,12 @@ thấy tương đối nhanh, không đáng để truy vấn DB cho mỗi lần �
 from __future__ import annotations
 
 import logging
+import math
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.detection import rate_counter
@@ -94,52 +95,48 @@ class DbAccountHistory:
         pass  # xem docstring lớp: `get()` luôn đọc DB mới nhất, không cần giữ trạng thái riêng
 
 
-# ------------------------------------------------------------------------------------------------ thống kê toàn cục (nhà mạng) từ DB, có cache TTL ngắn
+# ------------------------------------------------------------------------------------------------ thống kê toàn cục (nhà mạng) từ DB
 
 
 @dataclass
 class DbGlobalStats:
-    """`GlobalStats` (dùng bởi `rare_network_login`) — đếm đăng nhập THÀNH CÔNG của tài khoản có thật, theo ASN, TOÀN
-    BẢNG. Cache TTL ngắn cùng lý do với `rba_live_features.GlobalCountsCache` (không nhắm được một chỉ mục hẹp)."""
+    """`GlobalStats` (dùng bởi `rare_network_login`) — đếm đăng nhập THÀNH CÔNG của tài khoản có thật, theo ASN, mọi
+    dòng TRƯỚC `before` (thời điểm của lần thử đang chấm). Dựng mới cho mỗi lần chấm (`build_rule_engine`) nên luôn
+    thấy dữ liệu mới nhất.
+
+    MR20 sửa hai lỗi của bản MR12: (1) thiếu điều kiện `created_at < before` — lần thử đang chấm đã `flush` vào DB nên
+    bị đếm luôn (`asn_successes` luôn >= 1 với chính ASN của nó, `never_seen` không bao giờ đúng ở luồng thật), trái
+    với quy ước "chưa gồm lần này" của luật và của bản trong bộ nhớ dùng khi replay; (2) kéo cột ASN của MỌI dòng về
+    Python cho mỗi lần đăng nhập thành công (cache TTL theo instance không bao giờ trúng vì instance dựng mới mỗi
+    lần) — nay đếm trong DB: `count(*)` một lần và `count` theo một ASN (chỉ mục `ix_login_events_asn`)."""
 
     db: Session
-    ttl_seconds: float = 30.0
-    _total: int = field(default=0, init=False)
-    _by_asn: dict[int, int] = field(default_factory=dict, init=False)
-    _cached_at: float = field(default=-1.0, init=False)
+    before: datetime
+    _total: int | None = field(default=None, init=False)
 
-    def _refresh(self) -> None:
-        now = time.monotonic()
-        if now - self._cached_at < self.ttl_seconds:
-            return
-        rows = self.db.execute(
-            select(LoginEvent.asn).where(LoginEvent.success.is_(True), LoginEvent.user_id.isnot(None))
-        ).all()
-        self._total = len(rows)
-        by_asn: dict[int, int] = {}
-        for (asn,) in rows:
-            if asn is not None:
-                by_asn[asn] = by_asn.get(asn, 0) + 1
-        self._by_asn = by_asn
-        self._cached_at = now
+    def _scope(self):
+        return (LoginEvent.success.is_(True), LoginEvent.user_id.isnot(None), LoginEvent.created_at < self.before)
 
     @property
     def total_successes(self) -> int:
-        self._refresh()
+        if self._total is None:
+            self._total = self.db.execute(select(func.count()).select_from(LoginEvent).where(*self._scope())).scalar_one()
         return self._total
 
     def asn_successes(self, asn: int) -> int:
-        self._refresh()
-        return self._by_asn.get(asn, 0)
+        return self.db.execute(select(func.count()).select_from(LoginEvent).where(*self._scope(), LoginEvent.asn == asn)).scalar_one()
 
     def update(self, attempt: LoginAttempt) -> None:
-        pass  # bộ đếm đọc lại từ DB theo TTL, không cần cập nhật tức thời tại đây
+        pass  # bộ đếm đọc lại từ DB mỗi lần chấm, không cần cập nhật tức thời tại đây
 
 
 # ------------------------------------------------------------------------------------------------ blocklist DB-backed, cache TTL ngắn
 
+# "Chưa từng cache" = -inf, KHÔNG phải -1.0: `time.monotonic()` trên Linux đếm từ lúc MÁY khởi động, nên trong
+# TTL giây đầu sau khi boot (vd docker-compose bật backend ngay khi máy lên) `now - (-1.0) < TTL` và việc làm mới bị
+# bỏ qua — `invalidate_*` khi đó không có tác dụng. -inf thì `now - cached_at` luôn là +inf.
 _blocklist_cache: Blocklist | None = None
-_blocklist_cached_at = -1.0
+_blocklist_cached_at = -math.inf
 
 
 def refresh_blocklist(db: Session, force: bool = False) -> Blocklist:
@@ -160,13 +157,13 @@ def refresh_blocklist(db: Session, force: bool = False) -> Blocklist:
 def invalidate_blocklist_cache() -> None:
     """Gọi ngay sau khi quản trị viên thêm/xoá một mục chặn, để không phải chờ hết TTL (MR13+ sẽ có router gọi hàm này)."""
     global _blocklist_cached_at
-    _blocklist_cached_at = -1.0
+    _blocklist_cached_at = -math.inf
 
 
 # ------------------------------------------------------------------------------------------------ rule config DB-backed, cache TTL ngắn
 
 _rule_config_cache: RuleConfig | None = None
-_rule_config_cached_at = -1.0
+_rule_config_cached_at = -math.inf
 
 
 def refresh_rule_config(db: Session, force: bool = False) -> RuleConfig:
@@ -190,7 +187,7 @@ def refresh_rule_config(db: Session, force: bool = False) -> RuleConfig:
 def invalidate_rule_config_cache() -> None:
     """Gọi ngay sau khi quản trị viên đổi cấu hình một luật (`PUT`/`DELETE /rules/{id}`, MR17)."""
     global _rule_config_cached_at
-    _rule_config_cached_at = -1.0
+    _rule_config_cached_at = -math.inf
 
 
 # ------------------------------------------------------------------------------------------------ dựng engine
@@ -208,4 +205,4 @@ def build_rule_engine(db: Session, config: RuleConfig | None = None, *, before: 
     before = ensure_utc(before) if before is not None else datetime.now(timezone.utc)
     store = RedisStore(rate_counter.redis_client)
     resolved_config = refresh_rule_config(db) if config is None else config
-    return RuleEngine(resolved_config, store=store, history=DbAccountHistory(db, before), intel=_get_threat_intel(), blocklist=refresh_blocklist(db), stats=DbGlobalStats(db))
+    return RuleEngine(resolved_config, store=store, history=DbAccountHistory(db, before), intel=_get_threat_intel(), blocklist=refresh_blocklist(db), stats=DbGlobalStats(db, before))
