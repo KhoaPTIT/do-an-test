@@ -85,3 +85,24 @@ def test_attribution_scripted_client_on_the_success_keeps_primary(env):
     assert len(alerts) == 1
     assert "scripted_client" in alerts[0].explanation["matched_rules"]
     assert alerts[0].explanation["primary_detector"] == RULE
+
+
+def test_negative_shared_account_with_typos_among_many_successful_logins(env):
+    """Milestone C — báo nhầm thật lộ ra từ lưu lượng bình thường v3 (tài khoản dùng chung kiểu kiosk): 5 lần gõ sai XEN
+    GIỮA 6 lần đăng nhập đúng trong 10 phút không phải 'đoán trúng mật khẩu'."""
+    seed_user(env, "kiosk")
+    t = 0
+    for ok in (True, False, True, False, True, False, True, False, True, False, True):
+        env.login("kiosk", success=ok, ip=HOME_IP, ts=T0 + timedelta(seconds=t))
+        t += 50
+    env.login("kiosk", success=True, ip=HOME_IP, ts=T0 + timedelta(seconds=t))
+    assert env.detector_alerts(RULE) == []
+
+
+def test_boundary_one_prior_success_among_many_failures_still_alerts(env):
+    # 6 lần sai + 1 lần đúng xen giữa (tỉ lệ 1/7 ≈ 0,14 ≤ 0,2) rồi thành công: vẫn là đoán trúng
+    seed_user(env, "victim")
+    for k, ok in enumerate((False, False, False, True, False, False, False)):
+        env.login("victim", success=ok, ip=US_IP, ts=T0 + timedelta(seconds=k * 30))
+    env.login("victim", success=True, ip=US_IP, ts=T0 + timedelta(seconds=250))
+    assert len(env.detector_alerts(RULE)) == 1

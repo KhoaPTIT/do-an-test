@@ -27,19 +27,29 @@ CATEGORY = "Đoán và dò mật khẩu"
     params=(
         Param("threshold", 5, "số lần sai tối thiểu để báo", "lần", 2, 1000),
         Param("window_s", 300, "độ dài cửa sổ", "giây", 10, _DAY),
+        Param("max_success_ratio", 0.2, "quá tỉ lệ lần THÀNH CÔNG của tài khoản trong cửa sổ này thì coi là tài khoản dùng chung gõ sai lẫn trong nhiều lần đúng", "", 0.0, 1.0),
     ),
-    notes="Ngưỡng và cửa sổ là luật tầng 1 gốc (docs/api-contract.md mục 6, giả định chưa đối chiếu). Báo ở MỖI lần sai từ lần thứ `threshold` trở đi; gộp cảnh báo trùng là việc của MR13.",
+    notes=(
+        "Ngưỡng và cửa sổ là luật tầng 1 gốc (docs/api-contract.md mục 6, giả định chưa đối chiếu). Báo ở MỖI lần sai từ lần thứ `threshold` trở đi; gộp cảnh báo "
+        "trùng là việc của MR13. Milestone C: bỏ qua khi lần thành công của tài khoản chiếm > `max_success_ratio` trong cửa sổ — lộ ra từ lưu lượng bình "
+        "thường v3 (tài khoản dùng chung kiểu kiosk: 5 lần gõ sai lẫn trong 4–9 lần đúng trong vài phút); dò mật khẩu thì gần như chỉ có thất bại. Alert "
+        "tầng 1 gốc (`alert_type=brute_force`) KHÔNG đổi."
+    ),
 )
 def brute_force(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p
     if a.success:
         return None
-    fails = ctx.store.log_count(K.fail_user(a.username), ctx.since(p.window_s))
+    since = ctx.since(p.window_s)
+    fails = ctx.store.log_count(K.fail_user(a.username), since)
     if fails < p.threshold:
+        return None
+    oks = ctx.store.log_count(K.ok_user(a.user_key), since) if a.user_key is not None else 0
+    if oks > p.max_success_ratio * (oks + fails):
         return None
     return Finding(
         f"Dò mật khẩu '{a.username}': {fails} lần sai/{window_text(p.window_s)} (ngưỡng {p.threshold}).",
-        {"username": a.username, "fails": fails, "window_s": p.window_s},
+        {"username": a.username, "fails": fails, "successes": oks, "window_s": p.window_s},
     )
 
 
@@ -220,9 +230,14 @@ def username_enumeration(ctx: RuleContext) -> Finding | None:
     params=(
         Param("window_s", 600, "độ dài cửa sổ nhìn lại", "giây", 10, _DAY),
         Param("min_fails", 5, "số lần sai tối thiểu trước đó vào tài khoản", "lần", 2, 100_000),
+        Param("max_prior_success_ratio", 0.2, "quá tỉ lệ lần THÀNH CÔNG xen giữa này (trên tổng lần thử trước đó trong cửa sổ) thì coi là tài khoản dùng chung gõ sai lẫn trong nhiều lần đúng, không phải đoán trúng", "", 0.0, 1.0),
     ),
     needs=("account",),
-    notes="Người dùng thật cũng gõ sai vài lần rồi đúng; ngưỡng 5 (cao hơn mức 3 của điểm rủi ro tầng 2) để giảm báo nhầm — cần đo trên log thật ở MR10.",
+    notes=(
+        "Người dùng thật cũng gõ sai vài lần rồi đúng; ngưỡng 5 (cao hơn mức 3 của điểm rủi ro tầng 2) để giảm báo nhầm. Milestone C: bỏ qua khi các lần "
+        "thành công XEN GIỮA chiếm > `max_prior_success_ratio` — lộ ra từ lưu lượng bình thường v3: tài khoản dùng chung kiểu kiosk (nhiều người, nhiều lần "
+        "đúng, lẫn vài lần gõ sai) có 4–9 lần thành công xen giữa 5–6 lần sai trong 10 phút; đoán mật khẩu thì thất bại áp đảo rồi mới trúng (0 lần xen giữa)."
+    ),
 )
 def success_after_failures(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p
@@ -232,8 +247,11 @@ def success_after_failures(ctx: RuleContext) -> Finding | None:
     fails = ctx.store.log_count(K.fail_user(a.username), since)
     if fails < p.min_fails:
         return None
+    prior_successes = max(ctx.store.log_count(K.ok_user(a.user_key), since) - 1, 0)  # chỉ mục đã gồm CHÍNH lần thành công này
+    if prior_successes > p.max_prior_success_ratio * (prior_successes + fails):
+        return None
     ips = ctx.store.set_count(K.fail_ips_of_user(a.username), since, K.CAP)
     return Finding(
         f"Đăng nhập thành công '{a.username}' sau {fails} lần sai/{window_text(p.window_s)} từ {ips} IP (có thể đã đoán trúng mật khẩu).",
-        {"username": a.username, "fails_before": fails, "distinct_ips_before": ips, "window_s": p.window_s},
+        {"username": a.username, "fails_before": fails, "prior_successes": prior_successes, "distinct_ips_before": ips, "window_s": p.window_s},
     )

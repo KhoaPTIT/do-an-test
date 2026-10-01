@@ -69,3 +69,19 @@ def test_attribution_attacker_far_away_is_not_reported_as_impossible_travel(env)
     assert len(env.detector_alerts(RULE)) == 1
     assert env.detector_alerts("impossible_travel") == []
     assert not any(a.alert_type == "impossible_travel" for a in env.alerts())
+
+
+def test_negative_shared_account_with_typos_among_many_successful_logins(env):
+    """Milestone C — báo nhầm thật lộ ra từ lưu lượng bình thường v3 (tài khoản dùng chung kiểu kiosk): 5 lần gõ sai lẫn
+    trong 5 lần đúng trong 5 phút không phải dò mật khẩu (luật v2; alert tầng 1 gốc không đổi)."""
+    seed_user(env, "kiosk")
+    for k, ok in enumerate((True, False, True, False, True, False, True, False, True, False)):
+        env.login("kiosk", success=ok, ip=HOME_IP, ts=T0 + timedelta(seconds=k * 25))
+    assert env.detector_alerts(RULE) == []
+
+
+def test_boundary_one_success_among_many_failures_is_still_brute_force(env):
+    seed_user(env, "victim")
+    for k, ok in enumerate((False, False, True, False, False, False)):  # 5 sai + 1 đúng: tỉ lệ 1/6 ≈ 0,17 ≤ 0,2
+        env.login("victim", success=ok, ip=US_IP, ts=T0 + timedelta(seconds=k * 20))
+    assert len(env.detector_alerts(RULE)) == 1

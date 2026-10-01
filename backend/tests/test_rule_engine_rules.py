@@ -45,8 +45,12 @@ def test_brute_force_ignores_slow_scattered_or_successful_attempts():
     assert fired(run(RuleEngine(), [make(i * 90) for i in range(5)]), "brute_force") == []  # 5 lần nhưng trải 6 phút: cửa sổ 5 phút chỉ còn 4
     assert fired(run(RuleEngine(), [make(t) for t in (0, 75, 150, 225, 300)]), "brute_force") == []  # lần đầu cách đúng 300 giây: KHÔNG tính (cửa sổ mở)
     assert fired(run(RuleEngine(), [make(i, username="alice") for i in range(3)] + [make(i + 3, username="bob") for i in range(3)]), "brute_force") == []
-    mixed = [make(i, success=(i % 2 == 0)) for i in range(10)]  # 5 sai xen 5 đúng
-    assert fired(run(RuleEngine(), mixed), "brute_force") == [9]  # chỉ đủ 5 lần SAI ở lần thứ 10; nếu đếm cả thành công thì đã báo từ lần thứ 5
+    mixed = [make(i, success=(i == 2)) for i in range(6)]  # 5 sai + 1 đúng (thất bại áp đảo)
+    assert fired(run(RuleEngine(), mixed), "brute_force") == [5]  # chỉ đủ 5 lần SAI ở lần thứ 6; nếu đếm cả thành công thì đã báo từ lần thứ 5
+    # Milestone C (thay expectation cũ "5 sai xen 5 đúng thì báo ở lần thứ 10"): gõ sai LẪN TRONG nhiều lần đúng (tài khoản
+    # dùng chung) không phải dò mật khẩu — lộ ra từ lưu lượng bình thường v3.
+    interleaved = [make(i, success=(i % 2 == 0)) for i in range(10)]
+    assert fired(run(RuleEngine(), interleaved), "brute_force") == []
     assert fired(run(RuleEngine(), [make(i, success=True) for i in range(20)]), "brute_force") == []
 
 
