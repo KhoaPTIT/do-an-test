@@ -25,6 +25,7 @@ SCRIPT_MARKERS = (
 
 @rule(
     id="bot_user_agent",
+    verification="verified",  # Milestone B — artifacts/behavior_verification/bot_user_agent.json
     title="User-Agent là bot",
     category=CATEGORY,
     severity="low",

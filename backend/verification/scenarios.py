@@ -771,6 +771,47 @@ def scripted_negative(rng, i):
     return sc
 
 
+# ------------------------------------------------------------------------------------------------ bot_user_agent (Milestone B)
+
+BOT_UAS = (
+    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+    "DuckDuckBot/1.1; (+http://duckduckgo.com/duckduckbot.html)",
+    "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
+    "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
+    "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+    "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)",
+    "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)",
+    "Mozilla/5.0 (compatible; MJ12bot/v1.4.8; http://mj12bot.com/)",
+    "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+)
+
+
+def bot_positive(rng, i):
+    sc = Scenario("bot_user_agent", "positive", "")
+    ua = BOT_UAS[i % len(BOT_UAS)]
+    ip = _foreign_ip(rng)
+    if rng.random() < 0.5:
+        _seed(sc, "alice", ip=HOME_POOL[0])
+        n = rng.randint(1, 3)
+        sc.steps += [Step("alice", rng.random() < 0.3, ip, j * rng.uniform(60, 600), ua) for j in range(n)]
+        sc.variant = f"{n} yêu cầu đăng nhập từ crawler ({ua[:30]})"
+    else:
+        sc.steps.append(Step(_names(rng, "ghost", 1)[0], False, ip, 0, ua))
+        sc.variant = f"crawler thử tên không tồn tại ({ua[:30]})"
+    return sc
+
+
+def bot_negative(rng, i):
+    sc = Scenario("bot_user_agent", "negative", "")
+    _seed(sc, "alice", ip=HOME_POOL[0])
+    options = LEGIT_CLIENT_UAS + SCRIPTED_TOOL_UAS[:3] + (None,)
+    ua = options[i % len(options)]
+    sc.steps.append(Step("alice", rng.random() < 0.7, _pick(rng, HOME_POOL + MOBILE_POOL), 0, ua))
+    sc.variant = f"UA {'trống' if not ua else ua[:40]} (không phải crawler)"
+    return sc
+
+
 GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "username_enumeration": (enum_positive, enum_negative),
     "password_spray_slow": (spray_positive, spray_negative),
@@ -785,4 +826,5 @@ GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "country_hop": (hop_positive, hop_negative),
     "ua_rotation": (rot_positive, rot_negative),
     "scripted_client": (scripted_positive, scripted_negative),
+    "bot_user_agent": (bot_positive, bot_negative),
 }
