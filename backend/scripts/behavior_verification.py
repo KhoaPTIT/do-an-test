@@ -55,7 +55,8 @@ def _git_commit() -> dict:
     def run(*args):
         return subprocess.run(["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=False).stdout.strip()
 
-    return {"commit": run("rev-parse", "HEAD") or None, "dirty": bool(run("status", "--porcelain", "--untracked-files=no"))}
+    # thư mục bằng chứng (artifacts/) bị loại khỏi kiểm tra: runner tự ghi đè nó, không phải mã phát hiện
+    return {"commit": run("rev-parse", "HEAD") or None, "dirty": bool(run("status", "--porcelain", "--untracked-files=no", "--", ".", ":!artifacts"))}
 
 
 def _setup(env: VerificationEnv, accounts, history, blocks=()) -> None:

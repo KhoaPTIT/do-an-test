@@ -501,3 +501,26 @@ def test_blocklist_hit_covers_ip_network_asn_and_username_and_respects_expiry():
     blocked = engine.evaluate(make(10, ip="6.6.6.6"))
     found = hit(blocked, "blocklist_hit")
     assert found.severity == "high" and found.mode == "enforce" and found.techniques == () and "IP đã dò mật khẩu" in found.message
+
+
+def test_user_agent_rotation_counts_canonical_families_not_version_strings():
+    # Milestone B: Chrome tự cập nhật phiên bản không phải "đổi User-Agent".
+    from app.utils.device import parse_user_agent
+
+    def chrome(v):
+        ua = f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{v}.0.0.0 Safari/537.36"
+        p = parse_user_agent(ua)
+        return dict(user_agent=ua, browser=p.browser, os=p.os, device_type=p.device_type)
+
+    versions = [make(i * 20, username=f"u{i % 2}", ip="1.9.9.5", **chrome(118 + i)) for i in range(10)]  # 10 lần sai, 10 chuỗi UA, MỘT họ
+    assert fired(run(RuleEngine(), versions), "ua_rotation") == []
+    raw = RuleEngine(RuleConfig.from_dict({"rules": {"ua_rotation": {"params": {"canonical_agents": False}}}}))
+    assert fired(run(raw, versions), "ua_rotation") != []  # đếm chuỗi thô (hành vi trước Milestone B) thì khớp
+
+
+def test_user_agent_rotation_ignores_shared_ip_dominated_by_successful_logins():
+    # NAT dùng chung: 9 người, trình duyệt khác nhau, mỗi người gõ sai 1 lần rồi đăng nhập đúng.
+    attempts = []
+    for i in range(9):
+        attempts += [make(i * 30, username=f"nv{i}", ip="1.9.9.4", user_agent=f"Agent-{i}"), make(i * 30 + 5, success=True, username=f"nv{i}", ip="1.9.9.4", user_agent=f"Agent-{i}")]
+    assert fired(run(RuleEngine(), attempts), "ua_rotation") == []

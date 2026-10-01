@@ -9,6 +9,7 @@ Quy ước tên khoá: `<loại>:<đối tượng>:<giá trị>`. Loại nhật 
 | `fail:ip:<ip>`       | log  | mỗi lần thất bại từ IP                                | thất bại          |
 | `fu:ip:<ip>`         | set  | tên đăng nhập đã thất bại từ IP                       | thất bại          |
 | `fua:ip:<ip>`        | set  | User-Agent (băm) đã thất bại từ IP                    | thất bại, có UA   |
+| `fuf:ip:<ip>`        | set  | HỌ User-Agent chuẩn hoá (bỏ phiên bản) thất bại từ IP | thất bại, có UA   |
 | `nx:ip:<ip>`         | set  | tên KHÔNG tồn tại đã thử từ IP                        | thất bại, tên bịa |
 | `fail:asn:<asn>`     | log  | mỗi lần thất bại từ ASN                               | thất bại, có ASN  |
 | `fu:asn:<asn>`       | set  | tên đăng nhập đã thất bại từ ASN                      | thất bại, có ASN  |
@@ -49,6 +50,10 @@ def fail_users_of_ip(ip: str) -> str:
 
 def fail_agents_of_ip(ip: str) -> str:
     return f"fua:ip:{ip}"
+
+
+def fail_agent_families_of_ip(ip: str) -> str:
+    return f"fuf:ip:{ip}"
 
 
 def unknown_users_of_ip(ip: str) -> str:
@@ -102,6 +107,8 @@ def record(store: WindowStore, a: LoginAttempt) -> None:
         store.set_add(fail_users_of_ip(a.ip), a.ts, a.username, RETENTION_SHORT)
         if a.ua_hash:
             store.set_add(fail_agents_of_ip(a.ip), a.ts, a.ua_hash, RETENTION_SHORT)
+        if a.device_family:
+            store.set_add(fail_agent_families_of_ip(a.ip), a.ts, a.device_family, RETENTION_SHORT)
         if a.user_key is None:
             store.set_add(unknown_users_of_ip(a.ip), a.ts, a.username, RETENTION_SHORT)
         if a.asn is not None:

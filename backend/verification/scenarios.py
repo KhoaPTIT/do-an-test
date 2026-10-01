@@ -642,6 +642,93 @@ def hop_negative(rng, i):
     return sc
 
 
+# ------------------------------------------------------------------------------------------------ ua_rotation (Milestone B)
+
+ROTATION_UAS = (  # 12 HỌ khác nhau sau chuẩn hoá (loại thiết bị | HĐH | trình duyệt) — kiểm bằng device_family_of
+    CHROME_UA, FIREFOX_UA, SAFARI_UA, EDGE_UA, MOBILE_UA,
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0",
+    "Mozilla/5.0 (Linux; Android 13; SAMSUNG SM-A536B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPad; CPU OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+)
+
+
+def chrome_version_ua(major: int) -> str:
+    return f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{major}.0.{6000 + major}.85 Safari/537.36"
+
+
+def rot_positive(rng, i):
+    """Công cụ xoay UA khi CHƯA chạm ngưỡng của một hành vi cụ thể hơn (nhồi thông tin/brute force — khi chạm, hành vi đó
+    làm detector chính và ua_rotation là tín hiệu phụ: xem test chéo). Miền tham số: 1–4 tài khoản; 2 tài khoản thì cách
+    40–85s, còn lại 76–85s (≤4 lần sai/300s nên không chạm brute force/nhồi thông tin), luôn ≥8 lần sai trong 10 phút."""
+    sc = Scenario("ua_rotation", "positive", "")
+    m = rng.choice((1, 2, 2, 3, 4))
+    real = rng.random() < 0.6
+    names = _names(rng, "rot" if real else "ghost", m)
+    if real:
+        for name in names:
+            _seed(sc, name, days=3)
+    gap = rng.uniform(40, 85) if m == 2 else rng.uniform(76, 85)
+    k = rng.randint(param("ua_rotation", "min_distinct_ua"), 8)
+    agents = rng.sample(ROTATION_UAS, k)
+    n = rng.randint(param("ua_rotation", "min_fails"), 12)
+    ip = _foreign_ip(rng)
+    sc.steps += [Step(names[j % m], False, ip, j * gap, agents[j % k]) for j in range(n)]
+    sc.variant = f"{n} lần sai, {k} họ UA, {m} tài khoản{'' if real else ' (không tồn tại)'}, cách {gap:.0f}s"
+    return sc
+
+
+def rot_negative(rng, i):
+    sc = Scenario("ua_rotation", "negative", "")
+    kind = i % 5
+    if kind == 0:  # Chrome -> Firefox
+        _seed(sc, "owner", ip=HOME_POOL[0])
+        sc.steps += [Step("owner", False, HOME_POOL[0], 0, CHROME_UA), Step("owner", False, HOME_POOL[0], 40, FIREFOX_UA), Step("owner", True, HOME_POOL[0], 70, FIREFOX_UA)]
+        sc.variant = "đổi Chrome → Firefox, gõ sai 2 lần rồi đúng"
+    elif kind == 1:  # laptop -> mobile
+        _seed(sc, "owner", ip=HOME_POOL[0])
+        n = rng.randint(1, 3)
+        sc.steps += [Step("owner", False, HOME_POOL[0], j * 30, CHROME_UA) for j in range(n)]
+        sc.steps += [Step("owner", False, MOBILE_POOL[0], n * 30 + 60, MOBILE_UA), Step("owner", True, MOBILE_POOL[0], n * 30 + 90, MOBILE_UA)]
+        sc.variant = f"laptop sai {n} lần → điện thoại sai 1 lần rồi đúng"
+    elif kind == 2:  # nhiều phiên bản Chrome (cùng họ)
+        names = _names(rng, "u", 2)
+        for name in names:
+            _seed(sc, name, days=3)
+        n = rng.randint(8, 12)
+        ip = _foreign_ip(rng)
+        sc.steps += [Step(names[j % 2], False, ip, j * rng.uniform(40, 70), chrome_version_ua(115 + j)) for j in range(n)]
+        sc.variant = f"{n} lần sai, {n} phiên bản Chrome (một họ)"
+    elif kind == 3:  # 2–3 trình duyệt hợp lệ / ngưỡng − 1 họ
+        if rng.random() < 0.5:
+            _seed(sc, "owner", ip=HOME_POOL[0])
+            browsers = rng.sample((CHROME_UA, FIREFOX_UA, EDGE_UA), rng.randint(2, 3))
+            n = rng.randint(3, 6)
+            sc.steps += [Step("owner", False, HOME_POOL[0], j * 60, browsers[j % len(browsers)]) for j in range(n)]
+            sc.steps.append(Step("owner", True, HOME_POOL[0], n * 60 + 20, browsers[0]))
+            sc.variant = f"{len(browsers)} trình duyệt hợp lệ, {n} lần sai rồi đúng"
+        else:
+            names = _names(rng, "u", 2)
+            for name in names:
+                _seed(sc, name, days=3)
+            agents = rng.sample(ROTATION_UAS, param("ua_rotation", "min_distinct_ua") - 1)
+            ip = _foreign_ip(rng)
+            sc.steps += [Step(names[j % 2], False, ip, j * rng.uniform(40, 70), agents[j % len(agents)]) for j in range(rng.randint(8, 12))]
+            sc.variant = "≥8 lần sai nhưng chỉ 4 họ UA (ngưỡng − 1)"
+    else:  # NAT dùng chung
+        office = _pick(rng, OFFICE_POOL)
+        names = _names(rng, "nv", rng.randint(8, 12))
+        for k, name in enumerate(names):
+            ua = ROTATION_UAS[k % len(ROTATION_UAS)]
+            _seed(sc, name, days=3, ip=office, ua=ua)
+            sc.steps += [Step(name, False, office, k * 40, ua), Step(name, True, office, k * 40 + 15, ua)]
+        sc.variant = f"NAT văn phòng: {len(names)} người, nhiều trình duyệt, mỗi người gõ sai 1 lần rồi đúng"
+    return sc
+
+
 GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "username_enumeration": (enum_positive, enum_negative),
     "password_spray_slow": (spray_positive, spray_negative),
@@ -654,4 +741,5 @@ GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "blocklist_hit": (bl_positive, bl_negative),
     "impossible_travel": (it_positive, it_negative),
     "country_hop": (hop_positive, hop_negative),
+    "ua_rotation": (rot_positive, rot_negative),
 }

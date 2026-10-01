@@ -18,7 +18,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`success_after_failures`](#success_after_failures) | Thành công sau chuỗi sai | Đoán và dò mật khẩu | cao | enforce | verified | T1110.001 |
 | [`bot_user_agent`](#bot_user_agent) | User-Agent là bot | Tự động hoá | thấp | enforce | experimental | T1110 |
 | [`scripted_client`](#scripted_client) | Client kịch bản / công cụ | Tự động hoá | trung bình | enforce | experimental | T1110 |
-| [`ua_rotation`](#ua_rotation) | Xoay User-Agent | Tự động hoá | trung bình | enforce | experimental | T1110.004 |
+| [`ua_rotation`](#ua_rotation) | Xoay User-Agent | Tự động hoá | trung bình | enforce | verified | T1110.004 |
 | [`regular_rhythm`](#regular_rhythm) | Nhịp thử đều như máy | Tự động hoá | trung bình | shadow | experimental | T1110 |
 | [`tor_exit`](#tor_exit) | Đăng nhập từ Tor exit node | Danh tiếng hạ tầng | trung bình | enforce | verified | T1090.003 |
 | [`datacenter_ip`](#datacenter_ip) | Đăng nhập từ dải IP datacenter | Danh tiếng hạ tầng | thấp | shadow | experimental | T1090.002 |
@@ -206,18 +206,20 @@ User-Agent thuộc một công cụ HTTP/dò quét ĐÃ BIẾT (curl, python-req
 
 #### <a id="ua_rotation"></a>`ua_rotation` — Xoay User-Agent
 
-Cùng một IP thất bại đăng nhập với NHIỀU User-Agent khác nhau trong thời gian ngắn — công cụ nhồi thông tin đổi UA để né nhận diện.
+Cùng một IP thất bại đăng nhập nhiều lần với NHIỀU họ User-Agent khác nhau trong thời gian ngắn, gần như không có lần thành công — công cụ tấn công đổi UA để né nhận diện. Đếm HỌ đã chuẩn hoá (loại thiết bị | HĐH | trình duyệt, bỏ phiên bản).
 
 - **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1110.004 (Brute Force: Credential Stuffing)
 - **Dữ liệu cần:** `user_agent`
-- **Ghi chú:** Nhiều người dùng thật sau cùng một NAT có UA khác nhau nhưng hiếm khi cùng thất bại nhiều lần; ngưỡng `min_fails` tách hai trường hợp.
+- **Ghi chú:** Milestone B: (1) đếm họ UA chuẩn hoá — cập nhật phiên bản trình duyệt không còn bị tính là UA khác; (2) bỏ qua khi tỉ lệ thành công của IP > `max_success_ratio`: NAT dùng chung có nhiều người gõ sai nhưng phần lớn là đăng nhập thành công, công cụ xoay UA thì gần như chỉ thất bại. Là tín hiệu ĐÁNH DẤU (tự động hoá): khi nhồi thông tin/brute force cũng khớp, hành vi đó làm detector chính, ua_rotation là tín hiệu phụ.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|
 | `window_s` | `600` | giây | 10–86400 | độ dài cửa sổ |
-| `min_distinct_ua` | `5` | UA | 2–1000 | số User-Agent khác nhau tối thiểu |
+| `min_distinct_ua` | `5` | UA | 2–1000 | số User-Agent (họ chuẩn hoá nếu `canonical_agents`) khác nhau tối thiểu |
 | `min_fails` | `8` | lần | 2–100000 | số lần sai tối thiểu của IP |
+| `canonical_agents` | `true` | — | — | đếm HỌ User-Agent chuẩn hoá thay vì chuỗi thô (Chrome 120/121 là một) |
+| `max_success_ratio` | `0.2` | — | 0–1 | quá tỉ lệ đăng nhập thành công này của IP trong cửa sổ thì coi là lưu lượng người dùng thật (NAT dùng chung) |
 
 #### <a id="regular_rhythm"></a>`regular_rhythm` — Nhịp thử đều như máy
 

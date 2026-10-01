@@ -72,18 +72,28 @@ def scripted_client(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="ua_rotation",
+    verification="verified",  # Milestone B — artifacts/behavior_verification/ua_rotation.json
     title="Xoay User-Agent",
     category=CATEGORY,
     severity="medium",
     techniques=("T1110.004",),
-    description="Cùng một IP thất bại đăng nhập với NHIỀU User-Agent khác nhau trong thời gian ngắn — công cụ nhồi thông tin đổi UA để né nhận diện.",
+    description=(
+        "Cùng một IP thất bại đăng nhập nhiều lần với NHIỀU họ User-Agent khác nhau trong thời gian ngắn, gần như không có lần thành công — "
+        "công cụ tấn công đổi UA để né nhận diện. Đếm HỌ đã chuẩn hoá (loại thiết bị | HĐH | trình duyệt, bỏ phiên bản)."
+    ),
     params=(
         Param("window_s", 600, "độ dài cửa sổ", "giây", 10, 86_400),
-        Param("min_distinct_ua", 5, "số User-Agent khác nhau tối thiểu", "UA", 2, 1000),
+        Param("min_distinct_ua", 5, "số User-Agent (họ chuẩn hoá nếu `canonical_agents`) khác nhau tối thiểu", "UA", 2, 1000),
         Param("min_fails", 8, "số lần sai tối thiểu của IP", "lần", 2, 100_000),
+        Param("canonical_agents", True, "đếm HỌ User-Agent chuẩn hoá thay vì chuỗi thô (Chrome 120/121 là một)"),
+        Param("max_success_ratio", 0.2, "quá tỉ lệ đăng nhập thành công này của IP trong cửa sổ thì coi là lưu lượng người dùng thật (NAT dùng chung)", "", 0.0, 1.0),
     ),
     needs=("user_agent",),
-    notes="Nhiều người dùng thật sau cùng một NAT có UA khác nhau nhưng hiếm khi cùng thất bại nhiều lần; ngưỡng `min_fails` tách hai trường hợp.",
+    notes=(
+        "Milestone B: (1) đếm họ UA chuẩn hoá — cập nhật phiên bản trình duyệt không còn bị tính là UA khác; (2) bỏ qua khi tỉ lệ thành công của IP "
+        "> `max_success_ratio`: NAT dùng chung có nhiều người gõ sai nhưng phần lớn là đăng nhập thành công, công cụ xoay UA thì gần như chỉ thất bại. "
+        "Là tín hiệu ĐÁNH DẤU (tự động hoá): khi nhồi thông tin/brute force cũng khớp, hành vi đó làm detector chính, ua_rotation là tín hiệu phụ."
+    ),
 )
 def ua_rotation(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p
@@ -93,12 +103,16 @@ def ua_rotation(ctx: RuleContext) -> Finding | None:
     fails = ctx.store.log_count(K.fail_ip(a.ip), since)
     if fails < p.min_fails:
         return None
-    agents = ctx.store.set_count(K.fail_agents_of_ip(a.ip), since, K.CAP)
+    key = K.fail_agent_families_of_ip(a.ip) if p.canonical_agents else K.fail_agents_of_ip(a.ip)
+    agents = ctx.store.set_count(key, since, K.CAP)
     if agents < p.min_distinct_ua:
         return None
+    oks = ctx.store.log_count(K.ok_ip(a.ip), since)
+    if oks > p.max_success_ratio * (oks + fails):
+        return None
     return Finding(
-        f"IP {a.ip} đổi {agents} User-Agent khác nhau trong {fails} lần sai/{window_text(p.window_s)} (xoay UA để né nhận diện).",
-        {"ip": a.ip, "distinct_user_agents": agents, "fails": fails, "window_s": p.window_s},
+        f"IP {a.ip} đổi {agents} {'họ ' if p.canonical_agents else ''}User-Agent khác nhau trong {fails} lần sai/{window_text(p.window_s)} (xoay UA để né nhận diện).",
+        {"ip": a.ip, "distinct_user_agents": agents, "canonical": p.canonical_agents, "fails": fails, "successes": oks, "window_s": p.window_s},
     )
 
 

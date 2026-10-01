@@ -27,6 +27,16 @@ def ua_hash(user_agent: str | None) -> str:
     return hashlib.sha1(user_agent.encode("utf-8")).hexdigest()[:12] if user_agent else ""
 
 
+def device_family_of(user_agent: str | None, device_type: str | None, os: str | None, browser: str | None) -> str:
+    """Khoá họ thiết bị dùng chung cho `LoginAttempt` và lịch sử dựng từ DB (cùng `parse_user_agent`). Không nhận ra cả HĐH
+    lẫn trình duyệt thì không chuẩn hoá được: dùng chính chuỗi UA (băm) làm họ riêng. Rỗng nếu không có UA."""
+    if not user_agent:
+        return ""
+    if not os and not browser:
+        return f"raw:{ua_hash(user_agent)}"
+    return f"{device_type or 'unknown'}|{os or '?'}|{browser or '?'}"
+
+
 @dataclass(frozen=True)
 class LoginAttempt:
     """MỘT lần thử đăng nhập — đầu vào duy nhất của mọi luật."""
@@ -56,6 +66,12 @@ class LoginAttempt:
     def ua_hash(self) -> str:
         """Dấu vân tay ngắn của chuỗi User-Agent (rỗng nếu thiếu UA) — dùng để đếm UA khác nhau. Tính một lần cho mỗi lần thử."""
         return ua_hash(self.user_agent)
+
+    @property
+    def device_family(self) -> str:
+        """Định danh thiết bị CHUẨN HOÁ (loại thiết bị | hệ điều hành | trình duyệt), BỎ phiên bản: Chrome 120 và Chrome 121
+        trên cùng Windows là CÙNG một họ. Rỗng nếu không có User-Agent (xem `device_family_of`)."""
+        return device_family_of(self.user_agent, self.device_type, self.os, self.browser)
 
     @property
     def has_geo(self) -> bool:
