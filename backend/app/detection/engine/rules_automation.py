@@ -41,9 +41,10 @@ def bot_user_agent(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="scripted_client",
+    verification="verified",  # Milestone B — artifacts/behavior_verification/scripted_client.json
     title="Client kịch bản / công cụ",
     category=CATEGORY,
-    severity="medium",
+    severity="low",  # Milestone B: medium -> low — tín hiệu tự động hoá YẾU (UA tự khai, giả mạo được hai chiều)
     techniques=("T1110",),
     description="User-Agent thuộc một công cụ HTTP/dò quét ĐÃ BIẾT (curl, python-requests, HTTPie, Hydra, trình duyệt không đầu...).",
     params=(

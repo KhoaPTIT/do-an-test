@@ -729,6 +729,48 @@ def rot_negative(rng, i):
     return sc
 
 
+# ------------------------------------------------------------------------------------------------ scripted_client (Milestone B)
+
+SCRIPTED_TOOL_UAS = (
+    "python-requests/2.31.0", "curl/8.7.1", "Wget/1.21.4", "HTTPie/3.2.2", "Go-http-client/1.1", "python-httpx/0.27.0",
+    "Python/3.11 aiohttp/3.9.3", "libwww-perl/6.72", "Java/17.0.9", "Apache-HttpClient/4.5.14 (Java/17.0.9)",
+)
+LEGIT_CLIENT_UAS = BROWSERS + (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
+    "okhttp/4.12.0",  # thư viện HTTP của ứng dụng Android thật — cố ý KHÔNG coi là client kịch bản
+)
+
+
+def scripted_positive(rng, i):
+    sc = Scenario("scripted_client", "positive", "")
+    ua = SCRIPTED_TOOL_UAS[i % len(SCRIPTED_TOOL_UAS)]
+    ip = _foreign_ip(rng) if rng.random() < 0.5 else _pick(rng, HOME_POOL + MOBILE_POOL)
+    kind = rng.randrange(3)
+    if kind == 0:
+        _seed(sc, "alice", ip=HOME_POOL[0])
+        sc.steps.append(Step("alice", True, ip, 0, ua))
+        sc.variant = f"đăng nhập thành công bằng {ua}"
+    elif kind == 1:
+        _seed(sc, "alice", ip=HOME_POOL[0])
+        n = rng.randint(1, 3)
+        sc.steps += [Step("alice", False, ip, j * rng.uniform(60, 300), ua) for j in range(n)]
+        sc.variant = f"{n} lần thử sai bằng {ua}"
+    else:
+        sc.steps.append(Step(_names(rng, "ghost", 1)[0], False, ip, 0, ua))
+        sc.variant = f"tên không tồn tại, {ua}"
+    return sc
+
+
+def scripted_negative(rng, i):
+    sc = Scenario("scripted_client", "negative", "")
+    _seed(sc, "alice", ip=HOME_POOL[0])
+    options = LEGIT_CLIENT_UAS + (None, "")
+    ua = options[i % len(options)]
+    sc.steps.append(Step("alice", rng.random() < 0.7, _pick(rng, HOME_POOL + MOBILE_POOL), 0, ua))
+    sc.variant = f"UA {'trống' if not ua else ua[:40]}"
+    return sc
+
+
 GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "username_enumeration": (enum_positive, enum_negative),
     "password_spray_slow": (spray_positive, spray_negative),
@@ -742,4 +784,5 @@ GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "impossible_travel": (it_positive, it_negative),
     "country_hop": (hop_positive, hop_negative),
     "ua_rotation": (rot_positive, rot_negative),
+    "scripted_client": (scripted_positive, scripted_negative),
 }

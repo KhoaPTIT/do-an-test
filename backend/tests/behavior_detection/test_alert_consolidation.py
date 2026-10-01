@@ -42,8 +42,9 @@ def test_password_spray_with_scripted_client_is_one_campaign_alert(env, scripted
     assert alerts[0].occurrence_count == 18  # mọi lần thử của chiến dịch được đếm, không bị bỏ
 
 
-def test_password_spray_with_an_unverified_scripted_client_never_alerts_on_the_marker(env):
-    assert not REGISTRY["scripted_client"].is_verified
+def test_password_spray_with_an_unverified_scripted_client_never_alerts_on_the_marker(env, monkeypatch):
+    # cơ chế B0.1, độc lập với trạng thái registry hiện tại: ép scripted_client về experimental
+    monkeypatch.setitem(REGISTRY, "scripted_client", dataclasses.replace(REGISTRY["scripted_client"], verification="experimental"))
     _spray(env, _victims(env, 18))
 
     alerts = env.detection_alerts()

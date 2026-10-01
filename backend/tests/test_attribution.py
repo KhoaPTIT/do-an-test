@@ -119,14 +119,20 @@ def test_max_severity():
     assert max_severity(None) == "low"
 
 
-def test_experimental_enforce_rule_alone_does_not_alert_but_is_recorded():
-    assert not REGISTRY["scripted_client"].is_verified
+def test_experimental_enforce_rule_alone_does_not_alert_but_is_recorded(monkeypatch):
+    import dataclasses
+
+    # cơ chế B0.1, độc lập với trạng thái registry hiện tại: ép scripted_client về experimental
+    monkeypatch.setitem(REGISTRY, "scripted_client", dataclasses.replace(REGISTRY["scripted_client"], verification="experimental"))
     verdict, _ = _verdict([_hit("scripted_client")])
     assert verdict.alert is False
     assert verdict.matched_rules == ("scripted_client",) and verdict.experimental_rules == ("scripted_client",)
 
 
-def test_verified_rule_leads_and_experimental_rule_becomes_a_secondary_signal():
+def test_verified_rule_leads_and_experimental_rule_becomes_a_secondary_signal(monkeypatch):
+    import dataclasses
+
+    monkeypatch.setitem(REGISTRY, "bot_user_agent", dataclasses.replace(REGISTRY["bot_user_agent"], verification="experimental"))
     verdict, _ = _verdict([_hit("bot_user_agent"), _hit("brute_force")])
     assert verdict.alert_reason == ALERT_REASON_RULE and verdict.primary_detector == "brute_force"
     assert verdict.standalone_rules == ("brute_force",) and verdict.secondary_signals == ("bot_user_agent",)

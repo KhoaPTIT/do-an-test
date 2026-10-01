@@ -17,7 +17,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`username_enumeration`](#username_enumeration) | Dò danh sách tài khoản | Đoán và dò mật khẩu | trung bình | enforce | verified | T1589 |
 | [`success_after_failures`](#success_after_failures) | Thành công sau chuỗi sai | Đoán và dò mật khẩu | cao | enforce | verified | T1110.001 |
 | [`bot_user_agent`](#bot_user_agent) | User-Agent là bot | Tự động hoá | thấp | enforce | experimental | T1110 |
-| [`scripted_client`](#scripted_client) | Client kịch bản / công cụ | Tự động hoá | trung bình | enforce | experimental | T1110 |
+| [`scripted_client`](#scripted_client) | Client kịch bản / công cụ | Tự động hoá | thấp | enforce | verified | T1110 |
 | [`ua_rotation`](#ua_rotation) | Xoay User-Agent | Tự động hoá | trung bình | enforce | verified | T1110.004 |
 | [`regular_rhythm`](#regular_rhythm) | Nhịp thử đều như máy | Tự động hoá | trung bình | shadow | experimental | T1110 |
 | [`tor_exit`](#tor_exit) | Đăng nhập từ Tor exit node | Danh tiếng hạ tầng | trung bình | enforce | verified | T1090.003 |
@@ -194,7 +194,7 @@ User-Agent được thư viện phân tích UA nhận là bot/trình thu thập 
 
 User-Agent thuộc một công cụ HTTP/dò quét ĐÃ BIẾT (curl, python-requests, HTTPie, Hydra, trình duyệt không đầu...).
 
-- **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
+- **Mức nghiêm trọng:** thấp · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1110 (Brute Force)
 - **Dữ liệu cần:** không (chỉ cần `LoginAttempt`)
 - **Ghi chú:** Milestone B (B0.2): User-Agent TRỐNG không còn được coi là client kịch bản — đó là THIẾU telemetry (proxy/SDK có thể bỏ header), không phải bằng chứng tự động hoá; pipeline ghi `telemetry_gaps=["missing_user_agent"]` trong giải thích cảnh báo thay vào đó. `okhttp` cố ý không nằm trong danh sách (thư viện của ứng dụng Android thật). Các script demo trong attack-sim/ dùng httpx nên khớp luật này.
