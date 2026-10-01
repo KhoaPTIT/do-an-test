@@ -58,7 +58,9 @@ def test_unvalidated_or_noisy_rules_start_in_shadow_mode():
 def test_original_tier1_thresholds_are_preserved_as_defaults():
     from app.detection import rules as legacy
 
-    assert REGISTRY["brute_force"].defaults() == {"threshold": legacy.BRUTE_FORCE_THRESHOLD, "window_s": 300}
+    # Milestone C: thêm `max_success_ratio` (thay đổi thiết kế có chủ ý — báo nhầm trên tài khoản dùng chung kiểu kiosk);
+    # hai ngưỡng gốc của tầng 1 vẫn giữ nguyên.
+    assert REGISTRY["brute_force"].defaults() == {"threshold": legacy.BRUTE_FORCE_THRESHOLD, "window_s": 300, "max_success_ratio": 0.2}
     stuffing = REGISTRY["credential_stuffing"].defaults()
     assert stuffing["min_fails"] == legacy.CREDENTIAL_STUFFING_FAIL_THRESHOLD and stuffing["min_users"] == legacy.CREDENTIAL_STUFFING_MIN_DISTINCT_USERNAMES
     assert REGISTRY["impossible_travel"].defaults() == {"max_speed_kmh": legacy.IMPOSSIBLE_TRAVEL_SPEED_KMH}
