@@ -30,7 +30,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`dormant_account_login`](#dormant_account_login) | Tài khoản ngủ đông đăng nhập lại | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078 |
 | [`rare_network_login`](#rare_network_login) | Đăng nhập từ nhà mạng cực hiếm | Ngữ cảnh tài khoản | trung bình | shadow | experimental | T1078 |
 | [`unusual_device`](#unusual_device) | Thiết bị chưa từng thấy | Hồ sơ hành vi | thấp | enforce | verified | T1078 |
-| [`unusual_location`](#unusual_location) | Vị trí chưa từng thấy | Hồ sơ hành vi | trung bình | enforce | experimental | T1078 |
+| [`unusual_location`](#unusual_location) | Vị trí chưa từng thấy | Hồ sơ hành vi | trung bình | enforce | verified | T1078 |
 | [`unusual_hour`](#unusual_hour) | Giờ đăng nhập khác thói quen | Hồ sơ hành vi | thấp | enforce | experimental | T1078 |
 | [`login_velocity_spike`](#login_velocity_spike) | Đăng nhập thành công dồn dập bất thường | Hồ sơ hành vi | trung bình | enforce | experimental | T1078 |
 
@@ -96,12 +96,13 @@ Nhiều lần đăng nhập sai vào CÙNG một tên đăng nhập trong thời
 - **Mức nghiêm trọng:** cao · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1110.001 (Brute Force: Password Guessing)
 - **Dữ liệu cần:** không (chỉ cần `LoginAttempt`)
-- **Ghi chú:** Ngưỡng và cửa sổ là luật tầng 1 gốc (docs/api-contract.md mục 6, giả định chưa đối chiếu). Báo ở MỖI lần sai từ lần thứ `threshold` trở đi; gộp cảnh báo trùng là việc của MR13.
+- **Ghi chú:** Ngưỡng và cửa sổ là luật tầng 1 gốc (docs/api-contract.md mục 6, giả định chưa đối chiếu). Báo ở MỖI lần sai từ lần thứ `threshold` trở đi; gộp cảnh báo trùng là việc của MR13. Milestone C: bỏ qua khi lần thành công của tài khoản chiếm > `max_success_ratio` trong cửa sổ — lộ ra từ lưu lượng bình thường v3 (tài khoản dùng chung kiểu kiosk: 5 lần gõ sai lẫn trong 4–9 lần đúng trong vài phút); dò mật khẩu thì gần như chỉ có thất bại. Alert tầng 1 gốc (`alert_type=brute_force`) KHÔNG đổi.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|
 | `threshold` | `5` | lần | 2–1000 | số lần sai tối thiểu để báo |
 | `window_s` | `300` | giây | 10–86400 | độ dài cửa sổ |
+| `max_success_ratio` | `0.2` | — | 0–1 | quá tỉ lệ lần THÀNH CÔNG của tài khoản trong cửa sổ này thì coi là tài khoản dùng chung gõ sai lẫn trong nhiều lần đúng |
 
 #### <a id="credential_stuffing"></a>`credential_stuffing` — Nhồi thông tin đăng nhập
 
@@ -176,12 +177,13 @@ Một IP thử nhiều tên đăng nhập KHÔNG tồn tại — dò xem tài kh
 - **Mức nghiêm trọng:** cao · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1110.001 (Brute Force: Password Guessing)
 - **Dữ liệu cần:** `account`
-- **Ghi chú:** Người dùng thật cũng gõ sai vài lần rồi đúng; ngưỡng 5 (cao hơn mức 3 của điểm rủi ro tầng 2) để giảm báo nhầm — cần đo trên log thật ở MR10.
+- **Ghi chú:** Người dùng thật cũng gõ sai vài lần rồi đúng; ngưỡng 5 (cao hơn mức 3 của điểm rủi ro tầng 2) để giảm báo nhầm. Milestone C: bỏ qua khi các lần thành công XEN GIỮA chiếm > `max_prior_success_ratio` — lộ ra từ lưu lượng bình thường v3: tài khoản dùng chung kiểu kiosk (nhiều người, nhiều lần đúng, lẫn vài lần gõ sai) có 4–9 lần thành công xen giữa 5–6 lần sai trong 10 phút; đoán mật khẩu thì thất bại áp đảo rồi mới trúng (0 lần xen giữa).
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|
 | `window_s` | `600` | giây | 10–86400 | độ dài cửa sổ nhìn lại |
 | `min_fails` | `5` | lần | 2–100000 | số lần sai tối thiểu trước đó vào tài khoản |
+| `max_prior_success_ratio` | `0.2` | — | 0–1 | quá tỉ lệ lần THÀNH CÔNG xen giữa này (trên tổng lần thử trước đó trong cửa sổ) thì coi là tài khoản dùng chung gõ sai lẫn trong nhiều lần đúng, không phải đoán trúng |
 
 ### Tự động hoá
 
@@ -329,7 +331,7 @@ Tài khoản không có lần đăng nhập thành công nào trong nhiều thá
 - **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1078 (Valid Accounts)
 - **Dữ liệu cần:** `account`, `history`
-- **Ghi chú:** Người dùng thật quay lại sau kỳ nghỉ là chuyện thường: mặc định phải kèm dấu hiệu 'mới' để giảm báo nhầm.
+- **Ghi chú:** Người dùng thật quay lại sau kỳ nghỉ là chuyện thường: mặc định phải kèm dấu hiệu 'mới' để giảm báo nhầm. Thiết bị so theo HỌ chuẩn hoá (Milestone C, cùng unusual_device): chỉ cập nhật phiên bản trình duyệt không phải thiết bị mới.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|
@@ -404,7 +406,7 @@ NHIỀU lần đăng nhập THÀNH CÔNG vào cùng một tài khoản trong 10 
 - **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1078 (Valid Accounts)
 - **Dữ liệu cần:** `account`, `history`
-- **Ghi chú:** Cửa sổ cố định 600s để so cùng độ dài với đỉnh lịch sử (`peak_success_in_window`, chỉ học từ lần thành công — lần thất bại không làm tăng nền). Tài khoản dịch vụ/lập trình viên có đỉnh lịch sử cao nên cần dồn dập hơn hẳn mới khớp. Chỉ sự kiện XÁC THỰC (/login) được tính; làm mới phiên/token không đi qua pipeline này.
+- **Ghi chú:** Cửa sổ cố định 600s để so cùng độ dài với đỉnh lịch sử (`AccountHistory.baseline_peak`: chỉ các cửa sổ kết thúc TRƯỚC cửa sổ hiện tại, nên chính đợt dồn dập không tự nâng nền; chỉ học từ lần thành công — lần thất bại không làm tăng nền). Tài khoản dịch vụ/lập trình viên có đỉnh lịch sử cao nên cần dồn dập hơn hẳn mới khớp. Chỉ sự kiện XÁC THỰC (/login) được tính; làm mới phiên/token không đi qua pipeline này.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|

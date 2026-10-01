@@ -61,6 +61,7 @@ def unusual_device(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="unusual_location",
+    verification="verified",  # Milestone C — artifacts/behavior_verification/unusual_location.json
     title="Vị trí chưa từng thấy",
     category=CATEGORY,
     severity="medium",
