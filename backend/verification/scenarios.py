@@ -812,6 +812,69 @@ def bot_negative(rng, i):
     return sc
 
 
+# ------------------------------------------------------------------------------------------------ unusual_device (Milestone B)
+
+
+def _profile(sc, username, *, days, devices, ip=None):
+    """Hồ sơ `days` ngày, mỗi ngày một lần thành công, xoay vòng qua các thiết bị quen `devices`."""
+    sc.accounts.append(username)
+    for d in range(days, 0, -1):
+        sc.history.append(HistoryLogin(username, ip or HOME_POOL[0], -d * DAY + rng_free_hour(d), devices[d % len(devices)]))
+
+
+def rng_free_hour(d: int) -> float:
+    return (8 + (d * 37) % 12) * 3600  # giờ đăng nhập thay đổi theo ngày, không cần nguồn ngẫu nhiên
+
+
+def device_positive(rng, i):
+    sc = Scenario("unusual_device", "positive", "")
+    known = rng.sample(ROTATION_UAS, rng.randint(1, 3))
+    unseen = [ua for ua in ROTATION_UAS if ua not in known]
+    days = rng.randint(param("unusual_device", "min_successes"), 40)
+    _profile(sc, "alice", days=days, devices=known)
+    ip = _pick(rng, rng.choice((HOME_POOL, MOBILE_POOL, HCM_POOL)))
+    sc.steps.append(Step("alice", True, ip, rng.uniform(0, 12 * 3600), rng.choice(unseen)))
+    sc.variant = f"hồ sơ {days} ngày, {len(known)} thiết bị quen → thiết bị mới"
+    return sc
+
+
+def device_negative(rng, i):
+    sc = Scenario("unusual_device", "negative", "")
+    kind = i % 5
+    days = rng.randint(14, 40)
+    if kind == 0:  # cùng thiết bị
+        known = rng.sample(ROTATION_UAS, rng.randint(1, 3))
+        _profile(sc, "alice", days=days, devices=known)
+        sc.steps.append(Step("alice", True, HOME_POOL[0], 3600, rng.choice(known)))
+        sc.variant = "thiết bị quen"
+    elif kind == 1:  # cập nhật phiên bản trình duyệt
+        _profile(sc, "alice", days=days, devices=[chrome_version_ua(118)])
+        sc.steps.append(Step("alice", True, HOME_POOL[0], 3600, chrome_version_ua(rng.randint(119, 130))))
+        sc.variant = "Chrome cập nhật phiên bản (cùng họ thiết bị)"
+    elif kind == 2:  # tài khoản mới / hồ sơ chưa trưởng thành
+        young = rng.choice(("few", "short"))
+        sc.accounts.append("newbie")
+        if young == "few":
+            for d in range(rng.randint(1, param("unusual_device", "min_successes") - 1), 0, -1):
+                sc.history.append(HistoryLogin("newbie", HOME_POOL[0], -d * DAY, CHROME_UA))
+        else:
+            span = rng.uniform(1, param("unusual_device", "min_profile_days") - 0.5)
+            for k in range(14):
+                sc.history.append(HistoryLogin("newbie", HOME_POOL[0], -span * DAY + span * DAY * k / 14, CHROME_UA))
+        sc.steps.append(Step("newbie", True, HOME_POOL[0], 3600, rng.choice((SAFARI_UA, MOBILE_UA, FIREFOX_UA))))
+        sc.variant = "tài khoản mới (hồ sơ chưa trưởng thành) + thiết bị khác"
+    elif kind == 3:  # laptop + điện thoại đã có trong lịch sử
+        _profile(sc, "alice", days=days, devices=[CHROME_UA, MOBILE_UA])
+        sc.steps.append(Step("alice", True, MOBILE_POOL[0], 3600, MOBILE_UA))
+        sc.variant = "điện thoại đã quen (laptop + mobile trong lịch sử)"
+    else:  # nhiều trình duyệt quen
+        known = [CHROME_UA, FIREFOX_UA, EDGE_UA]
+        _profile(sc, "alice", days=days, devices=known)
+        sc.steps.append(Step("alice", True, HOME_POOL[0], 3600, rng.choice(known)))
+        sc.variant = "dùng một trong 3 trình duyệt quen"
+    return sc
+
+
 GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "username_enumeration": (enum_positive, enum_negative),
     "password_spray_slow": (spray_positive, spray_negative),
@@ -827,4 +890,5 @@ GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "ua_rotation": (rot_positive, rot_negative),
     "scripted_client": (scripted_positive, scripted_negative),
     "bot_user_agent": (bot_positive, bot_negative),
+    "unusual_device": (device_positive, device_negative),
 }

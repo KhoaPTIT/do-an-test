@@ -25,8 +25,9 @@ from app.config import get_settings
 from app.detection import rate_counter
 from app.detection.engine import Blocklist, RedisStore, RuleConfig, RuleEngine, ThreatIntel
 from app.detection.engine.intel import BlockEntry
-from app.detection.engine.types import AccountHistory, LoginAttempt, ua_hash
+from app.detection.engine.types import AccountHistory, LoginAttempt, device_family_of, ua_hash
 from app.models import BlocklistEntry, LoginEvent, RuleOverride
+from app.utils.device import parse_user_agent
 from app.utils.time import ensure_utc
 
 logger = logging.getLogger("rule_engine_runtime")
@@ -97,7 +98,15 @@ class DbAccountHistory:
             history.last_event_ts = ensure_utc(created_at).timestamp()
             history.last_event_lat, history.last_event_lon = lat, lon
             if success:
-                history.last_success_ts = ensure_utc(created_at).timestamp()
+                ts = ensure_utc(created_at).timestamp()
+                if history.first_success_ts is None:
+                    history.first_success_ts = ts
+                parsed = parse_user_agent(agent)
+                family = device_family_of(agent, parsed.device_type, parsed.os, parsed.browser)
+                if family and family not in history.known_device_families:
+                    history.known_device_families += (family,)
+                    history.device_family_first_seen += (ts,)
+                history.last_success_ts = ts
                 history.last_success_lat, history.last_success_lon = lat, lon
                 history.n_success += 1
                 if country and country not in history.known_countries:

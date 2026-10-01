@@ -52,6 +52,12 @@ PRIORITY: tuple[str, ...] = (
     "bot_user_agent",
     "datacenter_ip",
     "vpn_ip",
+    # --- hồ sơ hành vi (Milestone B): ÍT ĐẶC HIỆU NHẤT — "thiết bị lần đầu thấy" đúng với MỌI thiết bị mới. Khi tín hiệu
+    # cụ thể hơn cùng khớp (công cụ kịch bản, crawler, Tor, hay một hành vi tấn công), tín hiệu đó giải thích thiết bị
+    # tốt hơn và làm detector chính; unusual_device là bằng chứng bổ trợ. Lộ ra ở regression Milestone B: xếp
+    # unusual_device trên nhóm đánh dấu khiến một tài khoản trưởng thành đăng nhập bằng curl bị quy cho "thiết bị mới"
+    # thay vì "client kịch bản".
+    "unusual_device",
 )
 _RANK = {rule_id: i for i, rule_id in enumerate(PRIORITY)}
 _SEVERITY_RANK = {"low": 0, "medium": 1, "high": 2}
@@ -70,6 +76,7 @@ BEHAVIOR_OF: dict[str, str] = {
     "dormant_account_login": "dormant_account_reactivation",
     "country_hop": "country_hopping",
     "rare_network_login": "rare_network_login",
+    "unusual_device": "unusual_device",
     "tor_exit": "tor_login",
     "ua_rotation": "user_agent_rotation",
     "regular_rhythm": "machine_like_timing",

@@ -60,7 +60,7 @@ NEEDS: dict[str, str] = {
     "global_stats": "thống kê đăng nhập thành công theo ASN toàn hệ thống",
 }
 
-CATEGORIES = ("Đoán và dò mật khẩu", "Tự động hoá", "Danh tiếng hạ tầng", "Ngữ cảnh tài khoản")
+CATEGORIES = ("Đoán và dò mật khẩu", "Tự động hoá", "Danh tiếng hạ tầng", "Ngữ cảnh tài khoản", "Hồ sơ hành vi")
 VERIFICATION_STATES = ("verified", "experimental")
 
 

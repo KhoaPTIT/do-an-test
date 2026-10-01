@@ -48,6 +48,12 @@ class MemoryHistory:
         h.last_event_ts = attempt.ts
         h.last_event_lat, h.last_event_lon = attempt.latitude, attempt.longitude
         if attempt.success:
+            if h.first_success_ts is None:
+                h.first_success_ts = attempt.ts
+            family = attempt.device_family
+            if family and family not in h.known_device_families:
+                h.known_device_families += (sys.intern(family),)
+                h.device_family_first_seen += (attempt.ts,)
             h.last_success_ts = attempt.ts
             h.last_success_lat, h.last_success_lon = attempt.latitude, attempt.longitude
             h.n_success += 1

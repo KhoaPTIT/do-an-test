@@ -147,6 +147,7 @@ NOT_EVALUABLE = {
     "datacenter_ip": "IP của RBA là tổng hợp, danh sách datacenter công khai không áp dụng",
     "vpn_ip": "IP của RBA là tổng hợp, danh sách VPN công khai không áp dụng",
     "blocklist_hit": "không có mục chặn do quản trị viên đặt",
+    "unusual_device": "thêm ở Phase 3 (Milestone B), chưa hiệu chỉnh trên RBA — kiểm chứng bằng scripts/behavior_verification.py",
 }
 
 

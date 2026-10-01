@@ -6,7 +6,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 
 ## 1. Tổng quan
 
-**19 luật** trong 4 nhóm; 15 luật mặc định ở chế độ `enforce`, 4 ở chế độ `shadow` (`regular_rhythm`, `rare_network_login`, `datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
+**20 luật** trong 5 nhóm; 16 luật mặc định ở chế độ `enforce`, 4 ở chế độ `shadow` (`regular_rhythm`, `rare_network_login`, `datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
 
 | Mã | Tên | Nhóm | Mức | Chế độ mặc định | Kiểm chứng | MITRE ATT&CK |
 |---|---|---|---|---|---|---|
@@ -29,6 +29,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`country_hop`](#country_hop) | Tài khoản bị thử từ nhiều quốc gia | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078, T1090 |
 | [`dormant_account_login`](#dormant_account_login) | Tài khoản ngủ đông đăng nhập lại | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078 |
 | [`rare_network_login`](#rare_network_login) | Đăng nhập từ nhà mạng cực hiếm | Ngữ cảnh tài khoản | trung bình | shadow | experimental | T1078 |
+| [`unusual_device`](#unusual_device) | Thiết bị chưa từng thấy | Hồ sơ hành vi | thấp | enforce | verified | T1078 |
 
 ## 2. Cách hoạt động
 
@@ -57,7 +58,7 @@ Ghi đè chế độ và tham số theo từng luật bằng JSON (`RuleConfig.f
 | [T1110.001](https://attack.mitre.org/techniques/T1110/001/) | Brute Force: Password Guessing | `brute_force`, `distributed_bruteforce`, `success_after_failures` |
 | [T1110.003](https://attack.mitre.org/techniques/T1110/003/) | Brute Force: Password Spraying | `password_spray_slow` |
 | [T1110.004](https://attack.mitre.org/techniques/T1110/004/) | Brute Force: Credential Stuffing | `credential_stuffing`, `ua_rotation` |
-| [T1078](https://attack.mitre.org/techniques/T1078/) | Valid Accounts | `impossible_travel`, `multi_context_simultaneous`, `country_hop`, `dormant_account_login`, `rare_network_login` |
+| [T1078](https://attack.mitre.org/techniques/T1078/) | Valid Accounts | `unusual_device`, `impossible_travel`, `multi_context_simultaneous`, `country_hop`, `dormant_account_login`, `rare_network_login` |
 | [T1090](https://attack.mitre.org/techniques/T1090/) | Proxy | `distributed_bruteforce`, `country_hop`, `vpn_ip` |
 | [T1090.002](https://attack.mitre.org/techniques/T1090/002/) | Proxy: External Proxy | `datacenter_ip` |
 | [T1090.003](https://attack.mitre.org/techniques/T1090/003/) | Proxy: Multi-hop Proxy | `tor_exit` |
@@ -70,12 +71,12 @@ Thiếu dữ liệu thì luật tương ứng bị bỏ qua (xem mục 2).
 
 | Dữ liệu | Ý nghĩa | Luật cần |
 |---|---|---|
-| `account` | tài khoản tồn tại (không phải tên đăng nhập bịa) | `success_after_failures`, `impossible_travel`, `multi_context_simultaneous`, `dormant_account_login`, `rare_network_login` |
+| `account` | tài khoản tồn tại (không phải tên đăng nhập bịa) | `success_after_failures`, `unusual_device`, `impossible_travel`, `multi_context_simultaneous`, `dormant_account_login`, `rare_network_login` |
 | `asn` | ASN của IP (cần file GeoLite2-ASN.mmdb) | `rare_network_login` |
 | `country` | quốc gia của IP (GeoIP) | `multi_context_simultaneous`, `country_hop` |
 | `geo` | toạ độ của IP (GeoLite2-City) | `impossible_travel` |
-| `user_agent` | User-Agent của request | `ua_rotation` |
-| `history` | lịch sử tài khoản (DB hoặc luồng sự kiện đã phát) | `impossible_travel`, `dormant_account_login` |
+| `user_agent` | User-Agent của request | `ua_rotation`, `unusual_device` |
+| `history` | lịch sử tài khoản (DB hoặc luồng sự kiện đã phát) | `unusual_device`, `impossible_travel`, `dormant_account_login` |
 | `tor_list` | danh sách Tor exit node (python -m scripts.update_threat_feeds) | `tor_exit` |
 | `datacenter_list` | danh sách dải IP datacenter | `datacenter_ip` |
 | `vpn_list` | danh sách dải IP VPN | `vpn_ip` |
@@ -345,3 +346,19 @@ Tài khoản không có lần đăng nhập thành công nào trong nhiều thá
 |---|---|---|---|---|
 | `max_share` | `2e-05` | — | 0–0.01 | tỉ lệ đăng nhập thành công của cả hệ thống từ ASN này (bằng hoặc thấp hơn thì báo) |
 | `min_total` | `20000` | lần | 100–100000000 | số đăng nhập thành công toàn hệ thống tối thiểu trước khi luật có hiệu lực (thống kê quá ít thì ASN nào cũng 'hiếm') |
+
+### Hồ sơ hành vi
+
+#### <a id="unusual_device"></a>`unusual_device` — Thiết bị chưa từng thấy
+
+Đăng nhập THÀNH CÔNG từ một thiết bị (họ chuẩn hoá: loại thiết bị | hệ điều hành | trình duyệt, bỏ phiên bản) mà tài khoản CHƯA từng đăng nhập thành công, khi hồ sơ của tài khoản đã trưởng thành.
+
+- **Mức nghiêm trọng:** thấp · **chế độ mặc định:** enforce (tạo cảnh báo)
+- **MITRE ATT&CK:** T1078 (Valid Accounts)
+- **Dữ liệu cần:** `account`, `history`, `user_agent`
+- **Ghi chú:** Thiết bị chuẩn hoá theo họ nên cập nhật phiên bản (Chrome 120 → 121) KHÔNG phải thiết bị mới; User-Agent không nhận diện được giữ nguyên làm họ riêng. Không phân biệt được người dùng MUA thiết bị mới với kẻ tấn công — vì vậy mức thấp, chỉ cảnh báo, không tự step_up/lock. Khi một hành vi tấn công rõ hơn cùng khớp (impossible_travel, tài khoản ngủ đông...), hành vi đó làm detector chính và unusual_device là bằng chứng bổ trợ.
+
+| Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
+|---|---|---|---|---|
+| `min_successes` | `10` | lần | 1–10000 | số lần đăng nhập thành công tối thiểu để hồ sơ được coi là trưởng thành |
+| `min_profile_days` | `7` | ngày | 0–3650 | tuổi hồ sơ tối thiểu (từ lần thành công đầu tiên) |

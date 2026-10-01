@@ -169,6 +169,49 @@ def run_normal_traffic(seed: int) -> dict:
     }
 
 
+BASELINE_VERIFIED = (
+    "brute_force", "credential_stuffing", "blocklist_hit", "impossible_travel", "username_enumeration",
+    "password_spray_slow", "distributed_bruteforce", "success_after_failures", "dormant_account_login", "tor_exit",
+)  # 10 hành vi VERIFIED sau Milestone A (đã được người dùng xác nhận)
+MILESTONE_B = ("country_hop", "ua_rotation", "scripted_client", "bot_user_agent", "unusual_device")
+NOISE_BASELINE_DIR = REPO_ROOT / "artifacts" / "noise_baselines"  # summary.json do CHÍNH runner này sinh ở hai mốc trước (xem README ở đó)
+
+
+def run_cross_behavior() -> list[dict]:
+    from verification.cross_behavior import CASES, evaluate
+
+    return [evaluate(case, VerificationEnv()) for case in CASES]
+
+
+def noise_comparison(final_summary: list[dict]) -> dict:
+    """So sánh nhiễu cảnh báo trên CÙNG bộ kịch bản dương tính (cùng seed) ở ba mốc: trước B0 (mã Milestone A), sau B0, và
+    lần chạy hiện tại. Hai mốc đầu đọc từ summary.json runner đã sinh lúc đó (`artifacts/noise_baselines/`)."""
+    def load(name):
+        path = NOISE_BASELINE_DIR / f"{name}_summary.json"
+        if not path.is_file():
+            return None, {}
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return {"git": data.get("git"), "generated_at": data.get("generated_at")}, {b["behavior"]: b.get("alert_noise_positive_scenarios") for b in data.get("behaviors", [])}
+
+    before_meta, before = load("before_b0")
+    after_meta, after = load("after_b0")
+    final = {b["behavior"]: b.get("alert_noise_positive_scenarios") for b in final_summary}
+    rows = {name: {"before_b0": before.get(name), "after_b0": after.get(name), "final_b": final.get(name)} for name in final}
+    keys = ("total_alerts", "detection_alerts", "legacy_alerts", "secondary_signals", "duplicate_suppressed")
+
+    def total(stage, names):
+        vals = [rows[n][stage] for n in names if rows[n][stage]]
+        return {k: sum(v[k] for v in vals) for k in keys} | {"behaviors_counted": len(vals)} if vals else None
+
+    common = [n for n in BASELINE_VERIFIED if n in rows]
+    return {
+        "note": "kịch bản dương tính, cùng seed; alert_per_campaign = detection_alerts / số kịch bản. legacy = alert tầng 1/2/3 cũ (không qua gộp chiến dịch).",
+        "stages": {"before_b0": before_meta, "after_b0": after_meta},
+        "baseline_10_totals": {"before_b0": total("before_b0", common), "after_b0": total("after_b0", common), "final_b": total("final_b", common)},
+        "per_behavior": rows,
+    }
+
+
 def promote_candidates(candidates: list[str]) -> None:
     """Bật detector ứng viên ở trạng thái như SAU khi được nâng cấp (enforce + verified) — chỉ trong tiến trình này."""
     import dataclasses
@@ -225,6 +268,22 @@ def main(argv: list[str] | None = None) -> int:
             kept = [b for b in json.loads(previous.read_text(encoding="utf-8")).get("behaviors", []) if b["behavior"] not in behaviors]
             summary = kept + summary
     (out_dir / "summary.json").write_text(json.dumps({**meta, "behaviors": summary, "verified": sum(s["status"] == "VERIFIED" for s in summary)}, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    if not args.only:  # chỉ lần chạy ĐẦY ĐỦ mới sinh báo cáo tổng hợp Milestone B
+        cross = run_cross_behavior()
+        (out_dir / "cross_behavior_results.json").write_text(json.dumps({**meta, "cases": cross, "passed": sum(c["passed"] for c in cross), "total": len(cross)}, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"\nCross-behavior: {sum(c['passed'] for c in cross)}/{len(cross)} ca đúng quy kết")
+        by_name = {s["behavior"]: s for s in summary}
+        verified = sorted(s["behavior"] for s in summary if s["status"] == "VERIFIED")
+        (out_dir / "milestone_b_summary.json").write_text(json.dumps({
+            **meta,
+            "baseline_verified": list(BASELINE_VERIFIED),
+            "baseline_still_verified": all(by_name.get(b, {}).get("status") == "VERIFIED" for b in BASELINE_VERIFIED),
+            "milestone_b": {b: {k: by_name[b][k] for k in ("status", "failed_criteria", "tp", "fp", "tn", "fn", "precision", "recall", "f1", "attribution_accuracy", "normal_traffic_false_alerts")} if b in by_name else {"status": "NOT_RUN"} for b in MILESTONE_B},
+            "verified_count": len(verified), "verified": verified,
+            "cross_behavior_passed": f"{sum(c['passed'] for c in cross)}/{len(cross)}",
+        }, ensure_ascii=False, indent=2), encoding="utf-8")
+        (out_dir / "alert_noise_comparison.json").write_text(json.dumps({**meta, **noise_comparison(summary)}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nVERIFIED: {sum(s['status'] == 'VERIFIED' for s in summary)}/{len(summary)} — bằng chứng: {out_dir}")
     return 0
 

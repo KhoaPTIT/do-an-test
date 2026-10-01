@@ -127,6 +127,11 @@ class AccountHistory:
     # thử sai từ nơi xa không chứng minh chủ tài khoản đã ở đó). Để CUỐI lớp: không đổi thứ tự các trường sẵn có.
     last_success_lat: float | None = None
     last_success_lon: float | None = None
+    # Hồ sơ hành vi (Milestone B, `unusual_device`): lần thành công ĐẦU TIÊN và các HỌ thiết bị chuẩn hoá đã từng đăng
+    # nhập thành công (`device_family_of` — bỏ phiên bản trình duyệt), kèm thời điểm thấy lần đầu của từng họ.
+    first_success_ts: float | None = None
+    known_device_families: tuple[str, ...] = ()
+    device_family_first_seen: tuple[float, ...] = ()  # song song với known_device_families
     n_success: int = 0
     # Hai tập nhỏ của MỘT tài khoản, chỉ dùng phép `in`: tuple nhẹ hơn frozenset ~4 lần khi có hàng triệu tài khoản (replay giai đoạn train RBA có 2,5 triệu).
     known_countries: tuple[str, ...] = ()  # quốc gia đã từng đăng nhập thành công
