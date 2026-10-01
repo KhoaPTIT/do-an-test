@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T10:33:01.099652+00:00",
+  "generated_at": "2026-10-01T14:35:23.199213+00:00",
   "git": {
-    "commit": "23091d0a560bd5886476c29cbcdab5e18460d681",
+    "commit": "a58bc12ff4e7b3380861769a271eb66b7023afef",
     "dirty": false
   },
   "seed": 20260302,
@@ -34,6 +34,7 @@
         "scripted_client",
         "brute_force"
       ],
+      "forbidden_matched": [],
       "passed": true
     },
     {
@@ -53,6 +54,7 @@
       "superseded_detectors": [
         "username_enumeration"
       ],
+      "forbidden_matched": [],
       "passed": true
     },
     {
@@ -71,6 +73,7 @@
       "superseded_detectors": [
         "scripted_client"
       ],
+      "forbidden_matched": [],
       "passed": true
     },
     {
@@ -89,6 +92,7 @@
       "superseded_detectors": [
         "bot_user_agent"
       ],
+      "forbidden_matched": [],
       "passed": true
     },
     {
@@ -106,6 +110,7 @@
       ],
       "missing_secondary": [],
       "superseded_detectors": [],
+      "forbidden_matched": [],
       "passed": true
     },
     {
@@ -118,10 +123,12 @@
         "impossible_travel"
       ],
       "secondary_signals": [
-        "unusual_device"
+        "unusual_device",
+        "unusual_location"
       ],
       "missing_secondary": [],
       "superseded_detectors": [],
+      "forbidden_matched": [],
       "passed": true
     },
     {
@@ -138,9 +145,97 @@
       ],
       "missing_secondary": [],
       "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_location + impossible_travel",
+      "expected_primary": "impossible_travel",
+      "expected_secondary": [
+        "unusual_location"
+      ],
+      "detection_alerts": [
+        "impossible_travel"
+      ],
+      "secondary_signals": [
+        "multi_context_simultaneous",
+        "unusual_location"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_location + unusual_device",
+      "expected_primary": "unusual_location",
+      "expected_secondary": [
+        "unusual_device"
+      ],
+      "detection_alerts": [
+        "unusual_location"
+      ],
+      "secondary_signals": [
+        "unusual_device"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_hour + unusual_device",
+      "expected_primary": "unusual_device",
+      "expected_secondary": [
+        "unusual_hour"
+      ],
+      "detection_alerts": [
+        "unusual_device"
+      ],
+      "secondary_signals": [
+        "unusual_hour"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "login_velocity_spike + scripted_client",
+      "expected_primary": "login_velocity_spike",
+      "expected_secondary": [
+        "scripted_client"
+      ],
+      "detection_alerts": [
+        "login_velocity_spike"
+      ],
+      "secondary_signals": [
+        "scripted_client",
+        "unusual_device"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "scripted_client"
+      ],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "rapid failed logins -> brute_force, not login_velocity_spike",
+      "expected_primary": "brute_force",
+      "expected_secondary": [],
+      "detection_alerts": [
+        "brute_force"
+      ],
+      "secondary_signals": [
+        "regular_rhythm"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
       "passed": true
     }
   ],
-  "passed": 7,
-  "total": 7
+  "passed": 12,
+  "total": 12
 }

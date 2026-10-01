@@ -14,75 +14,76 @@
   },
   "candidates_promoted_in_runner": [],
   "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
-  "behavior": "dormant_account_login",
-  "detector": "dormant_account_login",
+  "behavior": "unusual_location",
+  "detector": "unusual_location",
   "status": "VERIFIED",
   "failed_criteria": [],
   "scenario_count": {
     "positive": 20,
     "negative": 20
   },
-  "tp": 20,
+  "tp": 19,
   "fp": 0,
   "tn": 20,
-  "fn": 0,
+  "fn": 1,
   "precision": 1.0,
-  "recall": 1.0,
-  "f1": 1.0,
+  "recall": 0.95,
+  "f1": 0.9744,
   "attribution_accuracy": 1.0,
-  "attribution_correct": 20,
-  "attribution_total": 20,
+  "attribution_correct": 19,
+  "attribution_total": 19,
   "normal_traffic_false_alerts": 0,
   "cross_detector_alerts_in_positives": {
-    "dormant_account_login": 20
+    "unusual_location": 19,
+    "impossible_travel": 1
   },
   "alert_noise_positive_scenarios": {
-    "total_alerts": 20,
+    "total_alerts": 21,
     "detection_alerts": 20,
-    "legacy_alerts": 0,
-    "secondary_signals": 10,
+    "legacy_alerts": 1,
+    "secondary_signals": 3,
     "duplicate_suppressed": 0,
     "superseded_detectors": 0,
     "campaigns": 20,
     "alerts_per_attack_campaign": 1.0,
-    "all_alert_rows_per_attack_campaign": 1.0
+    "all_alert_rows_per_attack_campaign": 1.05
   },
   "example_alert": {
     "id": 1,
-    "login_event_id": 7,
+    "login_event_id": 32,
     "user_id": 1,
-    "alert_type": "hybrid_risk",
-    "rule_id": "dormant_account_login",
+    "alert_type": "behavior_anomaly",
+    "rule_id": "unusual_location",
     "severity": "medium",
     "risk_score": 5,
-    "message": "[dormant_account_reactivation] Tài khoản 'sleeper' ngủ đông 386 ngày rồi đăng nhập lại (quốc gia mới JP, thiết bị mới). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Tài khoản 'sleeper' ngủ đông 386 ngày rồi đăng nhập lại (quốc gia mới JP, thiết bị mới). (5%). Lần đầu quốc gia này (JP), trước đó dùng VN 6 lần. Họ tấn công gợi ý: Ngữ cảnh tài khoản (5%).",
+    "message": "[unusual_location] Tài khoản 'alice' đăng nhập thành công từ quốc gia chưa từng thấy FR (Paris); lịch sử: VN qua 31 lần trong 32 ngày. Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Tài khoản 'alice' đăng nhập thành công từ quốc gia chưa từng thấy FR (Paris); lịch sử: VN qua 31 lần trong 32 ngày. (5%). Lần đầu quốc gia này (FR), trước đó dùng VN 31 lần. Họ tấn công gợi ý: Hồ sơ hành vi (5%).",
     "explanation": {
       "contributions": [
         {
-          "source": "dormant_account_login",
-          "label": "Tài khoản 'sleeper' ngủ đông 386 ngày rồi đăng nhập lại (quốc gia mới JP, thiết bị mới).",
+          "source": "unusual_location",
+          "label": "Tài khoản 'alice' đăng nhập thành công từ quốc gia chưa từng thấy FR (Paris); lịch sử: VN qua 31 lần trong 32 ngày.",
           "weight": 0.05,
           "group": "rule"
         }
       ],
       "action": "allow",
-      "behavior": "dormant_account_reactivation",
-      "primary_detector": "dormant_account_login",
+      "behavior": "unusual_location",
+      "primary_detector": "unusual_location",
       "matched_rules": [
-        "dormant_account_login"
+        "unusual_location"
       ],
       "secondary_signals": [],
       "enforced_rules": [
-        "dormant_account_login"
+        "unusual_location"
       ],
       "standalone_rules": [
-        "dormant_account_login"
+        "unusual_location"
       ],
       "experimental_rules": [],
       "shadow_rules": [],
       "contributing_rules": [
         {
-          "rule": "dormant_account_login",
+          "rule": "unusual_location",
           "weight": 0.05,
           "group": "rule"
         }
@@ -91,10 +92,41 @@
       "ml_probability": null,
       "alert_reason": "rule_enforced",
       "evidence": {
-        "idle_days": 385.8,
-        "new_country": true,
-        "new_device": true,
-        "country": "JP"
+        "current_country": "FR",
+        "current_city": "Paris",
+        "known_countries": [
+          "VN"
+        ],
+        "known_locations": [
+          {
+            "location": "VN|Ho Chi Minh City",
+            "count": 23,
+            "first_seen": "2026-01-30T20:40:13.222990+00:00",
+            "last_seen": "2026-03-01T22:34:04.901244+00:00"
+          },
+          {
+            "location": "VN|Da Nang",
+            "count": 2,
+            "first_seen": "2026-02-03T23:32:20.970222+00:00",
+            "last_seen": "2026-02-21T19:06:59.649389+00:00"
+          },
+          {
+            "location": "VN|Hanoi",
+            "count": 4,
+            "first_seen": "2026-02-05T03:35:07.229346+00:00",
+            "last_seen": "2026-02-28T01:49:32.695190+00:00"
+          },
+          {
+            "location": "VN|Hai Phong",
+            "count": 2,
+            "first_seen": "2026-02-09T17:22:57.557995+00:00",
+            "last_seen": "2026-02-17T18:51:57.581698+00:00"
+          }
+        ],
+        "successful_login_count": 31,
+        "profile_age_days": 31.8,
+        "first_seen_location": "VN|Ho Chi Minh City",
+        "profile_first_seen": "2026-01-30T20:40:13.222990+00:00"
       },
       "superseded_detectors": [],
       "consolidated_events": 1,
@@ -105,13 +137,13 @@
   "scenarios": [
     {
       "kind": "positive",
-      "variant": "ngủ đông 386 ngày, đổi both",
+      "variant": "hồ sơ VN 31 ngày → lần đầu ở FR",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -125,13 +157,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 273 ngày, đổi device",
+      "variant": "hồ sơ VN 40 ngày → lần đầu ở US",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -145,13 +177,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 326 ngày, đổi country",
+      "variant": "hồ sơ VN 32 ngày (+từng đến JP) → lần đầu ở FR",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -165,13 +197,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 362 ngày, đổi device",
+      "variant": "hồ sơ VN 35 ngày (+từng đến BR) → lần đầu ở JP",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -185,13 +217,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 179 ngày, đổi device",
+      "variant": "hồ sơ VN 25 ngày → lần đầu ở US",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -205,13 +237,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 281 ngày, đổi device",
+      "variant": "hồ sơ VN 39 ngày → lần đầu ở US",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -225,73 +257,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 234 ngày, đổi device",
+      "variant": "hồ sơ VN 19 ngày (+từng đến DE) → lần đầu ở US",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 2,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 397 ngày, đổi both",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 2,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 261 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 2,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 302 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -305,13 +277,33 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 315 ngày, đổi country",
+      "variant": "hồ sơ VN 37 ngày → lần đầu ở FR",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ VN 18 ngày (+từng đến US) → lần đầu ở BR",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -325,13 +317,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 354 ngày, đổi device",
+      "variant": "hồ sơ VN 30 ngày → lần đầu ở DE",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -345,13 +337,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 305 ngày, đổi device",
+      "variant": "hồ sơ VN 18 ngày → lần đầu ở FR",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -365,13 +357,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 144 ngày, đổi device",
+      "variant": "hồ sơ VN 14 ngày (+từng đến FR) → lần đầu ở JP",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -385,13 +377,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 231 ngày, đổi device",
+      "variant": "hồ sơ VN 37 ngày (+từng đến DE) → lần đầu ở BR",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -405,13 +397,37 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 378 ngày, đổi country",
+      "variant": "hồ sơ VN 23 ngày → lần đầu ở US",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 1,
+      "misattributed_to": [
+        "impossible_travel"
+      ],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ VN 39 ngày → lần đầu ở JP",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -425,13 +441,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 255 ngày, đổi country",
+      "variant": "hồ sơ VN 30 ngày (+từng đến DE) → lần đầu ở US",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -445,13 +461,13 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 148 ngày, đổi device",
+      "variant": "hồ sơ VN 20 ngày → lần đầu ở FR",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -465,47 +481,67 @@
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 374 ngày, đổi country",
+      "variant": "hồ sơ VN 33 ngày → lần đầu ở DE",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 2,
+        "secondary_signals": 1,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 220 ngày, đổi device",
+      "variant": "hồ sơ VN 32 ngày → lần đầu ở FR",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "unusual_location": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 2,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ VN 20 ngày (+từng đến FR) → lần đầu ở US",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_location": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "negative",
-      "variant": "nghỉ 62.5 ngày (< 90) + thiết bị mới",
+      "variant": "vị trí quen",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -523,7 +559,7 @@
     },
     {
       "kind": "negative",
-      "variant": "ngủ đông 326 ngày, CÙNG thiết bị và quốc gia",
+      "variant": "thành phố khác trong quốc gia đã quen",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -541,27 +577,7 @@
     },
     {
       "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "unusual_device": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
+      "variant": "tài khoản mới + quốc gia lạ",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -579,7 +595,25 @@
     },
     {
       "kind": "negative",
-      "variant": "nghỉ 83.2 ngày (< 90) + thiết bị mới",
+      "variant": "thử SAI từ US",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "công tác JP — nước đã có trong lịch sử",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -597,7 +631,7 @@
     },
     {
       "kind": "negative",
-      "variant": "ngủ đông 301 ngày, CÙNG thiết bị và quốc gia",
+      "variant": "IP không có dữ liệu GeoIP",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -615,27 +649,7 @@
     },
     {
       "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "unusual_device": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
+      "variant": "vị trí quen",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -653,7 +667,7 @@
     },
     {
       "kind": "negative",
-      "variant": "nghỉ 60.2 ngày (< 90) + thiết bị mới",
+      "variant": "thành phố khác trong quốc gia đã quen",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -671,7 +685,7 @@
     },
     {
       "kind": "negative",
-      "variant": "ngủ đông 259 ngày, CÙNG thiết bị và quốc gia",
+      "variant": "tài khoản mới + quốc gia lạ",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -689,27 +703,7 @@
     },
     {
       "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "unusual_device": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
+      "variant": "thử SAI từ DE",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -727,7 +721,7 @@
     },
     {
       "kind": "negative",
-      "variant": "nghỉ 87.5 ngày (< 90) + thiết bị mới",
+      "variant": "công tác BR — nước đã có trong lịch sử",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -745,7 +739,7 @@
     },
     {
       "kind": "negative",
-      "variant": "ngủ đông 189 ngày, CÙNG thiết bị và quốc gia",
+      "variant": "IP không có dữ liệu GeoIP",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -763,27 +757,7 @@
     },
     {
       "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "unusual_device": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
+      "variant": "vị trí quen",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -801,7 +775,7 @@
     },
     {
       "kind": "negative",
-      "variant": "nghỉ 69.3 ngày (< 90) + thiết bị mới",
+      "variant": "thành phố khác trong quốc gia đã quen",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -819,7 +793,7 @@
     },
     {
       "kind": "negative",
-      "variant": "ngủ đông 114 ngày, CÙNG thiết bị và quốc gia",
+      "variant": "tài khoản mới + quốc gia lạ",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -837,18 +811,16 @@
     },
     {
       "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
+      "variant": "thử SAI từ BR",
+      "steps": 4,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
-      "alerts_by_detector": {
-        "unusual_device": 1
-      },
+      "alerts_by_detector": {},
       "legacy_alerts": {},
       "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
+        "total_alerts": 0,
+        "detection_alerts": 0,
         "legacy_alerts": 0,
         "secondary_signals": 0,
         "duplicate_suppressed": 0,
@@ -857,7 +829,61 @@
     },
     {
       "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
+      "variant": "công tác BR — nước đã có trong lịch sử",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "IP không có dữ liệu GeoIP",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "vị trí quen",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thành phố khác trong quốc gia đã quen",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,

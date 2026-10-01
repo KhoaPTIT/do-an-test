@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T10:33:01.099652+00:00",
+  "generated_at": "2026-10-01T14:35:23.199213+00:00",
   "git": {
-    "commit": "23091d0a560bd5886476c29cbcdab5e18460d681",
+    "commit": "a58bc12ff4e7b3380861769a271eb66b7023afef",
     "dirty": false
   },
   "seed": 20260302,
@@ -48,11 +48,11 @@
       "duplicate_suppressed": 532,
       "behaviors_counted": 10
     },
-    "final_b": {
+    "current": {
       "total_alerts": 766,
       "detection_alerts": 200,
       "legacy_alerts": 566,
-      "secondary_signals": 111,
+      "secondary_signals": 117,
       "duplicate_suppressed": 943,
       "behaviors_counted": 10
     }
@@ -81,7 +81,7 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 1.0
       },
-      "final_b": {
+      "current": {
         "total_alerts": 20,
         "detection_alerts": 20,
         "legacy_alerts": 0,
@@ -116,7 +116,7 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 1.0
       },
-      "final_b": {
+      "current": {
         "total_alerts": 20,
         "detection_alerts": 20,
         "legacy_alerts": 0,
@@ -151,7 +151,7 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 6.3
       },
-      "final_b": {
+      "current": {
         "total_alerts": 126,
         "detection_alerts": 20,
         "legacy_alerts": 106,
@@ -186,7 +186,7 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 8.3
       },
-      "final_b": {
+      "current": {
         "total_alerts": 166,
         "detection_alerts": 20,
         "legacy_alerts": 146,
@@ -221,11 +221,11 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 1.0
       },
-      "final_b": {
+      "current": {
         "total_alerts": 20,
         "detection_alerts": 20,
         "legacy_alerts": 0,
-        "secondary_signals": 4,
+        "secondary_signals": 10,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0,
         "campaigns": 20,
@@ -256,7 +256,7 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 1.0
       },
-      "final_b": {
+      "current": {
         "total_alerts": 20,
         "detection_alerts": 20,
         "legacy_alerts": 0,
@@ -291,7 +291,7 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 10.4
       },
-      "final_b": {
+      "current": {
         "total_alerts": 208,
         "detection_alerts": 20,
         "legacy_alerts": 188,
@@ -326,7 +326,7 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 6.3
       },
-      "final_b": {
+      "current": {
         "total_alerts": 126,
         "detection_alerts": 20,
         "legacy_alerts": 106,
@@ -361,7 +361,7 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 1.0
       },
-      "final_b": {
+      "current": {
         "total_alerts": 20,
         "detection_alerts": 20,
         "legacy_alerts": 0,
@@ -396,7 +396,7 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 2.0
       },
-      "final_b": {
+      "current": {
         "total_alerts": 40,
         "detection_alerts": 20,
         "legacy_alerts": 20,
@@ -411,7 +411,7 @@
     "country_hop": {
       "before_b0": null,
       "after_b0": null,
-      "final_b": {
+      "current": {
         "total_alerts": 25,
         "detection_alerts": 25,
         "legacy_alerts": 0,
@@ -426,7 +426,7 @@
     "ua_rotation": {
       "before_b0": null,
       "after_b0": null,
-      "final_b": {
+      "current": {
         "total_alerts": 20,
         "detection_alerts": 20,
         "legacy_alerts": 0,
@@ -441,7 +441,7 @@
     "scripted_client": {
       "before_b0": null,
       "after_b0": null,
-      "final_b": {
+      "current": {
         "total_alerts": 20,
         "detection_alerts": 20,
         "legacy_alerts": 0,
@@ -456,7 +456,7 @@
     "bot_user_agent": {
       "before_b0": null,
       "after_b0": null,
-      "final_b": {
+      "current": {
         "total_alerts": 20,
         "detection_alerts": 20,
         "legacy_alerts": 0,
@@ -471,16 +471,61 @@
     "unusual_device": {
       "before_b0": null,
       "after_b0": null,
-      "final_b": {
+      "current": {
         "total_alerts": 20,
         "detection_alerts": 20,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
+        "secondary_signals": 6,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0,
         "campaigns": 20,
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 1.0
+      }
+    },
+    "unusual_location": {
+      "before_b0": null,
+      "after_b0": null,
+      "current": {
+        "total_alerts": 21,
+        "detection_alerts": 20,
+        "legacy_alerts": 1,
+        "secondary_signals": 3,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0,
+        "campaigns": 20,
+        "alerts_per_attack_campaign": 1.0,
+        "all_alert_rows_per_attack_campaign": 1.05
+      }
+    },
+    "unusual_hour": {
+      "before_b0": null,
+      "after_b0": null,
+      "current": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0,
+        "campaigns": 20,
+        "alerts_per_attack_campaign": 0.0,
+        "all_alert_rows_per_attack_campaign": 0.0
+      }
+    },
+    "login_velocity_spike": {
+      "before_b0": null,
+      "after_b0": null,
+      "current": {
+        "total_alerts": 21,
+        "detection_alerts": 20,
+        "legacy_alerts": 1,
+        "secondary_signals": 30,
+        "duplicate_suppressed": 117,
+        "superseded_detectors": 17,
+        "campaigns": 20,
+        "alerts_per_attack_campaign": 1.0,
+        "all_alert_rows_per_attack_campaign": 1.05
       }
     }
   }

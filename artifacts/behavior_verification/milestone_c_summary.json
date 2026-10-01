@@ -1,0 +1,129 @@
+{
+  "generated_at": "2026-10-01T14:35:23.199213+00:00",
+  "git": {
+    "commit": "a58bc12ff4e7b3380861769a271eb66b7023afef",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "baseline_verified": [
+    "brute_force",
+    "credential_stuffing",
+    "blocklist_hit",
+    "impossible_travel",
+    "username_enumeration",
+    "password_spray_slow",
+    "distributed_bruteforce",
+    "success_after_failures",
+    "dormant_account_login",
+    "tor_exit",
+    "country_hop",
+    "ua_rotation",
+    "scripted_client",
+    "bot_user_agent",
+    "unusual_device"
+  ],
+  "baseline_still_verified": {
+    "brute_force": true,
+    "credential_stuffing": true,
+    "blocklist_hit": true,
+    "impossible_travel": true,
+    "username_enumeration": true,
+    "password_spray_slow": true,
+    "distributed_bruteforce": true,
+    "success_after_failures": true,
+    "dormant_account_login": true,
+    "tor_exit": true,
+    "country_hop": true,
+    "ua_rotation": true,
+    "scripted_client": true,
+    "bot_user_agent": true,
+    "unusual_device": true
+  },
+  "all_baseline_still_verified": true,
+  "milestone_c": {
+    "unusual_location": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 19,
+      "fp": 0,
+      "tn": 20,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.95,
+      "f1": 0.9744,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "unusual_hour": {
+      "status": "FAILED_CRITERIA",
+      "failed_criteria": [
+        "recall 0.00 < 0.9",
+        "quy kết đúng 0.00 < 0.9"
+      ],
+      "tp": 0,
+      "fp": 0,
+      "tn": 20,
+      "fn": 20,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "attribution_accuracy": 0.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "login_velocity_spike": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 19,
+      "fp": 0,
+      "tn": 20,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.95,
+      "f1": 0.9744,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    }
+  },
+  "verified_count": 17,
+  "verified": [
+    "blocklist_hit",
+    "bot_user_agent",
+    "brute_force",
+    "country_hop",
+    "credential_stuffing",
+    "distributed_bruteforce",
+    "dormant_account_login",
+    "impossible_travel",
+    "login_velocity_spike",
+    "password_spray_slow",
+    "scripted_client",
+    "success_after_failures",
+    "tor_exit",
+    "ua_rotation",
+    "unusual_device",
+    "unusual_location",
+    "username_enumeration"
+  ],
+  "not_verified": [
+    "unusual_hour"
+  ],
+  "cross_behavior_passed": "12/12",
+  "normal_traffic": {
+    "total_steps": 5647,
+    "history_logins": 2053,
+    "detector_false_alerts": {},
+    "legacy_alerts": {
+      "high_risk_score": 114,
+      "brute_force": 6
+    }
+  }
+}

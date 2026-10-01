@@ -14,75 +14,79 @@
   },
   "candidates_promoted_in_runner": [],
   "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
-  "behavior": "dormant_account_login",
-  "detector": "dormant_account_login",
+  "behavior": "login_velocity_spike",
+  "detector": "login_velocity_spike",
   "status": "VERIFIED",
   "failed_criteria": [],
   "scenario_count": {
     "positive": 20,
     "negative": 20
   },
-  "tp": 20,
+  "tp": 19,
   "fp": 0,
   "tn": 20,
-  "fn": 0,
+  "fn": 1,
   "precision": 1.0,
-  "recall": 1.0,
-  "f1": 1.0,
+  "recall": 0.95,
+  "f1": 0.9744,
   "attribution_accuracy": 1.0,
-  "attribution_correct": 20,
-  "attribution_total": 20,
+  "attribution_correct": 19,
+  "attribution_total": 19,
   "normal_traffic_false_alerts": 0,
   "cross_detector_alerts_in_positives": {
-    "dormant_account_login": 20
+    "impossible_travel": 1,
+    "login_velocity_spike": 19
   },
   "alert_noise_positive_scenarios": {
-    "total_alerts": 20,
+    "total_alerts": 21,
     "detection_alerts": 20,
-    "legacy_alerts": 0,
-    "secondary_signals": 10,
-    "duplicate_suppressed": 0,
-    "superseded_detectors": 0,
+    "legacy_alerts": 1,
+    "secondary_signals": 30,
+    "duplicate_suppressed": 117,
+    "superseded_detectors": 17,
     "campaigns": 20,
     "alerts_per_attack_campaign": 1.0,
-    "all_alert_rows_per_attack_campaign": 1.0
+    "all_alert_rows_per_attack_campaign": 1.05
   },
   "example_alert": {
     "id": 1,
-    "login_event_id": 7,
+    "login_event_id": 54,
     "user_id": 1,
-    "alert_type": "hybrid_risk",
-    "rule_id": "dormant_account_login",
+    "alert_type": "behavior_anomaly",
+    "rule_id": "login_velocity_spike",
     "severity": "medium",
-    "risk_score": 5,
-    "message": "[dormant_account_reactivation] Tài khoản 'sleeper' ngủ đông 386 ngày rồi đăng nhập lại (quốc gia mới JP, thiết bị mới). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Tài khoản 'sleeper' ngủ đông 386 ngày rồi đăng nhập lại (quốc gia mới JP, thiết bị mới). (5%). Lần đầu quốc gia này (JP), trước đó dùng VN 6 lần. Họ tấn công gợi ý: Ngữ cảnh tài khoản (5%).",
+    "risk_score": 10,
+    "message": "[login_velocity_spike] Tài khoản 'alice' có 11 lần đăng nhập thành công trong 10 phút — gấp 5.5 lần đỉnh lịch sử (2 lần/10 phút; trung bình 2.3 lần/ngày). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Tài khoản 'alice' có 11 lần đăng nhập thành công trong 10 phút — gấp 5.5 lần đỉnh lịch sử (2 lần/10 phút; trung bình 2.3 lần/ngày). (5%). Họ tấn công gợi ý: Hồ sơ hành vi (5%). Đã lặp lại 5 lần trong 15 phút gần đây.",
     "explanation": {
       "contributions": [
         {
-          "source": "dormant_account_login",
-          "label": "Tài khoản 'sleeper' ngủ đông 386 ngày rồi đăng nhập lại (quốc gia mới JP, thiết bị mới).",
+          "source": "login_velocity_spike",
+          "label": "Tài khoản 'alice' có 11 lần đăng nhập thành công trong 10 phút — gấp 5.5 lần đỉnh lịch sử (2 lần/10 phút; trung bình 2.3 lần/ngày).",
           "weight": 0.05,
           "group": "rule"
         }
       ],
       "action": "allow",
-      "behavior": "dormant_account_reactivation",
-      "primary_detector": "dormant_account_login",
+      "behavior": "login_velocity_spike",
+      "primary_detector": "login_velocity_spike",
       "matched_rules": [
-        "dormant_account_login"
+        "login_velocity_spike"
       ],
-      "secondary_signals": [],
+      "secondary_signals": [
+        "unusual_device",
+        "unusual_location"
+      ],
       "enforced_rules": [
-        "dormant_account_login"
+        "login_velocity_spike"
       ],
       "standalone_rules": [
-        "dormant_account_login"
+        "login_velocity_spike"
       ],
       "experimental_rules": [],
       "shadow_rules": [],
       "contributing_rules": [
         {
-          "rule": "dormant_account_login",
+          "rule": "login_velocity_spike",
           "weight": 0.05,
           "group": "rule"
         }
@@ -91,147 +95,54 @@
       "ml_probability": null,
       "alert_reason": "rule_enforced",
       "evidence": {
-        "idle_days": 385.8,
-        "new_country": true,
-        "new_device": true,
-        "country": "JP"
+        "recent_success_count": 11,
+        "window_minutes": 10,
+        "baseline_peak_in_window": 2,
+        "baseline_rate_per_day": 2.33,
+        "velocity_ratio": 5.5,
+        "successful_login_count": 63,
+        "profile_age_days": 27.0
       },
-      "superseded_detectors": [],
-      "consolidated_events": 1,
+      "superseded_detectors": [
+        "unusual_location"
+      ],
+      "consolidated_events": 5,
       "telemetry_gaps": []
     },
-    "occurrence_count": 1
+    "occurrence_count": 5
   },
   "scenarios": [
     {
       "kind": "positive",
-      "variant": "ngủ đông 386 ngày, đổi both",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
+      "variant": "hồ sơ 1–3 lần/ngày (20 ngày) → 10 lần thành công cách 53s",
+      "steps": 10,
+      "detected": false,
+      "attribution_events": 3,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "impossible_travel": 1
       },
-      "legacy_alerts": {},
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
       "noise": {
-        "total_alerts": 1,
+        "total_alerts": 2,
         "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "legacy_alerts": 1,
+        "secondary_signals": 4,
+        "duplicate_suppressed": 9,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 273 ngày, đổi device",
-      "steps": 1,
+      "variant": "hồ sơ 1–3 lần/ngày (27 ngày) → 11 lần thành công cách 37s",
+      "steps": 11,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 4,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 326 ngày, đổi country",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 362 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 179 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 281 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 234 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -239,19 +150,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 2,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
       }
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 397 ngày, đổi both",
-      "steps": 1,
+      "variant": "hồ sơ 1–3 lần/ngày (30 ngày) → 12 lần thành công cách 15s",
+      "steps": 12,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -259,19 +170,59 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 2,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 11,
+        "superseded_detectors": 1
       }
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 261 ngày, đổi device",
-      "steps": 1,
+      "variant": "hồ sơ 1–3 lần/ngày (13 ngày) → 9 lần thành công cách 48s",
+      "steps": 9,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 2,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "login_velocity_spike": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (30 ngày) → 9 lần thành công cách 49s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "login_velocity_spike": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (35 ngày) → 12 lần thành công cách 43s",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -279,199 +230,39 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 2,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
       }
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 302 ngày, đổi device",
-      "steps": 1,
+      "variant": "hồ sơ 1–3 lần/ngày (38 ngày) → 12 lần thành công cách 24s",
+      "steps": 12,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
       }
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 315 ngày, đổi country",
-      "steps": 1,
+      "variant": "hồ sơ 1–3 lần/ngày (21 ngày) → 14 lần thành công cách 42s",
+      "steps": 14,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 7,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 354 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 305 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 144 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 231 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 378 ngày, đổi country",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 255 ngày, đổi country",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 148 ngày, đổi device",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "ngủ đông 374 ngày, đổi country",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "dormant_account_login": 1
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -479,19 +270,79 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 2,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 13,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (35 ngày) → 11 lần thành công cách 34s",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "login_velocity_spike": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (18 ngày) → 15 lần thành công cách 40s",
+      "steps": 15,
+      "detected": true,
+      "attribution_events": 8,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "login_velocity_spike": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 7,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "ngủ đông 220 ngày, đổi device",
-      "steps": 1,
+      "variant": "hồ sơ 1–3 lần/ngày (36 ngày) → 12 lần thành công cách 40s",
+      "steps": 12,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "dormant_account_login": 1
+        "login_velocity_spike": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (11 ngày) → 12 lần thành công cách 24s",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -499,55 +350,39 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 2,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
       }
     },
     {
-      "kind": "negative",
-      "variant": "nghỉ 62.5 ngày (< 90) + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "ngủ đông 326 ngày, CÙNG thiết bị và quốc gia",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (11 ngày) → 14 lần thành công cách 23s",
+      "steps": 14,
+      "detected": true,
+      "attribution_events": 7,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "unusual_device": 1
+        "login_velocity_spike": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 7,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (13 ngày) → 15 lần thành công cách 35s",
+      "steps": 15,
+      "detected": true,
+      "attribution_events": 8,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -555,301 +390,143 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 7,
         "superseded_detectors": 0
       }
     },
     {
-      "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "nghỉ 83.2 ngày (< 90) + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "ngủ đông 301 ngày, CÙNG thiết bị và quốc gia",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (34 ngày) → 10 lần thành công cách 25s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 3,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "unusual_device": 1
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "secondary_signals": 3,
+        "duplicate_suppressed": 9,
+        "superseded_detectors": 1
       }
     },
     {
-      "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "nghỉ 60.2 ngày (< 90) + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "ngủ đông 259 ngày, CÙNG thiết bị và quốc gia",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (16 ngày) → 10 lần thành công cách 60s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 3,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "unusual_device": 1
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "secondary_signals": 2,
+        "duplicate_suppressed": 9,
+        "superseded_detectors": 1
       }
     },
     {
-      "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "nghỉ 87.5 ngày (< 90) + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "ngủ đông 189 ngày, CÙNG thiết bị và quốc gia",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (28 ngày) → 10 lần thành công cách 63s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 3,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "unusual_device": 1
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "secondary_signals": 1,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 1
       }
     },
     {
-      "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "nghỉ 69.3 ngày (< 90) + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "ngủ đông 114 ngày, CÙNG thiết bị và quốc gia",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "tài khoản hoạt động hằng ngày + thiết bị mới",
-      "steps": 1,
-      "detected": false,
-      "attribution_events": 0,
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (18 ngày) → 10 lần thành công cách 47s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 3,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "unusual_device": 1
+        "login_velocity_spike": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (36 ngày) → 12 lần thành công cách 17s",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "login_velocity_spike": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 1–3 lần/ngày (30 ngày) → 9 lần thành công cách 13s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "login_velocity_spike": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "3 lần đăng nhập trong 10 phút",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
         "secondary_signals": 0,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
@@ -857,8 +534,352 @@
     },
     {
       "kind": "negative",
-      "variant": "ngủ đông nhưng lần thử THẤT BẠI",
-      "steps": 1,
+      "variant": "tài khoản mới + 12 lần thành công",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "10 lần THẤT BẠI dồn dập",
+      "steps": 10,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 6,
+        "high_risk_score": 6
+      },
+      "noise": {
+        "total_alerts": 13,
+        "detection_alerts": 1,
+        "legacy_alerts": 12,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản dịch vụ (đỉnh lịch sử 14/10 phút) → 13 lần",
+      "steps": 13,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần thành công trong 10 phút (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "2 lần đăng nhập trong 10 phút",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản mới + 12 lần thành công",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "9 lần THẤT BẠI dồn dập",
+      "steps": 9,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 5
+      },
+      "noise": {
+        "total_alerts": 11,
+        "detection_alerts": 1,
+        "legacy_alerts": 10,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản dịch vụ (đỉnh lịch sử 14/10 phút) → 9 lần",
+      "steps": 9,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần thành công trong 10 phút (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "3 lần đăng nhập trong 10 phút",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản mới + 12 lần thành công",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần THẤT BẠI dồn dập",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 4
+      },
+      "noise": {
+        "total_alerts": 9,
+        "detection_alerts": 1,
+        "legacy_alerts": 8,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản dịch vụ (đỉnh lịch sử 14/10 phút) → 15 lần",
+      "steps": 15,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần thành công trong 10 phút (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "2 lần đăng nhập trong 10 phút",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản mới + 12 lần thành công",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "12 lần THẤT BẠI dồn dập",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 8,
+        "high_risk_score": 8
+      },
+      "noise": {
+        "total_alerts": 17,
+        "detection_alerts": 1,
+        "legacy_alerts": 16,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 7,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản dịch vụ (đỉnh lịch sử 11/10 phút) → 13 lần",
+      "steps": 13,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần thành công trong 10 phút (ngưỡng − 1)",
+      "steps": 7,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],

@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T10:33:01.099652+00:00",
+  "generated_at": "2026-10-01T14:35:23.199213+00:00",
   "git": {
-    "commit": "23091d0a560bd5886476c29cbcdab5e18460d681",
+    "commit": "a58bc12ff4e7b3380861769a271eb66b7023afef",
     "dirty": false
   },
   "seed": 20260302,
@@ -109,6 +109,7 @@
       "evidence": {
         "username": "victim",
         "fails": 6,
+        "successes": 0,
         "window_s": 300
       },
       "superseded_detectors": [

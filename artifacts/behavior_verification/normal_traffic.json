@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T10:33:01.099652+00:00",
+  "generated_at": "2026-10-01T14:35:23.199213+00:00",
   "git": {
-    "commit": "23091d0a560bd5886476c29cbcdab5e18460d681",
+    "commit": "a58bc12ff4e7b3380861769a271eb66b7023afef",
     "dirty": false
   },
   "seed": 20260302,
@@ -15,22 +15,31 @@
   "candidates_promoted_in_runner": [],
   "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
   "profile": {
-    "users": 50,
-    "office_nat": 12,
+    "users": 63,
+    "office": 12,
     "browser_version_update": 10,
-    "password_typo": 249,
-    "successful_logins": 1848,
-    "laptop_and_phone": 28,
-    "username_typo": 41,
-    "multiple_browsers_same_machine": 6,
-    "home": 38,
-    "business_trip": 4,
-    "dormant_same_context_return": 3,
-    "total_steps": 2263
+    "successful_logins": 4601,
+    "password_typo": 603,
+    "username_typo": 138,
+    "laptop_and_phone": 36,
+    "multiple_browsers_same_machine": 7,
+    "traveller": 4,
+    "trip_to_previously_visited_country": 2,
+    "dormant": 3,
+    "regular": 31,
+    "night_shift": 3,
+    "heavy_daily": 3,
+    "developer": 1,
+    "service_like": 1,
+    "geo_missing": 2,
+    "new_account": 3,
+    "total_steps": 5647,
+    "history_logins": 2053
   },
   "hybrid_alerts_by_detector": {},
   "legacy_alerts_by_type": {
-    "high_risk_score": 2
+    "high_risk_score": 114,
+    "brute_force": 6
   },
   "examples": []
 }
