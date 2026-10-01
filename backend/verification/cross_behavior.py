@@ -67,12 +67,47 @@ def unusual_device_with_scripted_client(env):
     env.login("alice", success=True, ip=HOME_IP, ts=T0, user_agent=PY_REQUESTS_UA)
 
 
+JP_IP = "203.0.113.10"  # FIXTURE: JP/Tokyo
+MIDNIGHT = T0 - timedelta(hours=T0.hour)
+
+
+def unusual_location_with_impossible_travel(env):
+    _seed(env, "alice", days=20)
+    env.login("alice", success=True, ip=HOME_IP, ts=T0)
+    env.login("alice", success=True, ip=US_IP, ts=T0 + timedelta(minutes=5))  # nước chưa từng thấy VÀ không thể bay tới kịp
+
+
+def unusual_location_with_unusual_device(env):
+    _seed(env, "alice", days=20, ua=CHROME_UA)
+    env.login("alice", success=True, ip=JP_IP, ts=T0 + timedelta(days=2), user_agent=SAFARI_UA)
+
+
+def unusual_hour_with_unusual_device(env):
+    env.add_user("alice")
+    for d in range(20, 0, -1):
+        env.add_history("alice", ip=HOME_IP, ts=MIDNIGHT - timedelta(days=d) + timedelta(hours=9 + d % 3), user_agent=CHROME_UA)
+    env.login("alice", success=True, ip=HOME_IP, ts=MIDNIGHT + timedelta(hours=22), user_agent=SAFARI_UA)
+
+
+def velocity_with_scripted_client(env):
+    _seed(env, "alice", days=20)
+    for k in range(12):
+        env.login("alice", success=True, ip=HOME_IP, ts=T0 + timedelta(seconds=k * 45), user_agent=PY_REQUESTS_UA)
+
+
+def rapid_failures_are_brute_force_not_velocity(env):
+    _seed(env, "alice", days=20)
+    for k in range(12):
+        env.login("alice", success=False, ip=US_IP, ts=T0 + timedelta(seconds=k * 20))
+
+
 @dataclass(frozen=True)
 class CrossCase:
     name: str
     build: Callable[[VerificationEnv], None]
     expected_primary: str
     expected_secondary: tuple[str, ...]
+    forbidden_matches: tuple[str, ...] = ()  # detector KHÔNG được khớp ở bất kỳ lần thử nào của ca này
 
 
 CASES: tuple[CrossCase, ...] = (
@@ -84,6 +119,13 @@ CASES: tuple[CrossCase, ...] = (
     CrossCase("unusual_device + impossible_travel", unusual_device_with_impossible_travel, "impossible_travel", ("unusual_device",)),
     # lộ ra ở regression Milestone B: "công cụ kịch bản" giải thích thiết bị lạ cụ thể hơn "thiết bị lần đầu thấy"
     CrossCase("unusual_device + scripted_client", unusual_device_with_scripted_client, "scripted_client", ("unusual_device",)),
+    # --- Milestone C (C8)
+    CrossCase("unusual_location + impossible_travel", unusual_location_with_impossible_travel, "impossible_travel", ("unusual_location",)),
+    CrossCase("unusual_location + unusual_device", unusual_location_with_unusual_device, "unusual_location", ("unusual_device",)),
+    # unusual_hour chưa VERIFIED (PARTIAL, experimental) nên không tự dẫn cảnh báo — vẫn phải có mặt trong tín hiệu phụ
+    CrossCase("unusual_hour + unusual_device", unusual_hour_with_unusual_device, "unusual_device", ("unusual_hour",)),
+    CrossCase("login_velocity_spike + scripted_client", velocity_with_scripted_client, "login_velocity_spike", ("scripted_client",)),
+    CrossCase("rapid failed logins -> brute_force, not login_velocity_spike", rapid_failures_are_brute_force_not_velocity, "brute_force", (), ("login_velocity_spike",)),
 )
 
 
@@ -93,9 +135,11 @@ def evaluate(case: CrossCase, env: VerificationEnv) -> dict:
     primary = [a for a in alerts if a.rule_id == case.expected_primary]
     secondary = set((primary[0].explanation or {}).get("secondary_signals", [])) if primary else set()
     missing = [s for s in case.expected_secondary if s not in secondary]
+    forbidden = sorted({r for v in env.verdicts for r in v.matched_rules if r in case.forbidden_matches})
     return {
         "case": case.name, "expected_primary": case.expected_primary, "expected_secondary": list(case.expected_secondary),
         "detection_alerts": [a.rule_id for a in alerts], "secondary_signals": sorted(secondary), "missing_secondary": missing,
         "superseded_detectors": (primary[0].explanation or {}).get("superseded_detectors", []) if primary else [],
-        "passed": len(alerts) == 1 and bool(primary) and not missing,
+        "forbidden_matched": forbidden,
+        "passed": len(alerts) == 1 and bool(primary) and not missing and not forbidden,
     }
