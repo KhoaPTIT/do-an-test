@@ -173,7 +173,8 @@ def unusual_hour(ctx: RuleContext) -> Finding | None:
     ),
     needs=("account", "history"),
     notes=(
-        f"Cửa sổ cố định {int(VELOCITY_WINDOW_S)}s để so cùng độ dài với đỉnh lịch sử (`peak_success_in_window`, chỉ học từ lần thành công — lần thất bại "
+        f"Cửa sổ cố định {int(VELOCITY_WINDOW_S)}s để so cùng độ dài với đỉnh lịch sử (`AccountHistory.baseline_peak`: chỉ các cửa sổ kết thúc TRƯỚC cửa sổ "
+        "hiện tại, nên chính đợt dồn dập không tự nâng nền; chỉ học từ lần thành công — lần thất bại "
         "không làm tăng nền). Tài khoản dịch vụ/lập trình viên có đỉnh lịch sử cao nên cần dồn dập hơn hẳn mới khớp. Chỉ sự kiện XÁC THỰC (/login) được tính; "
         "làm mới phiên/token không đi qua pipeline này."
     ),
@@ -188,7 +189,7 @@ def login_velocity_spike(ctx: RuleContext) -> Finding | None:
     recent = ctx.store.log_count(K.ok_user(a.user_key), ctx.since(VELOCITY_WINDOW_S))
     if recent < p.min_successes_in_window:
         return None
-    baseline_peak = max(h.peak_success_in_window, 1)
+    baseline_peak = max(h.baseline_peak(a.ts), 1)  # nền KHÔNG gồm các lần thành công của chính đợt đang diễn ra
     ratio = recent / baseline_peak
     if ratio < p.min_velocity_ratio:
         return None

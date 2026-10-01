@@ -146,7 +146,16 @@ class AccountHistory:
     location_last_seen: tuple[float, ...] = ()
     first_location: str | None = None
     recent_success_ts: tuple[float, ...] = ()  # các lần thành công trong VELOCITY_WINDOW_S gần nhất (để tính đỉnh)
-    peak_success_in_window: int = 0
+    # Đỉnh số lần thành công trong một cửa sổ VELOCITY_WINDOW_S: `settled_peak` = các cửa sổ đã KẾT THÚC đủ lâu (không
+    # thể chồng lên cửa sổ đang chấm), `recent_window_counts` = (thời điểm kết thúc, số lần) của các cửa sổ gần đây — xem
+    # `baseline_peak`: nền KHÔNG được gồm chính đợt dồn dập đang diễn ra.
+    settled_peak: int = 0
+    recent_window_counts: tuple[tuple[float, int], ...] = ()
+
+    def baseline_peak(self, now_ts: float) -> int:
+        """Đỉnh lịch sử của các cửa sổ kết thúc TRƯỚC cửa sổ hiện tại (≤ now − VELOCITY_WINDOW_S)."""
+        cutoff = now_ts - VELOCITY_WINDOW_S
+        return max([self.settled_peak] + [c for t, c in self.recent_window_counts if t <= cutoff])
 
     def record_success(self, ts: float, *, lat: float | None, lon: float | None, country: str | None, city: str | None, device_family: str, agent_hash: str) -> None:
         """Cập nhật hồ sơ bằng MỘT lần đăng nhập THÀNH CÔNG — điểm cập nhật DUY NHẤT, dùng chung cho lịch sử dựng từ DB
@@ -183,7 +192,10 @@ class AccountHistory:
                 self.location_first_seen += (ts,)
                 self.location_last_seen += (ts,)
         self.recent_success_ts = tuple(t for t in self.recent_success_ts if t > ts - VELOCITY_WINDOW_S) + (ts,)
-        self.peak_success_in_window = max(self.peak_success_in_window, len(self.recent_success_ts))
+        settled = [c for t, c in self.recent_window_counts if t <= ts - VELOCITY_WINDOW_S]  # mọi truy vấn sau này đều thấy chúng là lịch sử
+        if settled:
+            self.settled_peak = max([self.settled_peak] + settled)
+        self.recent_window_counts = tuple((t, c) for t, c in self.recent_window_counts if t > ts - VELOCITY_WINDOW_S) + ((ts, len(self.recent_success_ts)),)
     n_success: int = 0
     # Hai tập nhỏ của MỘT tài khoản, chỉ dùng phép `in`: tuple nhẹ hơn frozenset ~4 lần khi có hàng triệu tài khoản (replay giai đoạn train RBA có 2,5 triệu).
     known_countries: tuple[str, ...] = ()  # quốc gia đã từng đăng nhập thành công

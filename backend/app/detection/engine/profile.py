@@ -65,7 +65,7 @@ def hour_profile(history: AccountHistory) -> HourProfile | None:
     if n <= 0:
         return None
     s, c = history.hour_sin_sum, history.hour_cos_sum
-    r = math.hypot(s, c) / n
+    r = min(math.hypot(s, c) / n, 1.0)  # sai số dấu phẩy động có thể cho R > 1 một chút khi mọi giờ trùng nhau (log dương -> lỗi miền)
     center = (math.degrees(math.atan2(s, c)) % 360) / 15.0
     spread = math.sqrt(-2 * math.log(r)) * 24 / (2 * math.pi) if r > 1e-12 else float("inf")
     return HourProfile(center=center, concentration=r, spread_hours=spread, sample_count=n)
