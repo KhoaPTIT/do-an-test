@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T10:12:33.316458+00:00",
+  "generated_at": "2026-10-01T10:21:25.374802+00:00",
   "git": {
-    "commit": "d8ecc6486593b831074f918bd9f7f50b9827e61c",
+    "commit": "f01901346965760f08944e4cbfd7b0cfbda88c21",
     "dirty": false
   },
   "seed": 20260302,
@@ -34,18 +34,19 @@
   "attribution_total": 20,
   "normal_traffic_false_alerts": 0,
   "cross_detector_alerts_in_positives": {
-    "country_hop": 20
+    "country_hop": 20,
+    "scripted_client": 5
   },
   "alert_noise_positive_scenarios": {
-    "total_alerts": 20,
-    "detection_alerts": 20,
+    "total_alerts": 25,
+    "detection_alerts": 25,
     "legacy_alerts": 0,
     "secondary_signals": 5,
-    "duplicate_suppressed": 64,
-    "superseded_detectors": 0,
+    "duplicate_suppressed": 71,
+    "superseded_detectors": 5,
     "campaigns": 20,
-    "alerts_per_attack_campaign": 1.0,
-    "all_alert_rows_per_attack_campaign": 1.0
+    "alerts_per_attack_campaign": 1.25,
+    "all_alert_rows_per_attack_campaign": 1.25
   },
   "example_alert": {
     "id": 1,
@@ -216,16 +217,17 @@
       "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
+        "scripted_client": 1,
         "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
+        "total_alerts": 2,
+        "detection_alerts": 2,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
       }
     },
     {
@@ -236,16 +238,17 @@
       "attribution_events": 4,
       "misattributed_to": [],
       "alerts_by_detector": {
+        "scripted_client": 1,
         "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
+        "total_alerts": 2,
+        "detection_alerts": 2,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
       }
     },
     {
@@ -304,8 +307,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 6,
+        "superseded_detectors": 1
       }
     },
     {
@@ -316,16 +319,17 @@
       "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
+        "scripted_client": 1,
         "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
+        "total_alerts": 2,
+        "detection_alerts": 2,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
       }
     },
     {
@@ -356,16 +360,17 @@
       "attribution_events": 4,
       "misattributed_to": [],
       "alerts_by_detector": {
+        "scripted_client": 2,
         "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
+        "total_alerts": 3,
+        "detection_alerts": 3,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
       }
     },
     {

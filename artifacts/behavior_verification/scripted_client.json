@@ -14,8 +14,8 @@
   },
   "candidates_promoted_in_runner": [],
   "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
-  "behavior": "blocklist_hit",
-  "detector": "blocklist_hit",
+  "behavior": "scripted_client",
+  "detector": "scripted_client",
   "status": "VERIFIED",
   "failed_criteria": [],
   "scenario_count": {
@@ -34,14 +34,14 @@
   "attribution_total": 20,
   "normal_traffic_false_alerts": 0,
   "cross_detector_alerts_in_positives": {
-    "blocklist_hit": 20
+    "scripted_client": 20
   },
   "alert_noise_positive_scenarios": {
     "total_alerts": 20,
     "detection_alerts": 20,
     "legacy_alerts": 0,
-    "secondary_signals": 0,
-    "duplicate_suppressed": 0,
+    "secondary_signals": 2,
+    "duplicate_suppressed": 11,
     "superseded_detectors": 0,
     "campaigns": 20,
     "alerts_per_attack_campaign": 1.0,
@@ -49,52 +49,50 @@
   },
   "example_alert": {
     "id": 1,
-    "login_event_id": 8,
-    "user_id": 1,
+    "login_event_id": 1,
+    "user_id": null,
     "alert_type": "hybrid_risk",
-    "rule_id": "blocklist_hit",
-    "severity": "high",
-    "risk_score": 100,
-    "message": "[blocklisted_source] Nguồn nằm trong blocklist (ip 203.0.113.214) — kiểm chứng. Hybrid risk engine: điểm 100/100, đề xuất 'lock' — Nguồn nằm trong blocklist (ip 203.0.113.214) — kiểm chứng. (5%). Lần đầu quốc gia này (US), trước đó dùng VN 7 lần. Họ tấn công gợi ý: Danh tiếng hạ tầng (5%).",
+    "rule_id": "scripted_client",
+    "severity": "low",
+    "risk_score": 5,
+    "message": "[scripted_client] Client kịch bản/công cụ 'python-requests': python-requests/2.31.0. Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Client kịch bản/công cụ 'python-requests': python-requests/2.31.0. (5%). Họ tấn công gợi ý: Tự động hoá (5%).",
     "explanation": {
       "contributions": [
         {
-          "source": "blocklist_hit",
-          "label": "Nguồn nằm trong blocklist (ip 203.0.113.214) — kiểm chứng.",
+          "source": "scripted_client",
+          "label": "Client kịch bản/công cụ 'python-requests': python-requests/2.31.0.",
           "weight": 0.05,
-          "group": "reputation"
+          "group": "rule"
         }
       ],
-      "action": "lock",
-      "behavior": "blocklisted_source",
-      "primary_detector": "blocklist_hit",
+      "action": "allow",
+      "behavior": "scripted_client",
+      "primary_detector": "scripted_client",
       "matched_rules": [
-        "blocklist_hit"
+        "scripted_client"
       ],
       "secondary_signals": [],
       "enforced_rules": [
-        "blocklist_hit"
+        "scripted_client"
       ],
       "standalone_rules": [
-        "blocklist_hit"
+        "scripted_client"
       ],
       "experimental_rules": [],
       "shadow_rules": [],
       "contributing_rules": [
         {
-          "rule": "blocklist_hit",
+          "rule": "scripted_client",
           "weight": 0.05,
-          "group": "reputation"
+          "group": "rule"
         }
       ],
-      "risk_score": 100,
+      "risk_score": 5,
       "ml_probability": null,
-      "alert_reason": "override",
+      "alert_reason": "rule_enforced",
       "evidence": {
-        "kind": "ip",
-        "value": "203.0.113.214",
-        "reason": "kiểm chứng",
-        "added_by": "admin"
+        "marker": "python-requests",
+        "user_agent": "python-requests/2.31.0"
       },
       "superseded_detectors": [],
       "consolidated_events": 1,
@@ -105,13 +103,13 @@
   "scenarios": [
     {
       "kind": "positive",
-      "variant": "chặn ip=203.0.113.214",
+      "variant": "tên không tồn tại, python-requests/2.31.0",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -125,13 +123,13 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn cidr=203.0.113.64/26",
+      "variant": "tên không tồn tại, curl/8.7.1",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -145,13 +143,13 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn asn=64533 (có hạn)",
+      "variant": "tên không tồn tại, Wget/1.21.4",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -165,13 +163,13 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn username=victim (có hạn)",
+      "variant": "đăng nhập thành công bằng HTTPie/3.2.2",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -185,13 +183,13 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn ip=198.51.100.249 (có hạn)",
+      "variant": "đăng nhập thành công bằng Go-http-client/1.1",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -205,13 +203,13 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn cidr=198.51.100.192/26 (có hạn)",
+      "variant": "đăng nhập thành công bằng python-httpx/0.27.0",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -225,13 +223,73 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn asn=64532 (có hạn)",
+      "variant": "2 lần thử sai bằng Python/3.11 aiohttp/3.9.3",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3 lần thử sai bằng libwww-perl/6.72",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "1 lần thử sai bằng Java/17.0.9",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "tên không tồn tại, Apache-HttpClient/4.5.14 (Java/17.0.9)",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -245,13 +303,93 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn username=victim",
+      "variant": "3 lần thử sai bằng python-requests/2.31.0",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3 lần thử sai bằng curl/8.7.1",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3 lần thử sai bằng Wget/1.21.4",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3 lần thử sai bằng HTTPie/3.2.2",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "đăng nhập thành công bằng Go-http-client/1.1",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -265,13 +403,13 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn ip=198.51.100.235 (có hạn)",
+      "variant": "đăng nhập thành công bằng python-httpx/0.27.0",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -285,13 +423,13 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn cidr=198.51.100.192/26 (có hạn)",
+      "variant": "tên không tồn tại, Python/3.11 aiohttp/3.9.3",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -305,13 +443,13 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn asn=64530 (có hạn)",
+      "variant": "tên không tồn tại, libwww-perl/6.72",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -325,173 +463,33 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn username=victim",
+      "variant": "tên không tồn tại, Java/17.0.9",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
+        "secondary_signals": 1,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn ip=203.0.113.189",
+      "variant": "tên không tồn tại, Apache-HttpClient/4.5.14 (Java/17.0.9)",
       "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn cidr=203.0.113.128/26",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn asn=64533",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn username=victim (có hạn)",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn ip=203.0.113.167 (có hạn)",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn cidr=203.0.113.128/26 (có hạn)",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn asn=64530 (có hạn)",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn username=victim",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
+        "scripted_client": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -505,7 +503,7 @@
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -523,7 +521,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
+      "variant": "UA Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -541,7 +539,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -559,7 +557,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
+      "variant": "UA Mozilla/5.0 (Macintosh; Intel Mac OS X 1",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -577,7 +575,7 @@
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
+      "variant": "UA Mozilla/5.0 (Linux; Android 14; SM-S911B",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -595,7 +593,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
+      "variant": "UA Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 ",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -613,7 +611,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
+      "variant": "UA okhttp/4.12.0",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -631,7 +629,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
+      "variant": "UA trống",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -649,7 +647,7 @@
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
+      "variant": "UA trống",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -667,7 +665,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -685,7 +683,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
+      "variant": "UA Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -703,7 +701,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -721,7 +719,7 @@
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
+      "variant": "UA Mozilla/5.0 (Macintosh; Intel Mac OS X 1",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -739,7 +737,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
+      "variant": "UA Mozilla/5.0 (Linux; Android 14; SM-S911B",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -757,7 +755,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
+      "variant": "UA Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 ",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -775,7 +773,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
+      "variant": "UA okhttp/4.12.0",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -793,7 +791,7 @@
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
+      "variant": "UA trống",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -811,7 +809,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
+      "variant": "UA trống",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -829,7 +827,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,
@@ -847,7 +845,7 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
+      "variant": "UA Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ",
       "steps": 1,
       "detected": false,
       "attribution_events": 0,

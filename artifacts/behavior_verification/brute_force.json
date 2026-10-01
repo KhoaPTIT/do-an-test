@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T10:12:33.316458+00:00",
+  "generated_at": "2026-10-01T10:21:25.374802+00:00",
   "git": {
-    "commit": "d8ecc6486593b831074f918bd9f7f50b9827e61c",
+    "commit": "f01901346965760f08944e4cbfd7b0cfbda88c21",
     "dirty": false
   },
   "seed": 20260302,
@@ -41,21 +41,21 @@
     "detection_alerts": 20,
     "legacy_alerts": 188,
     "secondary_signals": 9,
-    "duplicate_suppressed": 74,
-    "superseded_detectors": 0,
+    "duplicate_suppressed": 102,
+    "superseded_detectors": 7,
     "campaigns": 20,
     "alerts_per_attack_campaign": 1.0,
     "all_alert_rows_per_attack_campaign": 10.4
   },
   "example_alert": {
-    "id": 3,
-    "login_event_id": 12,
+    "id": 1,
+    "login_event_id": 8,
     "user_id": 1,
     "alert_type": "hybrid_risk",
     "rule_id": "brute_force",
     "severity": "high",
     "risk_score": 10,
-    "message": "[brute_force] Dò mật khẩu 'victim': 6 lần sai/5 phút (ngưỡng 5). Hybrid risk engine: điểm 10/100, đề xuất 'allow' — Dò mật khẩu 'victim': 6 lần sai/5 phút (ngưỡng 5). (5%); Client kịch bản/công cụ 'curl/': curl/8.7.1. (5%). Lần đầu nhà mạng này (AS64514), trước đó dùng AS64512 7 lần. Họ tấn công gợi ý: Đoán và dò mật khẩu (5%). Đã lặp lại 7 lần trong 15 phút gần đây.",
+    "message": "[brute_force] Dò mật khẩu 'victim': 6 lần sai/5 phút (ngưỡng 5). Hybrid risk engine: điểm 10/100, đề xuất 'allow' — Dò mật khẩu 'victim': 6 lần sai/5 phút (ngưỡng 5). (5%); Client kịch bản/công cụ 'curl/': curl/8.7.1. (5%). Lần đầu nhà mạng này (AS64514), trước đó dùng AS64512 7 lần. Họ tấn công gợi ý: Đoán và dò mật khẩu (5%). Đã lặp lại 11 lần trong 15 phút gần đây.",
     "explanation": {
       "contributions": [
         {
@@ -86,11 +86,10 @@
         "scripted_client"
       ],
       "standalone_rules": [
-        "brute_force"
-      ],
-      "experimental_rules": [
+        "brute_force",
         "scripted_client"
       ],
+      "experimental_rules": [],
       "shadow_rules": [],
       "contributing_rules": [
         {
@@ -112,11 +111,13 @@
         "fails": 6,
         "window_s": 300
       },
-      "superseded_detectors": [],
-      "consolidated_events": 7,
+      "superseded_detectors": [
+        "scripted_client"
+      ],
+      "consolidated_events": 11,
       "telemetry_gaps": []
     },
-    "occurrence_count": 7
+    "occurrence_count": 11
   },
   "scenarios": [
     {
@@ -138,8 +139,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 14,
         "secondary_signals": 1,
-        "duplicate_suppressed": 6,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 10,
+        "superseded_detectors": 1
       }
     },
     {
@@ -184,8 +185,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 2,
         "secondary_signals": 1,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
       }
     },
     {
@@ -414,8 +415,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 8,
         "secondary_signals": 1,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 7,
+        "superseded_detectors": 1
       }
     },
     {
@@ -460,8 +461,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 8,
         "secondary_signals": 1,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 7,
+        "superseded_detectors": 1
       }
     },
     {
@@ -483,8 +484,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 12,
         "secondary_signals": 1,
-        "duplicate_suppressed": 5,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 9,
+        "superseded_detectors": 1
       }
     },
     {
@@ -529,8 +530,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 16,
         "secondary_signals": 1,
-        "duplicate_suppressed": 7,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 11,
+        "superseded_detectors": 1
       }
     },
     {
@@ -552,8 +553,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 14,
         "secondary_signals": 2,
-        "duplicate_suppressed": 6,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 10,
+        "superseded_detectors": 1
       }
     },
     {

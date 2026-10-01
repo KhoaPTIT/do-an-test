@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T10:12:33.316458+00:00",
+  "generated_at": "2026-10-01T10:21:25.374802+00:00",
   "git": {
-    "commit": "d8ecc6486593b831074f918bd9f7f50b9827e61c",
+    "commit": "f01901346965760f08944e4cbfd7b0cfbda88c21",
     "dirty": false
   },
   "seed": 20260302,
@@ -41,8 +41,8 @@
     "detection_alerts": 20,
     "legacy_alerts": 0,
     "secondary_signals": 11,
-    "duplicate_suppressed": 59,
-    "superseded_detectors": 0,
+    "duplicate_suppressed": 136,
+    "superseded_detectors": 11,
     "campaigns": 20,
     "alerts_per_attack_campaign": 1.0,
     "all_alert_rows_per_attack_campaign": 1.0
@@ -138,8 +138,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 5,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 12,
+        "superseded_detectors": 1
       }
     },
     {
@@ -178,8 +178,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 5,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 12,
+        "superseded_detectors": 1
       }
     },
     {
@@ -198,8 +198,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 1,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 8,
+        "superseded_detectors": 1
       }
     },
     {
@@ -218,8 +218,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 7,
+        "superseded_detectors": 1
       }
     },
     {
@@ -278,8 +278,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 11,
+        "superseded_detectors": 1
       }
     },
     {
@@ -298,8 +298,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 1,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 8,
+        "superseded_detectors": 1
       }
     },
     {
@@ -358,8 +358,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 10,
+        "superseded_detectors": 1
       }
     },
     {
@@ -378,8 +378,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 11,
+        "superseded_detectors": 1
       }
     },
     {
@@ -398,8 +398,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 5,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 12,
+        "superseded_detectors": 1
       }
     },
     {
@@ -418,8 +418,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 5,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 12,
+        "superseded_detectors": 1
       }
     },
     {
@@ -458,8 +458,8 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 1,
-        "duplicate_suppressed": 1,
-        "superseded_detectors": 0
+        "duplicate_suppressed": 8,
+        "superseded_detectors": 1
       }
     },
     {
