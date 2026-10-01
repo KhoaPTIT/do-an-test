@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T10:21:25.374802+00:00",
+  "generated_at": "2026-10-01T10:26:21.104385+00:00",
   "git": {
-    "commit": "f01901346965760f08944e4cbfd7b0cfbda88c21",
+    "commit": "d2b9e07ab7cf716802c5db21fa2a07349b87b472",
     "dirty": false
   },
   "seed": 20260302,
@@ -339,7 +339,32 @@
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 1.0
       }
+    },
+    {
+      "behavior": "bot_user_agent",
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "tn": 20,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0,
+      "alert_noise_positive_scenarios": {
+        "total_alerts": 20,
+        "detection_alerts": 20,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 6,
+        "superseded_detectors": 0,
+        "campaigns": 20,
+        "alerts_per_attack_campaign": 1.0,
+        "all_alert_rows_per_attack_campaign": 1.0
+      }
     }
   ],
-  "verified": 13
+  "verified": 14
 }
