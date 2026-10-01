@@ -89,6 +89,13 @@ def unusual_hour_with_unusual_device(env):
     env.login("alice", success=True, ip=HOME_IP, ts=MIDNIGHT + timedelta(hours=22), user_agent=SAFARI_UA)
 
 
+def unusual_hour_with_unusual_location(env):
+    env.add_user("alice")
+    for d in range(20, 0, -1):
+        env.add_history("alice", ip=HOME_IP, ts=MIDNIGHT - timedelta(days=d) + timedelta(hours=9 + d % 3), user_agent=CHROME_UA)
+    env.login("alice", success=True, ip=JP_IP, ts=MIDNIGHT + timedelta(hours=22), user_agent=CHROME_UA)
+
+
 def velocity_with_scripted_client(env):
     _seed(env, "alice", days=20)
     for k in range(12):
@@ -124,6 +131,8 @@ CASES: tuple[CrossCase, ...] = (
     CrossCase("unusual_location + unusual_device", unusual_location_with_unusual_device, "unusual_location", ("unusual_device",)),
     # unusual_hour chưa VERIFIED (PARTIAL, experimental) nên không tự dẫn cảnh báo — vẫn phải có mặt trong tín hiệu phụ
     CrossCase("unusual_hour + unusual_device", unusual_hour_with_unusual_device, "unusual_device", ("unusual_hour",)),
+    # --- Milestone C.1: unusual_hour vẫn PARTIAL (experimental) -> địa điểm làm detector chính, giờ phải còn trong tín hiệu phụ
+    CrossCase("unusual_hour + unusual_location", unusual_hour_with_unusual_location, "unusual_location", ("unusual_hour",)),
     CrossCase("login_velocity_spike + scripted_client", velocity_with_scripted_client, "login_velocity_spike", ("scripted_client",)),
     CrossCase("rapid failed logins -> brute_force, not login_velocity_spike", rapid_failures_are_brute_force_not_velocity, "brute_force", (), ("login_velocity_spike",)),
 )

@@ -18,6 +18,7 @@ import argparse
 import dataclasses
 import json
 import logging
+import math
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -111,6 +112,12 @@ def _modes(hist: list[int], min_share: float = 0.1) -> list[int]:
     return [i for i in peaks if smooth[i] / (4 * n) >= min_share]
 
 
+def circular_mean_hour(hours: list[float]) -> float:
+    s = sum(math.sin(2 * math.pi * h / 24) for h in hours)
+    c = sum(math.cos(2 * math.pi * h / 24) for h in hours)
+    return (math.degrees(math.atan2(s, c)) % 360) / 15.0
+
+
 def _signed(a: float, b: float) -> float:
     """Độ lệch có dấu a − b trên đồng hồ 24h, trong (−12, 12]."""
     return -((b - a + 12) % 24 - 12)
@@ -169,8 +176,8 @@ def analyse_false_positives(env) -> list[dict]:
             prior_hours = [round(hour_of_day(t), 2) for t in prior_ts]
             ev = (alert.explanation or {}).get("evidence", {})
             current = hour_of_day(ts.timestamp())
-            center = ev.get("usual_hour_center")
-            group, why = classify(current, prior_hours, center if center is not None else 12.0)
+            center = circular_mean_hour(prior_hours)  # tính từ lịch sử (detector mới không có "giờ trung tâm")
+            group, why = classify(current, prior_hours, center)
             rows.append({
                 "account": event.attempted_username,
                 "simulated_role": simulated_role(event.attempted_username),
@@ -180,7 +187,8 @@ def analyse_false_positives(env) -> list[dict]:
                 "historical_hour_histogram": _hour_histogram(prior_hours),
                 "profile_sample_count": len(prior_hours),
                 "profile_age_days": round((ts.timestamp() - prior_ts[0]) / 86_400, 1) if prior_ts else 0.0,
-                "detector_center": center,
+                "detector_center": ev.get("usual_hour_center"),
+                "profile_circular_mean_hour": round(center, 2),
                 "dispersion_hours": ev.get("spread_hours"),
                 "concentration": ev.get("concentration"),
                 "threshold_hours": ev.get("threshold_hours"),

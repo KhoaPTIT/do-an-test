@@ -2,7 +2,7 @@
 
 Với mỗi hành vi: 20 kịch bản dương tính + 20 âm tính (`verification/scenarios.py`, seed cố định), mỗi kịch bản một môi
 trường mới (SQLite in-memory + fakeredis + GeoIP/threat intel TEST FIXTURE, `verification/harness.py`). Chạy thêm một
-bộ lưu lượng BÌNH THƯỜNG chung (`verification/normal_traffic.py`, 50 người dùng × 30 ngày) để tìm detector quá nhạy.
+bộ lưu lượng BÌNH THƯỜNG chung (`verification/normal_traffic.py`, 63 người dùng × 30 ngày) để tìm detector quá nhạy.
 
 Chấm điểm (không dùng nhãn trong phát hiện — nhãn chỉ để chấm):
   - TP: kịch bản dương tính có ≥1 alert `hybrid_risk` với `rule_id` == detector kỳ vọng; FN: không có.
@@ -13,7 +13,9 @@ Chấm điểm (không dùng nhãn trong phát hiện — nhãn chỉ để ch�
   - VERIFIED ⇔ dương tính ≥ 20, recall ≥ 0,90, FP âm tính ≤ 1/20, 0 báo nhầm trên lưu lượng bình thường, quy kết đúng ≥ 0,90.
 
 Đầu ra (runner TỰ SINH, không sửa tay): `artifacts/behavior_verification/<behavior>.json`, `normal_traffic.json`,
-`summary.json` ở gốc repo.
+`summary.json` ở gốc repo. Lần chạy đầy đủ sinh thêm `cross_behavior_results.json`, `alert_noise_*.json`,
+`milestone_c1_summary.json`, `unusual_hour_comparison.json` và `unusual_hour_fp_analysis.json` (Milestone C.1: detector
+unusual_hour cũ 3σ và hiện tại, ở trạng thái ứng viên, trên cùng bộ đánh giá).
 
 Detector ỨNG VIÊN (`--candidates`, Milestone B): luật chưa `verified` không tự tạo cảnh báo ở runtime (B0.1), nên để đo
 được nó, runner chạy nó ở ĐÚNG trạng thái nó sẽ có nếu được nâng cấp (enforce + verified) — CHỈ trong tiến trình runner,
@@ -176,6 +178,7 @@ BASELINE_VERIFIED = (
 MILESTONE_B = ("country_hop", "ua_rotation", "scripted_client", "bot_user_agent", "unusual_device")
 BASELINE_AFTER_B = BASELINE_VERIFIED + MILESTONE_B  # 15 hành vi VERIFIED sau Milestone B (đã được người dùng xác nhận)
 MILESTONE_C = ("unusual_location", "unusual_hour", "login_velocity_spike")
+BASELINE_AFTER_C = BASELINE_AFTER_B + ("unusual_location", "login_velocity_spike")  # 17 hành vi VERIFIED sau Milestone C (đã được người dùng xác nhận)
 NOISE_BASELINE_DIR = REPO_ROOT / "artifacts" / "noise_baselines"  # summary.json do CHÍNH runner này sinh ở hai mốc trước (xem README ở đó)
 
 
@@ -214,6 +217,43 @@ def noise_comparison(final_summary: list[dict]) -> dict:
     }
 
 
+def run_unusual_hour_study(seed: int) -> dict[str, dict]:
+    """Milestone C.1: detector unusual_hour CŨ (3σ) và HIỆN TẠI ở trạng thái ứng viên, trên CÙNG bộ đánh giá — mỗi detector
+    một tiến trình riêng (`verification/unusual_hour_study.py`: detector được cài trước khi dựng bất kỳ pipeline nào)."""
+    import tempfile
+
+    results = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        for detector in ("legacy_sigma", "current"):
+            print(f"Nghiên cứu unusual_hour: detector {detector}...", flush=True)
+            subprocess.run([sys.executable, "-m", "verification.unusual_hour_study", "--detector", detector, "--seed", str(seed), "--out", tmp],
+                           cwd=Path(__file__).resolve().parents[1], check=True)
+            results[detector] = json.loads((Path(tmp) / f"{detector}.json").read_text(encoding="utf-8"))
+    return results
+
+
+def write_unusual_hour_study(out_dir: Path, meta: dict, study: dict[str, dict]) -> dict:
+    from verification.unusual_hour_study import classify
+
+    rows = ("tp", "fn", "recall", "fp", "normal_traffic_false_alerts", "attribution_accuracy", "status", "failed_criteria")
+    label = {"tp": "TP", "fn": "FN", "recall": "Recall", "fp": "Scenario FP", "normal_traffic_false_alerts": "Normal Traffic FP", "attribution_accuracy": "Attribution", "status": "Status", "failed_criteria": "Failed criteria"}
+    comparison = {
+        **meta,
+        "dataset": "CÙNG bộ đánh giá cho cả hai: 20 kịch bản dương tính + 20 âm tính của unusual_hour (seed cố định) và lưu lượng bình thường v3 (63 người dùng × 30 ngày); cả hai chạy ở trạng thái ứng viên (enforce + verified) chỉ trong tiến trình đo",
+        "old_detector": "3σ vòng tròn quanh giờ trung tâm (Milestone C, a58bc12) — verification.unusual_hour_study.legacy_sigma_unusual_hour",
+        "new_detector": "histogram 24 giờ làm mượt vòng tròn (app/detection/engine/rules_behavior.py::unusual_hour)",
+        "table": {label[k]: {"OLD": study["legacy_sigma"]["metrics"][k], "NEW": study["current"]["metrics"][k]} for k in rows},
+        "normal_traffic_false_positive_groups": {"OLD": study["legacy_sigma"]["false_positive_groups"], "NEW": study["current"]["false_positive_groups"]},
+        "studies_git": {d: study[d]["git"] for d in study},
+    }
+    (out_dir / "unusual_hour_comparison.json").write_text(json.dumps(comparison, ensure_ascii=False, indent=2), encoding="utf-8")
+    keys = ("detector", "metrics", "normal_traffic_firing_attempts", "false_positive_groups", "false_positives_by_role", "false_positives")
+    (out_dir / "unusual_hour_fp_analysis.json").write_text(json.dumps({
+        **meta, "group_definitions": classify.__doc__, **{d: {k: study[d][k] for k in keys} for d in study},
+    }, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    return comparison
+
+
 def promote_candidates(candidates: list[str]) -> None:
     """Bật detector ứng viên ở trạng thái như SAU khi được nâng cấp (enforce + verified) — chỉ trong tiến trình này."""
     import dataclasses
@@ -241,7 +281,7 @@ def main(argv: list[str] | None = None) -> int:
     meta = {"generated_at": datetime.now(timezone.utc).isoformat(), "git": _git_commit(), "seed": args.seed, "criteria": CRITERIA, "candidates_promoted_in_runner": candidates,
             "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)"}
 
-    print("Chạy lưu lượng bình thường (50 người dùng × 30 ngày)...", flush=True)
+    print("Chạy lưu lượng bình thường (63 người dùng × 30 ngày)...", flush=True)
     normal = run_normal_traffic(args.seed)
     (out_dir / "normal_traffic.json").write_text(json.dumps({**meta, **normal}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     print(f"  alert quy kết theo detector: {normal['hybrid_alerts_by_detector'] or 'không có'}")
@@ -271,23 +311,37 @@ def main(argv: list[str] | None = None) -> int:
             summary = kept + summary
     (out_dir / "summary.json").write_text(json.dumps({**meta, "behaviors": summary, "verified": sum(s["status"] == "VERIFIED" for s in summary)}, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    if not args.only:  # chỉ lần chạy ĐẦY ĐỦ mới sinh báo cáo tổng hợp Milestone B
+    if not args.only:  # chỉ lần chạy ĐẦY ĐỦ mới sinh báo cáo tổng hợp (milestone, cross-behavior, nhiễu, nghiên cứu unusual_hour)
         cross = run_cross_behavior()
         (out_dir / "cross_behavior_results.json").write_text(json.dumps({**meta, "cases": cross, "passed": sum(c["passed"] for c in cross), "total": len(cross)}, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"\nCross-behavior: {sum(c['passed'] for c in cross)}/{len(cross)} ca đúng quy kết")
         by_name = {s["behavior"]: s for s in summary}
         verified = sorted(s["behavior"] for s in summary if s["status"] == "VERIFIED")
         fields = ("status", "failed_criteria", "tp", "fp", "tn", "fn", "precision", "recall", "f1", "attribution_accuracy", "normal_traffic_false_alerts")
-        (out_dir / "milestone_c_summary.json").write_text(json.dumps({
+        study = run_unusual_hour_study(args.seed) if "unusual_hour" in behaviors else None
+        hour_comparison = write_unusual_hour_study(out_dir, meta, study) if study else None
+        from app.detection.engine.registry import REGISTRY
+
+        new_hour = study["current"]["metrics"] if study else None
+        official_hour = by_name.get("unusual_hour", {})
+        (out_dir / "milestone_c1_summary.json").write_text(json.dumps({
             **meta,
-            "baseline_verified": list(BASELINE_AFTER_B),
-            "baseline_still_verified": {b: by_name.get(b, {}).get("status") == "VERIFIED" for b in BASELINE_AFTER_B},
-            "all_baseline_still_verified": all(by_name.get(b, {}).get("status") == "VERIFIED" for b in BASELINE_AFTER_B),
-            "milestone_c": {b: {k: by_name[b][k] for k in fields} if b in by_name else {"status": "NOT_RUN"} for b in MILESTONE_C},
+            "baseline_verified": list(BASELINE_AFTER_C),
+            "baseline_still_verified": {b: by_name.get(b, {}).get("status") == "VERIFIED" for b in BASELINE_AFTER_C},
+            "all_baseline_still_verified": all(by_name.get(b, {}).get("status") == "VERIFIED" for b in BASELINE_AFTER_C),
+            "unusual_hour": {
+                "registry_verification": REGISTRY["unusual_hour"].verification,
+                "official_run": {k: official_hour[k] for k in fields} if official_hour else {"status": "NOT_RUN"},
+                "candidate_old_3sigma": study["legacy_sigma"]["metrics"] if study else None,
+                "candidate_new_histogram": new_hour,
+                "candidate_new_meets_verified_criteria": bool(new_hour and new_hour["status"] == "VERIFIED"),
+                "status": "VERIFIED" if official_hour.get("status") == "VERIFIED" else "PARTIAL",
+                "comparison_table": hour_comparison["table"] if hour_comparison else None,
+            },
             "verified_count": len(verified), "verified": verified,
             "not_verified": sorted(s["behavior"] for s in summary if s["status"] != "VERIFIED"),
             "cross_behavior_passed": f"{sum(c['passed'] for c in cross)}/{len(cross)}",
-            "normal_traffic": {"total_steps": normal["profile"].get("total_steps"), "history_logins": normal["profile"].get("history_logins"),
+            "normal_traffic": {"total_steps": normal["profile"].get("total_steps"), "history_logins": normal["profile"].get("history_logins"), "users": normal["profile"].get("users"),
                                "detector_false_alerts": normal["hybrid_alerts_by_detector"], "legacy_alerts": normal["legacy_alerts_by_type"]},
         }, ensure_ascii=False, indent=2), encoding="utf-8")
         comparison = noise_comparison(summary)
@@ -296,7 +350,7 @@ def main(argv: list[str] | None = None) -> int:
         all_rows = [s["alert_noise_positive_scenarios"] for s in summary if s.get("alert_noise_positive_scenarios")]
         (out_dir / "alert_noise_final.json").write_text(json.dumps({
             **meta,
-            "note": "Đo trên kịch bản dương tính của MỌI hành vi trong lần chạy này. legacy = alert tầng 1/2/3 cũ (không qua gộp chiến dịch) — chỉ đo, không refactor ở Milestone C (C12).",
+            "note": "Đo trên kịch bản dương tính của MỌI hành vi trong lần chạy này. legacy = alert tầng 1/2/3 cũ (không qua gộp chiến dịch) — chỉ đo, không refactor (Milestone C — C12, C.1 §15).",
             "all_behaviors_positive_totals": {k: sum(r[k] for r in all_rows) for k in keys} | {"campaigns": sum(r["campaigns"] for r in all_rows)},
             "baseline_10_comparison": comparison["baseline_10_totals"],
             "per_behavior": {s["behavior"]: s.get("alert_noise_positive_scenarios") for s in summary},
