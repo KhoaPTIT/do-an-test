@@ -111,26 +111,44 @@ def _modes(hist: list[int], min_share: float = 0.1) -> list[int]:
     return [i for i in peaks if smooth[i] / (4 * n) >= min_share]
 
 
+def _signed(a: float, b: float) -> float:
+    """Độ lệch có dấu a − b trên đồng hồ 24h, trong (−12, 12]."""
+    return -((b - a + 12) % 24 - 12)
+
+
+GROUPS = ("SPARSE_PROFILE", "MULTI_MODAL_SCHEDULE", "MIDNIGHT_WRAP", "WIDE_NORMAL_WINDOW", "TAIL_EXTENSION", "OTHER")
+
+
 def classify(current: float, prior: list[float], center: float) -> tuple[str, str]:
-    """Nhóm nguyên nhân của MỘT báo nhầm, chỉ từ hình dạng hồ sơ (không dùng vai trò mô phỏng). Thứ tự kiểm tra cố định."""
-    nearest = min(circular_hour_distance(current, h) for h in prior)
+    """Nhóm nguyên nhân của MỘT báo nhầm, CHỈ từ hình dạng hồ sơ giờ (không dùng vai trò mô phỏng). Thứ tự kiểm tra cố định:
+
+    - SPARSE_PROFILE: < 20 lần thành công và giờ hiện tại cách mọi lần thành công > 1h (hồ sơ chưa đủ dày để biết hết khung giờ);
+    - giờ hiện tại cách một lần thành công trước đó ≤ 1h (giờ ĐÃ thuộc lịch sử — detector 3σ báo nhầm vì giả định đối xứng):
+        MULTI_MODAL_SCHEDULE nếu hồ sơ có ≥ 2 cụm giờ tách biệt; MIDNIGHT_WRAP nếu lần thành công gần nhất nằm bên kia 00:00
+        UTC; còn lại WIDE_NORMAL_WINDOW (khung giờ rộng / lệch một phía);
+    - TAIL_EXTENSION: cách mọi lần thành công > 1h, ở CÙNG phía với đuôi lệch của hồ sơ (vượt một chút khỏi đuôi đã thấy);
+    - OTHER: còn lại."""
+    nearest_hour = min(prior, key=lambda h: circular_hour_distance(current, h))
+    nearest = circular_hour_distance(current, nearest_hour)
     hist = _hour_histogram(prior)
     modes = _modes(hist)
-    crosses_midnight = any(h >= 22 for h in prior) and any(h < 2 for h in prior)
-    nearest_hour = min(prior, key=lambda h: circular_hour_distance(current, h))
-    opposite_sides = (current >= 12) != (nearest_hour >= 12) and circular_hour_distance(current, nearest_hour) < 6
+    mode = max(range(24), key=lambda i: hist[(i - 1) % 24] + 2 * hist[i] + hist[(i + 1) % 24]) + 0.5
     seen_share = sum(1 for h in prior if circular_hour_distance(current, h) <= 1.0) / len(prior)
-    if crosses_midnight and opposite_sides:
-        return "MIDNIGHT_WRAP", f"giờ hiện tại {current:.1f}h và lần thành công gần nhất {nearest_hour:.1f}h nằm hai bên nửa đêm"
-    if 20 <= center or center < 5:
-        return "NIGHT_SHIFT", f"hồ sơ có giờ trung tâm ban đêm ({center:.1f}h)"
-    if len(modes) >= 2 and seen_share > 0:
-        return "MULTI_MODAL_SCHEDULE", f"hồ sơ có {len(modes)} cụm giờ ({modes}); giờ hiện tại thuộc một cụm đã thấy ({seen_share:.0%} lần thành công trong ±1h)"
-    if seen_share > 0:
-        return "WIDE_NORMAL_WINDOW", f"giờ hiện tại đã xuất hiện trong lịch sử ({seen_share:.0%} lần thành công trong ±1h) nhưng xa giờ trung tâm"
-    if len(prior) < 20:
-        return "SPARSE_PROFILE", f"chỉ {len(prior)} lần thành công, lần gần nhất cách {nearest:.1f}h"
-    return "OTHER", f"lần thành công gần nhất cách {nearest:.1f}h"
+    if len(prior) < 20 and nearest > 1.0:
+        return "SPARSE_PROFILE", f"chỉ {len(prior)} lần thành công; lần gần nhất cách {nearest:.1f}h"
+    if nearest <= 1.0:
+        if len(modes) >= 2:
+            return "MULTI_MODAL_SCHEDULE", f"hồ sơ có {len(modes)} cụm giờ (ô {modes}); giờ hiện tại đã thấy ({seen_share:.0%} lần thành công trong ±1h)"
+        if (current < 12) != (nearest_hour < 12) and nearest < 6:
+            return "MIDNIGHT_WRAP", f"giờ hiện tại {current:.1f}h, lần thành công gần nhất {nearest_hour:.1f}h ở bên kia 00:00 UTC"
+        return "WIDE_NORMAL_WINDOW", (
+            f"giờ hiện tại đã thấy ({seen_share:.0%} lần thành công trong ±1h) nhưng cách giờ trung tâm {circular_hour_distance(current, center):.1f}h: "
+            f"khung giờ rộng/lệch một phía (đỉnh {mode:.1f}h, trung tâm {center:.1f}h) — 3σ đối xứng không mô tả được"
+        )
+    skew = _signed(center, mode)
+    if skew != 0 and (_signed(current, mode) > 0) == (skew > 0):
+        return "TAIL_EXTENSION", f"vượt {nearest:.1f}h khỏi lần thành công xa nhất về phía đuôi lệch của hồ sơ (đỉnh {mode:.1f}h → trung tâm {center:.1f}h)"
+    return "OTHER", f"cách mọi lần thành công {nearest:.1f}h, không thuộc phía đuôi lệch"
 
 
 def analyse_false_positives(env) -> list[dict]:
@@ -171,6 +189,7 @@ def analyse_false_positives(env) -> list[dict]:
                 "detector_evidence": ev,
                 "occurrence_count": alert.occurrence_count,
                 "reason_detector_fired": alert.message,
+                "profile_crosses_utc_midnight": any(h >= 22 for h in prior_hours) and any(h < 2 for h in prior_hours),
                 "group": group,
                 "group_reason": why,
             })
@@ -213,6 +232,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--detector", choices=DETECTORS, required=True)
     parser.add_argument("--seed", type=int, default=20260302)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--fp-analysis", default="", help="tên file ghi riêng phần phân tích báo nhầm (ví dụ fp_analysis.json)")
     args = parser.parse_args(argv)
     logging.disable(logging.WARNING)
     import scripts.behavior_verification as bv
@@ -221,6 +241,9 @@ def main(argv: list[str] | None = None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     data = {"generated_at": datetime.now(timezone.utc).isoformat(), "git": bv._git_commit(), **run(args.detector, args.seed)}
     (out / f"{args.detector}.json").write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    if args.fp_analysis:
+        keys = ("generated_at", "git", "detector", "seed", "normal_traffic", "metrics", "normal_traffic_firing_attempts", "false_positive_groups", "false_positives_by_role", "false_positives")
+        (out / args.fp_analysis).write_text(json.dumps({"group_definitions": classify.__doc__, **{k: data[k] for k in keys}}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     m = data["metrics"]
     print(f"{args.detector}: TP {m['tp']} FN {m['fn']} FP {m['fp']} TN {m['tn']} recall {m['recall']} attr {m['attribution_accuracy']} normal FP {m['normal_traffic_false_alerts']}")
     print(f"  nhóm báo nhầm: {data['false_positive_groups']}")
