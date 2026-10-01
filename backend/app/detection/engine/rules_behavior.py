@@ -160,6 +160,7 @@ def unusual_hour(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="login_velocity_spike",
+    verification="verified",  # Milestone C — artifacts/behavior_verification/login_velocity_spike.json
     title="Đăng nhập thành công dồn dập bất thường",
     category=CATEGORY,
     severity="medium",

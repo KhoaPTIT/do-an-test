@@ -32,7 +32,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`unusual_device`](#unusual_device) | Thiết bị chưa từng thấy | Hồ sơ hành vi | thấp | enforce | verified | T1078 |
 | [`unusual_location`](#unusual_location) | Vị trí chưa từng thấy | Hồ sơ hành vi | trung bình | enforce | verified | T1078 |
 | [`unusual_hour`](#unusual_hour) | Giờ đăng nhập khác thói quen | Hồ sơ hành vi | thấp | enforce | experimental | T1078 |
-| [`login_velocity_spike`](#login_velocity_spike) | Đăng nhập thành công dồn dập bất thường | Hồ sơ hành vi | trung bình | enforce | experimental | T1078 |
+| [`login_velocity_spike`](#login_velocity_spike) | Đăng nhập thành công dồn dập bất thường | Hồ sơ hành vi | trung bình | enforce | verified | T1078 |
 
 ## 2. Cách hoạt động
 
