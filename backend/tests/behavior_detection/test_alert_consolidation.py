@@ -92,9 +92,10 @@ def test_marker_alerts_far_apart_in_time_are_separate_campaigns(env, scripted_ve
     assert [a.occurrence_count for a in alerts] == [2, 1]
 
 
-def test_an_unverified_enforce_rule_alone_is_recorded_but_does_not_alert(env):
-    # ua_rotation ở chế độ enforce nhưng chưa kiểm chứng: khớp -> ghi matched_rules, KHÔNG có cảnh báo riêng.
-    assert REGISTRY["ua_rotation"].default_mode == "enforce" and not REGISTRY["ua_rotation"].is_verified
+def test_an_unverified_enforce_rule_alone_is_recorded_but_does_not_alert(env, monkeypatch):
+    # Cơ chế B0.1 (độc lập với trạng thái registry hiện tại): một luật enforce ở trạng thái experimental khớp -> ghi
+    # matched_rules, KHÔNG có cảnh báo riêng. Dùng ua_rotation làm ví dụ và ép nó về experimental.
+    monkeypatch.setitem(REGISTRY, "ua_rotation", dataclasses.replace(REGISTRY["ua_rotation"], verification="experimental", default_mode="enforce"))
     names = _victims(env, 2, prefix="rot")
     agents = (CHROME_UA, FIREFOX_UA, SAFARI_UA, EDGE_UA, MOBILE_UA)
     for i in range(9):
