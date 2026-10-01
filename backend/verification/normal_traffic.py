@@ -92,7 +92,7 @@ def generate(seed: int = 20260302, n_users: int = 50, days: int = 30) -> NormalT
             out.history.append(HistoryLogin(name, home_ip, -rng.uniform(100, 200) * DAY, laptop))
         else:
             for d in range(14, 0, -1):  # 2 tuần quen thuộc — thiết bị người dùng đang dùng đều có mặt trong lịch sử
-                ua = MOBILE_UA if has_phone and d % 3 == 0 else (extra_browsers[d % 2] if extra_browsers and d % 4 == 1 else laptop)
+                ua = MOBILE_UA if has_phone and d % 3 == 0 else (extra_browsers[(d // 4) % 2] if extra_browsers and d % 4 == 1 else laptop)
                 out.history.append(HistoryLogin(name, mobile_ip if ua == MOBILE_UA else home_ip, -d * DAY + habit_hour * 3600, ua))
 
         trip_start, trip_end = (rng.randint(8, 14), None) if traveller else (None, None)
