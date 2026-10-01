@@ -14,8 +14,8 @@
   },
   "candidates_promoted_in_runner": [],
   "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
-  "behavior": "blocklist_hit",
-  "detector": "blocklist_hit",
+  "behavior": "country_hop",
+  "detector": "country_hop",
   "status": "VERIFIED",
   "failed_criteria": [],
   "scenario_count": {
@@ -34,14 +34,14 @@
   "attribution_total": 20,
   "normal_traffic_false_alerts": 0,
   "cross_detector_alerts_in_positives": {
-    "blocklist_hit": 20
+    "country_hop": 20
   },
   "alert_noise_positive_scenarios": {
     "total_alerts": 20,
     "detection_alerts": 20,
     "legacy_alerts": 0,
-    "secondary_signals": 0,
-    "duplicate_suppressed": 0,
+    "secondary_signals": 5,
+    "duplicate_suppressed": 64,
     "superseded_detectors": 0,
     "campaigns": 20,
     "alerts_per_attack_campaign": 1.0,
@@ -49,69 +49,134 @@
   },
   "example_alert": {
     "id": 1,
-    "login_event_id": 8,
+    "login_event_id": 10,
     "user_id": 1,
     "alert_type": "hybrid_risk",
-    "rule_id": "blocklist_hit",
-    "severity": "high",
-    "risk_score": 100,
-    "message": "[blocklisted_source] Nguồn nằm trong blocklist (ip 203.0.113.214) — kiểm chứng. Hybrid risk engine: điểm 100/100, đề xuất 'lock' — Nguồn nằm trong blocklist (ip 203.0.113.214) — kiểm chứng. (5%). Lần đầu quốc gia này (US), trước đó dùng VN 7 lần. Họ tấn công gợi ý: Danh tiếng hạ tầng (5%).",
+    "rule_id": "country_hop",
+    "severity": "medium",
+    "risk_score": 5,
+    "message": "[country_hopping] Tài khoản 'victim' bị thử sai từ 3 quốc gia (FR, US, VN) trong 24 giờ (ngưỡng 3). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Tài khoản 'victim' bị thử sai từ 3 quốc gia (FR, US, VN) trong 24 giờ (ngưỡng 3). (5%). Lần đầu nhà mạng này (AS64514), trước đó dùng AS64512 7 lần. Họ tấn công gợi ý: Ngữ cảnh tài khoản (5%). Đã lặp lại 2 lần trong 15 phút gần đây.",
     "explanation": {
       "contributions": [
         {
-          "source": "blocklist_hit",
-          "label": "Nguồn nằm trong blocklist (ip 203.0.113.214) — kiểm chứng.",
+          "source": "country_hop",
+          "label": "Tài khoản 'victim' bị thử sai từ 3 quốc gia (FR, US, VN) trong 24 giờ (ngưỡng 3).",
           "weight": 0.05,
-          "group": "reputation"
+          "group": "rule"
         }
       ],
-      "action": "lock",
-      "behavior": "blocklisted_source",
-      "primary_detector": "blocklist_hit",
+      "action": "allow",
+      "behavior": "country_hopping",
+      "primary_detector": "country_hop",
       "matched_rules": [
-        "blocklist_hit"
+        "country_hop"
       ],
       "secondary_signals": [],
       "enforced_rules": [
-        "blocklist_hit"
+        "country_hop"
       ],
       "standalone_rules": [
-        "blocklist_hit"
+        "country_hop"
       ],
       "experimental_rules": [],
       "shadow_rules": [],
       "contributing_rules": [
         {
-          "rule": "blocklist_hit",
+          "rule": "country_hop",
           "weight": 0.05,
-          "group": "reputation"
+          "group": "rule"
         }
       ],
-      "risk_score": 100,
+      "risk_score": 5,
       "ml_probability": null,
-      "alert_reason": "override",
+      "alert_reason": "rule_enforced",
       "evidence": {
-        "kind": "ip",
-        "value": "203.0.113.214",
-        "reason": "kiểm chứng",
-        "added_by": "admin"
+        "username": "victim",
+        "distinct_countries": 3,
+        "countries": [
+          "FR",
+          "US",
+          "VN"
+        ],
+        "window_s": 86400,
+        "failures_only": true
       },
       "superseded_detectors": [],
-      "consolidated_events": 1,
+      "consolidated_events": 2,
       "telemetry_gaps": []
     },
-    "occurrence_count": 1
+    "occurrence_count": 2
   },
   "scenarios": [
     {
       "kind": "positive",
-      "variant": "chặn ip=203.0.113.214",
-      "steps": 1,
+      "variant": "4 lần sai từ 3 quốc gia (VN, US, FR), cách 4.8h",
+      "steps": 4,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai từ 4 quốc gia (VN, FR, BR, JP), cách 2.9h",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai từ 4 quốc gia (US, DE, JP, VN), cách 1.9h",
+      "steps": 6,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "4 lần sai từ 3 quốc gia (JP, FR, BR), cách 1.7h",
+      "steps": 4,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -125,13 +190,13 @@
     },
     {
       "kind": "positive",
-      "variant": "chặn cidr=203.0.113.64/26",
-      "steps": 1,
+      "variant": "8 lần sai từ 5 quốc gia (US, JP, VN, FR, DE), cách 1.3h",
+      "steps": 8,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 6,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -139,59 +204,59 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 5,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn asn=64533 (có hạn)",
-      "steps": 1,
+      "variant": "7 lần sai từ 5 quốc gia (BR, DE, JP, VN, US), cách 3.5h",
+      "steps": 7,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn username=victim (có hạn)",
-      "steps": 1,
+      "variant": "6 lần sai từ 4 quốc gia (BR, DE, JP, FR), cách 1.7h",
+      "steps": 6,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 4,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 3,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn ip=198.51.100.249 (có hạn)",
-      "steps": 1,
+      "variant": "5 lần sai từ 3 quốc gia (VN, DE, US), cách 1.3h",
+      "steps": 5,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 3,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -199,19 +264,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 2,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn cidr=198.51.100.192/26 (có hạn)",
-      "steps": 1,
+      "variant": "6 lần sai từ 4 quốc gia (JP, VN, US, BR), cách 2.0h",
+      "steps": 6,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 3,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -219,59 +284,59 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 2,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn asn=64532 (có hạn)",
-      "steps": 1,
+      "variant": "7 lần sai từ 4 quốc gia (BR, VN, JP, US), cách 0.6h",
+      "steps": 7,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 4,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 3,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn username=victim",
-      "steps": 1,
+      "variant": "7 lần sai từ 5 quốc gia (BR, FR, JP, VN, DE), cách 3.1h",
+      "steps": 7,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn ip=198.51.100.235 (có hạn)",
-      "steps": 1,
+      "variant": "8 lần sai từ 5 quốc gia (BR, JP, DE, FR, US), cách 2.4h",
+      "steps": 8,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 6,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -279,39 +344,39 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 5,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn cidr=198.51.100.192/26 (có hạn)",
-      "steps": 1,
+      "variant": "7 lần sai từ 5 quốc gia (BR, DE, JP, VN, US), cách 3.2h",
+      "steps": 7,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 4,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 3,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn asn=64530 (có hạn)",
-      "steps": 1,
+      "variant": "6 lần sai từ 4 quốc gia (US, VN, JP, BR), cách 4.5h",
+      "steps": 6,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 4,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -319,19 +384,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 3,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn username=victim",
-      "steps": 1,
+      "variant": "8 lần sai từ 5 quốc gia (VN, FR, US, BR, JP), cách 0.5h",
+      "steps": 8,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 6,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -339,19 +404,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 5,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn ip=203.0.113.189",
-      "steps": 1,
+      "variant": "6 lần sai từ 4 quốc gia (JP, BR, VN, US), cách 3.1h",
+      "steps": 6,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 4,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -359,19 +424,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 3,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn cidr=203.0.113.128/26",
-      "steps": 1,
+      "variant": "7 lần sai từ 4 quốc gia (VN, BR, FR, US), cách 1.6h",
+      "steps": 7,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -379,19 +444,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 4,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn asn=64533",
-      "steps": 1,
+      "variant": "8 lần sai từ 5 quốc gia (FR, JP, DE, VN, BR), cách 2.8h",
+      "steps": 8,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 6,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -399,19 +464,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 5,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn username=victim (có hạn)",
-      "steps": 1,
+      "variant": "5 lần sai từ 4 quốc gia (BR, VN, DE, JP), cách 0.7h",
+      "steps": 5,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 3,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -419,19 +484,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 2,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "positive",
-      "variant": "chặn ip=203.0.113.167 (có hạn)",
-      "steps": 1,
+      "variant": "7 lần sai từ 5 quốc gia (US, JP, BR, FR, DE), cách 0.5h",
+      "steps": 7,
       "detected": true,
-      "attribution_events": 1,
+      "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "blocklist_hit": 1
+        "country_hop": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -439,74 +504,14 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn cidr=203.0.113.128/26 (có hạn)",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn asn=64530 (có hạn)",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "chặn username=victim",
-      "steps": 1,
-      "detected": true,
-      "attribution_events": 1,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "blocklist_hit": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
+        "duplicate_suppressed": 4,
         "superseded_detectors": 0
       }
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
-      "steps": 1,
+      "variant": "6 lần sai từ 2 quốc gia (DE, VN)",
+      "steps": 6,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -523,8 +528,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
-      "steps": 1,
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -541,8 +546,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
-      "steps": 1,
+      "variant": "3 quốc gia (VN, US, BR) trải hơn 24h",
+      "steps": 3,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -559,8 +564,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
-      "steps": 1,
+      "variant": "7 lần gõ sai, chỉ trong nước",
+      "steps": 7,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -577,8 +582,8 @@
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
-      "steps": 1,
+      "variant": "2 lần sai từ 2 quốc gia (FR, VN)",
+      "steps": 2,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -595,8 +600,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
-      "steps": 1,
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -613,8 +618,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
-      "steps": 1,
+      "variant": "3 quốc gia (FR, VN, US) trải hơn 24h",
+      "steps": 3,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -631,8 +636,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
-      "steps": 1,
+      "variant": "6 lần gõ sai, chỉ trong nước",
+      "steps": 6,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -649,8 +654,8 @@
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
-      "steps": 1,
+      "variant": "3 lần sai từ 2 quốc gia (VN, DE)",
+      "steps": 3,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -667,8 +672,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
-      "steps": 1,
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -685,8 +690,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
-      "steps": 1,
+      "variant": "3 quốc gia (DE, BR, JP) trải hơn 24h",
+      "steps": 3,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -703,8 +708,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
-      "steps": 1,
+      "variant": "8 lần gõ sai, chỉ trong nước",
+      "steps": 8,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -721,8 +726,8 @@
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
-      "steps": 1,
+      "variant": "2 lần sai từ 2 quốc gia (BR, JP)",
+      "steps": 2,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -739,8 +744,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
-      "steps": 1,
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -757,8 +762,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
-      "steps": 1,
+      "variant": "3 quốc gia (VN, US, DE) trải hơn 24h",
+      "steps": 3,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -775,8 +780,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
-      "steps": 1,
+      "variant": "5 lần gõ sai, chỉ trong nước",
+      "steps": 5,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -793,8 +798,8 @@
     },
     {
       "kind": "negative",
-      "variant": "mục chặn đã HẾT HẠN",
-      "steps": 1,
+      "variant": "5 lần sai từ 2 quốc gia (US, VN)",
+      "steps": 5,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -811,8 +816,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn IP khác",
-      "steps": 1,
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -829,8 +834,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn tên đăng nhập khác",
-      "steps": 1,
+      "variant": "3 quốc gia (BR, FR, US) trải hơn 24h",
+      "steps": 3,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],
@@ -847,8 +852,8 @@
     },
     {
       "kind": "negative",
-      "variant": "chặn ASN khác",
-      "steps": 1,
+      "variant": "3 lần gõ sai, chỉ trong nước",
+      "steps": 3,
       "detected": false,
       "attribution_events": 0,
       "misattributed_to": [],

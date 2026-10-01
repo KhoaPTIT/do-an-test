@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-30T09:50:29.098536+00:00",
+  "generated_at": "2026-10-01T10:04:36.531362+00:00",
   "git": {
-    "commit": "7b692a98fb45666bf046ff742e6b539e6ca94969",
-    "dirty": false
+    "commit": "90b01f1050d7fe627d7b2fabaf761bfe75c557da",
+    "dirty": true
   },
   "seed": 20260302,
   "criteria": {
@@ -12,6 +12,7 @@
     "max_normal_fp": 0,
     "min_attribution": 0.9
   },
+  "candidates_promoted_in_runner": [],
   "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
   "behavior": "username_enumeration",
   "detector": "username_enumeration",
@@ -33,8 +34,18 @@
   "attribution_total": 20,
   "normal_traffic_false_alerts": 0,
   "cross_detector_alerts_in_positives": {
-    "username_enumeration": 20,
-    "scripted_client": 11
+    "username_enumeration": 20
+  },
+  "alert_noise_positive_scenarios": {
+    "total_alerts": 20,
+    "detection_alerts": 20,
+    "legacy_alerts": 0,
+    "secondary_signals": 11,
+    "duplicate_suppressed": 59,
+    "superseded_detectors": 0,
+    "campaigns": 20,
+    "alerts_per_attack_campaign": 1.0,
+    "all_alert_rows_per_attack_campaign": 1.0
   },
   "example_alert": {
     "id": 1,
@@ -60,9 +71,14 @@
       "matched_rules": [
         "username_enumeration"
       ],
+      "secondary_signals": [],
       "enforced_rules": [
         "username_enumeration"
       ],
+      "standalone_rules": [
+        "username_enumeration"
+      ],
+      "experimental_rules": [],
       "shadow_rules": [],
       "contributing_rules": [
         {
@@ -78,7 +94,10 @@
         "ip": "203.0.113.222",
         "distinct_unknown_usernames": 12,
         "window_s": 600
-      }
+      },
+      "superseded_detectors": [],
+      "consolidated_events": 5,
+      "telemetry_gaps": []
     },
     "occurrence_count": 5
   },
@@ -93,7 +112,15 @@
       "alerts_by_detector": {
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -103,10 +130,17 @@
       "attribution_events": 6,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -118,7 +152,15 @@
       "alerts_by_detector": {
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -128,10 +170,17 @@
       "attribution_events": 6,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -141,10 +190,17 @@
       "attribution_events": 2,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -154,10 +210,17 @@
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -169,7 +232,15 @@
       "alerts_by_detector": {
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -181,7 +252,15 @@
       "alerts_by_detector": {
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -191,10 +270,17 @@
       "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -204,10 +290,17 @@
       "attribution_events": 2,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -219,7 +312,15 @@
       "alerts_by_detector": {
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -231,7 +332,15 @@
       "alerts_by_detector": {
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -241,10 +350,17 @@
       "attribution_events": 4,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -254,10 +370,17 @@
       "attribution_events": 5,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -267,10 +390,17 @@
       "attribution_events": 6,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -280,10 +410,17 @@
       "attribution_events": 6,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -295,7 +432,15 @@
       "alerts_by_detector": {
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -305,10 +450,17 @@
       "attribution_events": 2,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "scripted_client": 1,
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -320,7 +472,15 @@
       "alerts_by_detector": {
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "positive",
@@ -332,7 +492,15 @@
       "alerts_by_detector": {
         "username_enumeration": 1
       },
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -342,7 +510,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -352,7 +528,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -362,7 +546,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -372,7 +564,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -382,7 +582,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -392,7 +600,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -402,7 +618,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -412,7 +636,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -422,7 +654,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -432,7 +672,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -442,7 +690,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -452,7 +708,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -462,7 +726,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -472,7 +744,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -482,7 +762,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -492,7 +780,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -502,7 +798,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -512,7 +816,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -522,7 +834,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     },
     {
       "kind": "negative",
@@ -532,7 +852,15 @@
       "attribution_events": 0,
       "misattributed_to": [],
       "alerts_by_detector": {},
-      "legacy_alerts": {}
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
     }
   ]
 }
