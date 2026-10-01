@@ -347,14 +347,25 @@ def test_multi_context_needs_two_countries_inside_the_window_and_successful_logi
     assert fired(other_user, "multi_context_simultaneous") == []
 
 
-def test_country_hop_counts_countries_touching_one_username_in_a_day_and_starts_in_shadow():
+def test_country_hop_counts_countries_touching_one_username_in_a_day():
     attempts = [make(0, country="VN"), make(3600, country="US"), make(7200, country="DE")]
     results = run(RuleEngine(), attempts)
-    assert fired(results, "country_hop") == [2] and hit(results[2], "country_hop").mode == "shadow"
+    # Milestone B: enforce sau khi qua kiểm chứng (trước đó mặc định shadow)
+    assert fired(results, "country_hop") == [2] and hit(results[2], "country_hop").mode == "enforce"
     assert fired(run(RuleEngine(), attempts[:2]), "country_hop") == []  # mới 2 nước
     slow = [make(0, country="VN"), make(3600, country="US"), make(25 * 3600, country="DE")]  # nước thứ ba sau 25 giờ: nước đầu đã ra khỏi cửa sổ
     assert fired(run(RuleEngine(), slow), "country_hop") == []
     assert fired(run(RuleEngine(), [make(i * 60, country="VN") for i in range(10)]), "country_hop") == []
+
+
+def test_country_hop_ignores_successful_logins_by_default():
+    # Milestone B: khách du lịch đăng nhập ĐÚNG ở 3 nước trong một ngày không phải "bị thử từ nhiều nước".
+    travel = [make(0, success=True, country="VN"), make(7 * 3600, success=True, country="JP"), make(20 * 3600, success=True, country="FR")]
+    assert fired(run(RuleEngine(), travel), "country_hop") == []
+    mixed = [make(0, success=True, country="VN"), make(3600, country="US"), make(7200, country="DE")]  # chỉ 2 nước có lần SAI
+    assert fired(run(RuleEngine(), mixed), "country_hop") == []
+    legacy = RuleEngine(RuleConfig.from_dict({"rules": {"country_hop": {"params": {"failures_only": False}}}}))
+    assert fired(run(legacy, mixed), "country_hop") == [2]  # hành vi cũ (mọi lần thử) vẫn bật được qua cấu hình
 
 
 # ------------------------------------------------------------------------------------------------ dormant_account_login

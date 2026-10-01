@@ -6,29 +6,29 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 
 ## 1. Tổng quan
 
-**19 luật** trong 4 nhóm; 14 luật mặc định ở chế độ `enforce`, 5 ở chế độ `shadow` (`regular_rhythm`, `country_hop`, `rare_network_login`, `datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
+**19 luật** trong 4 nhóm; 15 luật mặc định ở chế độ `enforce`, 4 ở chế độ `shadow` (`regular_rhythm`, `rare_network_login`, `datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
 
-| Mã | Tên | Nhóm | Mức | Chế độ mặc định | MITRE ATT&CK |
-|---|---|---|---|---|---|
-| [`brute_force`](#brute_force) | Dò mật khẩu một tài khoản | Đoán và dò mật khẩu | cao | enforce | T1110.001 |
-| [`credential_stuffing`](#credential_stuffing) | Nhồi thông tin đăng nhập | Đoán và dò mật khẩu | cao | enforce | T1110.004 |
-| [`password_spray_slow`](#password_spray_slow) | Rải mật khẩu chậm | Đoán và dò mật khẩu | cao | enforce | T1110.003 |
-| [`distributed_bruteforce`](#distributed_bruteforce) | Dò mật khẩu phân tán vào một tài khoản | Đoán và dò mật khẩu | cao | enforce | T1110.001, T1090 |
-| [`username_enumeration`](#username_enumeration) | Dò danh sách tài khoản | Đoán và dò mật khẩu | trung bình | enforce | T1589 |
-| [`success_after_failures`](#success_after_failures) | Thành công sau chuỗi sai | Đoán và dò mật khẩu | cao | enforce | T1110.001 |
-| [`bot_user_agent`](#bot_user_agent) | User-Agent là bot | Tự động hoá | thấp | enforce | T1110 |
-| [`scripted_client`](#scripted_client) | Client kịch bản / công cụ | Tự động hoá | trung bình | enforce | T1110 |
-| [`ua_rotation`](#ua_rotation) | Xoay User-Agent | Tự động hoá | trung bình | enforce | T1110.004 |
-| [`regular_rhythm`](#regular_rhythm) | Nhịp thử đều như máy | Tự động hoá | trung bình | shadow | T1110 |
-| [`tor_exit`](#tor_exit) | Đăng nhập từ Tor exit node | Danh tiếng hạ tầng | trung bình | enforce | T1090.003 |
-| [`datacenter_ip`](#datacenter_ip) | Đăng nhập từ dải IP datacenter | Danh tiếng hạ tầng | thấp | shadow | T1090.002 |
-| [`vpn_ip`](#vpn_ip) | Đăng nhập từ dải IP VPN thương mại | Danh tiếng hạ tầng | thấp | shadow | T1090 |
-| [`blocklist_hit`](#blocklist_hit) | Nguồn nằm trong blocklist | Danh tiếng hạ tầng | cao | enforce | — |
-| [`impossible_travel`](#impossible_travel) | Di chuyển bất khả thi | Ngữ cảnh tài khoản | cao | enforce | T1078 |
-| [`multi_context_simultaneous`](#multi_context_simultaneous) | Đăng nhập cùng lúc từ nhiều quốc gia | Ngữ cảnh tài khoản | cao | enforce | T1078 |
-| [`country_hop`](#country_hop) | Tài khoản bị thử từ nhiều quốc gia | Ngữ cảnh tài khoản | trung bình | shadow | T1078, T1090 |
-| [`dormant_account_login`](#dormant_account_login) | Tài khoản ngủ đông đăng nhập lại | Ngữ cảnh tài khoản | trung bình | enforce | T1078 |
-| [`rare_network_login`](#rare_network_login) | Đăng nhập từ nhà mạng cực hiếm | Ngữ cảnh tài khoản | trung bình | shadow | T1078 |
+| Mã | Tên | Nhóm | Mức | Chế độ mặc định | Kiểm chứng | MITRE ATT&CK |
+|---|---|---|---|---|---|---|
+| [`brute_force`](#brute_force) | Dò mật khẩu một tài khoản | Đoán và dò mật khẩu | cao | enforce | verified | T1110.001 |
+| [`credential_stuffing`](#credential_stuffing) | Nhồi thông tin đăng nhập | Đoán và dò mật khẩu | cao | enforce | verified | T1110.004 |
+| [`password_spray_slow`](#password_spray_slow) | Rải mật khẩu chậm | Đoán và dò mật khẩu | cao | enforce | verified | T1110.003 |
+| [`distributed_bruteforce`](#distributed_bruteforce) | Dò mật khẩu phân tán vào một tài khoản | Đoán và dò mật khẩu | cao | enforce | verified | T1110.001, T1090 |
+| [`username_enumeration`](#username_enumeration) | Dò danh sách tài khoản | Đoán và dò mật khẩu | trung bình | enforce | verified | T1589 |
+| [`success_after_failures`](#success_after_failures) | Thành công sau chuỗi sai | Đoán và dò mật khẩu | cao | enforce | verified | T1110.001 |
+| [`bot_user_agent`](#bot_user_agent) | User-Agent là bot | Tự động hoá | thấp | enforce | experimental | T1110 |
+| [`scripted_client`](#scripted_client) | Client kịch bản / công cụ | Tự động hoá | trung bình | enforce | experimental | T1110 |
+| [`ua_rotation`](#ua_rotation) | Xoay User-Agent | Tự động hoá | trung bình | enforce | experimental | T1110.004 |
+| [`regular_rhythm`](#regular_rhythm) | Nhịp thử đều như máy | Tự động hoá | trung bình | shadow | experimental | T1110 |
+| [`tor_exit`](#tor_exit) | Đăng nhập từ Tor exit node | Danh tiếng hạ tầng | trung bình | enforce | verified | T1090.003 |
+| [`datacenter_ip`](#datacenter_ip) | Đăng nhập từ dải IP datacenter | Danh tiếng hạ tầng | thấp | shadow | experimental | T1090.002 |
+| [`vpn_ip`](#vpn_ip) | Đăng nhập từ dải IP VPN thương mại | Danh tiếng hạ tầng | thấp | shadow | experimental | T1090 |
+| [`blocklist_hit`](#blocklist_hit) | Nguồn nằm trong blocklist | Danh tiếng hạ tầng | cao | enforce | verified | — |
+| [`impossible_travel`](#impossible_travel) | Di chuyển bất khả thi | Ngữ cảnh tài khoản | cao | enforce | verified | T1078 |
+| [`multi_context_simultaneous`](#multi_context_simultaneous) | Đăng nhập cùng lúc từ nhiều quốc gia | Ngữ cảnh tài khoản | cao | enforce | experimental | T1078 |
+| [`country_hop`](#country_hop) | Tài khoản bị thử từ nhiều quốc gia | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078, T1090 |
+| [`dormant_account_login`](#dormant_account_login) | Tài khoản ngủ đông đăng nhập lại | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078 |
+| [`rare_network_login`](#rare_network_login) | Đăng nhập từ nhà mạng cực hiếm | Ngữ cảnh tài khoản | trung bình | shadow | experimental | T1078 |
 
 ## 2. Cách hoạt động
 
@@ -36,6 +36,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 - **Thời gian là thời gian của sự kiện**, không phải giờ hệ thống: replay log năm 2020 cho đúng kết quả của năm 2020. Cửa sổ là (đầu, hiện tại] — sự kiện đúng bằng đầu cửa sổ không được tính.
 - **Trạng thái cửa sổ thời gian** (đếm lần sai, đếm tên/IP/User-Agent khác nhau...) nằm ở `WindowStore`: `MemoryStore` cho replay và test, `RedisStore` cho luồng thật; một bộ test chung chứng minh hai cài đặt cùng hợp đồng và cho cùng kết quả trên lưu lượng ngẫu nhiên. Chi phí mỗi sự kiện bị chặn bởi ngưỡng, không tăng theo độ dài cửa sổ.
 - **Ba chế độ** cho mỗi luật: `enforce` (khớp thì tạo cảnh báo), `shadow` (vẫn chạy và ghi nhận để đo tỉ lệ khớp/báo nhầm nhưng KHÔNG tạo cảnh báo), `off` (không chạy).
+- **Kiểm chứng** (Phase 3): chỉ luật `enforce` + `verified` (đã qua `scripts/behavior_verification.py`, bằng chứng ở `artifacts/behavior_verification/`) TỰ tạo cảnh báo; luật `experimental` vẫn chạy, ghi `matched_rules`/`secondary_signals` và góp điểm hybrid nhưng không tự cảnh báo. Không luật nào tự step_up/lock — hành động do điểm hybrid quyết định.
 - **Thiếu dữ liệu ≠ báo động:** luật cần dữ liệu mà lần thử không có (ví dụ chưa có file GeoLite2-ASN) bị **bỏ qua** và `Evaluation.skipped` ghi lý do; luật gặp lỗi được ghi ở `Evaluation.errors` và không ảnh hưởng luật khác hay luồng đăng nhập.
 - **Thông điệp** ngắn tiếng Việt cùng phong cách chuỗi cảnh báo hiện có; ba luật gốc (`brute_force`, `credential_stuffing`, `impossible_travel`) giữ đúng chuỗi và ngưỡng mặc định của luật tầng 1 cũ.
 - ⚠️ Ánh xạ MITRE ATT&CK là **gần đúng**: ATT&CK mô tả kỹ thuật của kẻ tấn công, còn luật nhận diện dấu hiệu của chúng trong log đăng nhập.
@@ -191,17 +192,17 @@ User-Agent được thư viện phân tích UA nhận là bot/trình thu thập 
 
 #### <a id="scripted_client"></a>`scripted_client` — Client kịch bản / công cụ
 
-User-Agent thuộc công cụ HTTP/dò quét (curl, python-requests, Hydra, trình duyệt không đầu...) hoặc thiếu hẳn — trình duyệt thật luôn gửi User-Agent.
+User-Agent thuộc một công cụ HTTP/dò quét ĐÃ BIẾT (curl, python-requests, HTTPie, Hydra, trình duyệt không đầu...).
 
 - **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1110 (Brute Force)
 - **Dữ liệu cần:** không (chỉ cần `LoginAttempt`)
-- **Ghi chú:** Các script demo trong attack-sim/ dùng httpx nên khớp luật này.
+- **Ghi chú:** Milestone B (B0.2): User-Agent TRỐNG không còn được coi là client kịch bản — đó là THIẾU telemetry (proxy/SDK có thể bỏ header), không phải bằng chứng tự động hoá; pipeline ghi `telemetry_gaps=["missing_user_agent"]` trong giải thích cảnh báo thay vào đó. `okhttp` cố ý không nằm trong danh sách (thư viện của ứng dụng Android thật). Các script demo trong attack-sim/ dùng httpx nên khớp luật này.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|
-| `markers` | `curl/, wget/, python-requests, python-urllib, python-httpx, aiohttp, go-http-client, libwww-perl, … (26 mục)` | — | — | chuỗi con (chữ thường) của User-Agent coi là client kịch bản |
-| `flag_empty_ua` | `true` | — | — | coi User-Agent trống là client kịch bản |
+| `markers` | `curl/, wget/, httpie/, python-requests, python-urllib, python-httpx, aiohttp, go-http-client, … (27 mục)` | — | — | chuỗi con (chữ thường) của User-Agent coi là client kịch bản |
+| `flag_empty_ua` | `false` | — | — | coi User-Agent trống là client kịch bản (mặc định KHÔNG: thiếu UA chỉ là thiếu telemetry) |
 
 #### <a id="ua_rotation"></a>`ua_rotation` — Xoay User-Agent
 
@@ -302,17 +303,18 @@ Một tài khoản có đăng nhập THÀNH CÔNG từ hai quốc gia khác nhau
 
 #### <a id="country_hop"></a>`country_hop` — Tài khoản bị thử từ nhiều quốc gia
 
-Một tên đăng nhập bị thử (thành công hoặc thất bại) từ nhiều quốc gia khác nhau trong 24 giờ — proxy xoay vòng theo nước hoặc botnet toàn cầu.
+Một tên đăng nhập bị thử SAI từ nhiều quốc gia khác nhau trong 24 giờ — proxy xoay vòng theo nước hoặc botnet toàn cầu. Mặc định chỉ đếm lần THẤT BẠI: người đi công tác đăng nhập ĐÚNG ở nhiều nước không phải dấu hiệu tấn công.
 
-- **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** shadow (chỉ ghi nhận)
+- **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1078 (Valid Accounts), T1090 (Proxy)
 - **Dữ liệu cần:** `country`
-- **Ghi chú:** Người hay đi công tác/dùng VPN đổi nước hợp lệ; chưa đo tỉ lệ báo nhầm nên mặc định shadow.
+- **Ghi chú:** Milestone B: chỉ khớp ở lần thử THẤT BẠI và chỉ đếm quốc gia của lần thất bại (`failures_only`) — trước đó đếm cả lần thành công nên khách du lịch hợp lệ có thể khớp. Người dùng VPN đổi nước liên tục vẫn có thể khớp nếu gõ sai nhiều lần.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|
 | `window_s` | `86400` | giây | 600–604800 | độ dài cửa sổ |
 | `min_countries` | `3` | nước | 2–50 | số quốc gia khác nhau tối thiểu |
+| `failures_only` | `true` | — | — | chỉ đếm quốc gia của các lần thử THẤT BẠI (false = mọi lần thử, hành vi trước Milestone B) |
 
 #### <a id="dormant_account_login"></a>`dormant_account_login` — Tài khoản ngủ đông đăng nhập lại
 

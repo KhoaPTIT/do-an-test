@@ -80,27 +80,38 @@ def multi_context_simultaneous(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="country_hop",
+    verification="verified",  # Milestone B — artifacts/behavior_verification/country_hop.json
     title="Tài khoản bị thử từ nhiều quốc gia",
     category=CATEGORY,
     severity="medium",
     techniques=("T1078", "T1090"),
-    description="Một tên đăng nhập bị thử (thành công hoặc thất bại) từ nhiều quốc gia khác nhau trong 24 giờ — proxy xoay vòng theo nước hoặc botnet toàn cầu.",
+    description=(
+        "Một tên đăng nhập bị thử SAI từ nhiều quốc gia khác nhau trong 24 giờ — proxy xoay vòng theo nước hoặc botnet toàn cầu. "
+        "Mặc định chỉ đếm lần THẤT BẠI: người đi công tác đăng nhập ĐÚNG ở nhiều nước không phải dấu hiệu tấn công."
+    ),
     params=(
         Param("window_s", _DAY, "độ dài cửa sổ", "giây", 600, 7 * _DAY),
         Param("min_countries", 3, "số quốc gia khác nhau tối thiểu", "nước", 2, 50),
+        Param("failures_only", True, "chỉ đếm quốc gia của các lần thử THẤT BẠI (false = mọi lần thử, hành vi trước Milestone B)"),
     ),
     needs=("country",),
-    default_mode="shadow",
-    notes="Người hay đi công tác/dùng VPN đổi nước hợp lệ; chưa đo tỉ lệ báo nhầm nên mặc định shadow.",
+    default_mode="enforce",  # Milestone B: shadow -> enforce sau khi qua kiểm chứng (chỉ tạo cảnh báo, không tự step_up/lock)
+    notes=(
+        "Milestone B: chỉ khớp ở lần thử THẤT BẠI và chỉ đếm quốc gia của lần thất bại (`failures_only`) — trước đó đếm cả lần thành công nên "
+        "khách du lịch hợp lệ có thể khớp. Người dùng VPN đổi nước liên tục vẫn có thể khớp nếu gõ sai nhiều lần."
+    ),
 )
 def country_hop(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p
-    countries = ctx.store.set_count(K.countries_of_username(a.username), ctx.since(p.window_s), K.CAP)
-    if countries < p.min_countries:
+    if p.failures_only and a.success:
+        return None
+    key = K.fail_countries_of_username(a.username) if p.failures_only else K.countries_of_username(a.username)
+    values = ctx.store.set_values(key, ctx.since(p.window_s), limit=K.CAP)
+    if len(values) < p.min_countries:
         return None
     return Finding(
-        f"Tài khoản '{a.username}' bị thử từ {countries} quốc gia trong {window_text(p.window_s)} (ngưỡng {p.min_countries}).",
-        {"username": a.username, "distinct_countries": countries, "window_s": p.window_s},
+        f"Tài khoản '{a.username}' bị thử {'sai ' if p.failures_only else ''}từ {len(values)} quốc gia ({', '.join(sorted(values))}) trong {window_text(p.window_s)} (ngưỡng {p.min_countries}).",
+        {"username": a.username, "distinct_countries": len(values), "countries": sorted(values), "window_s": p.window_s, "failures_only": p.failures_only},
     )
 
 

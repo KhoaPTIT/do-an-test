@@ -35,3 +35,19 @@ def seed_user(env: VerificationEnv, username: str, *, days: int = 10, ip: str = 
     for d in range(days, 0, -1):
         env.add_history(username, ip=ip, ts=end - timedelta(days=d), user_agent=user_agent)
     return user_id
+
+
+@pytest.fixture()
+def as_candidate(monkeypatch):
+    """Chạy một detector ỨNG VIÊN ở trạng thái như SAU khi được nâng cấp (enforce + verified) — cùng cơ chế
+    `scripts/behavior_verification.py --candidates`, chỉ trong test (monkeypatch tự hoàn tác). Với luật đã `verified`
+    trong registry thì không đổi gì."""
+    import dataclasses
+
+    from app.detection.engine.registry import REGISTRY
+
+    def promote(*rule_ids: str) -> None:
+        for rule_id in rule_ids:
+            monkeypatch.setitem(REGISTRY, rule_id, dataclasses.replace(REGISTRY[rule_id], verification="verified", default_mode="enforce"))
+
+    return promote

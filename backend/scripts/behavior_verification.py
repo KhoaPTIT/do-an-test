@@ -48,7 +48,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = REPO_ROOT / "artifacts" / "behavior_verification"
 N_PER_KIND = 20
 CRITERIA = {"min_positive": 20, "min_recall": 0.90, "max_negative_fp": 1, "max_normal_fp": 0, "min_attribution": 0.90}
-MILESTONE_A = tuple(GENERATORS)
+ALL_BEHAVIORS = tuple(GENERATORS)  # Milestone A + các hành vi Milestone B đã có bộ sinh
 
 
 def _git_commit() -> dict:
@@ -180,7 +180,7 @@ def promote_candidates(candidates: list[str]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--only", default="", help="danh sách hành vi, phân tách bằng dấu phẩy (mặc định: toàn bộ Milestone A)")
+    parser.add_argument("--only", default="", help="danh sách hành vi, phân tách bằng dấu phẩy (mặc định: mọi hành vi có bộ sinh)")
     parser.add_argument("--seed", type=int, default=20260302)
     parser.add_argument("--out-dir", default=str(OUT_DIR), help="thư mục ghi bằng chứng (mặc định artifacts/behavior_verification)")
     parser.add_argument("--candidates", default="", help="detector ứng viên chạy ở trạng thái enforce+verified trong runner (xem docstring)")
@@ -190,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     out_dir = Path(args.out_dir)
     logging.disable(logging.WARNING)  # log cảnh báo "thiếu model ML" lặp lại mỗi kịch bản — không liên quan kết quả
 
-    behaviors = [b for b in args.only.split(",") if b] or list(MILESTONE_A)
+    behaviors = [b for b in args.only.split(",") if b] or list(ALL_BEHAVIORS)
     out_dir.mkdir(parents=True, exist_ok=True)
     meta = {"generated_at": datetime.now(timezone.utc).isoformat(), "git": _git_commit(), "seed": args.seed, "criteria": CRITERIA, "candidates_promoted_in_runner": candidates,
             "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)"}

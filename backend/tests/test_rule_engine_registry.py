@@ -49,7 +49,9 @@ def test_mitre_mapping_uses_the_techniques_named_in_the_plan():
 
 def test_unvalidated_or_noisy_rules_start_in_shadow_mode():
     shadow = {s.id for s in REGISTRY.values() if s.default_mode == "shadow"}
-    assert {"datacenter_ip", "vpn_ip", "country_hop", "rare_network_login", "regular_rhythm"} <= shadow
+    # country_hop rời nhóm này ở Milestone B (shadow -> enforce) SAU khi qua kiểm chứng hành vi — xem
+    # artifacts/behavior_verification/country_hop.json và test_registry_verified_status_matches_committed_verification_evidence.
+    assert {"datacenter_ip", "vpn_ip", "rare_network_login", "regular_rhythm"} <= shadow
     assert {"brute_force", "credential_stuffing", "impossible_travel", "blocklist_hit"}.isdisjoint(shadow)
 
 

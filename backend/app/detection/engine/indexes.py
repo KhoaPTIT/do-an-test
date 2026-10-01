@@ -16,8 +16,9 @@ Quy ước tên khoá: `<loại>:<đối tượng>:<giá trị>`. Loại nhật 
 | `ok:asn:<asn>`       | log  | mỗi lần thành công từ ASN                             | thành công, có ASN|
 | `ctx:u:<tài khoản>`  | set  | `quốc gia|ip` của đăng nhập thành công                | thành công, có TK |
 | `cc:u:<tên>`         | set  | quốc gia của MỌI lần thử vào tên đăng nhập            | có quốc gia       |
+| `fcc:u:<tên>`        | set  | quốc gia của các lần THẤT BẠI vào tên đăng nhập       | thất bại, có QG   |
 
-Giữ 24 giờ (`RETENTION_SHORT`); riêng `cc:u` giữ 7 ngày (`RETENTION_LONG`). Tham số cửa sổ của luật bị chặn ở đúng hai mức này (`Param.maximum`).
+Giữ 24 giờ (`RETENTION_SHORT`); riêng `cc:u`/`fcc:u` giữ 7 ngày (`RETENTION_LONG`). Tham số cửa sổ của luật bị chặn ở đúng hai mức này (`Param.maximum`).
 """
 
 from __future__ import annotations
@@ -78,6 +79,10 @@ def countries_of_username(username: str) -> str:
     return f"cc:u:{username}"
 
 
+def fail_countries_of_username(username: str) -> str:
+    return f"fcc:u:{username}"
+
+
 def context_value(country: str | None, ip: str) -> str:
     return f"{country or '?'}|{ip}"
 
@@ -104,3 +109,5 @@ def record(store: WindowStore, a: LoginAttempt) -> None:
             store.set_add(fail_users_of_asn(a.asn), a.ts, a.username, RETENTION_SHORT)
     if a.country:
         store.set_add(countries_of_username(a.username), a.ts, a.country, RETENTION_LONG)
+        if not a.success:
+            store.set_add(fail_countries_of_username(a.username), a.ts, a.country, RETENTION_LONG)

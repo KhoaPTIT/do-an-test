@@ -587,6 +587,61 @@ def it_negative(rng, i):
     return sc
 
 
+# ------------------------------------------------------------------------------------------------ country_hop (Milestone B)
+
+COUNTRY_POOLS = {
+    "US": US_NY_POOL + US_LA_POOL, "JP": JP_POOL, "FR": FR_POOL, "BR": BR_POOL,
+    "DE": TOR_NEIGHBOURS,  # FIXTURE: DE, cùng dải với exit node nhưng KHÔNG nằm trong danh sách Tor
+    "VN": HCM_POOL + DANANG_POOL,
+}
+
+
+def hop_positive(rng, i):
+    sc = Scenario("country_hop", "positive", "")
+    _seed(sc, "victim", ip=HOME_POOL[0])
+    k = rng.randint(param("country_hop", "min_countries"), 5)
+    countries = rng.sample(sorted(COUNTRY_POOLS), k)
+    attempts = [c for c in countries for _ in range(rng.randint(1, 2))]
+    rng.shuffle(attempts)
+    gap = rng.uniform(20 * 60, min(5 * 3600, 23 * 3600 / max(len(attempts) - 1, 1)))  # ≥20 phút: không chạm brute_force/dò phân tán
+    ua = _ua(rng, 0.3)
+    sc.steps += [Step("victim", False, rng.choice(COUNTRY_POOLS[c]), j * gap, ua) for j, c in enumerate(attempts)]
+    sc.variant = f"{len(attempts)} lần sai từ {k} quốc gia ({', '.join(countries)}), cách {gap / 3600:.1f}h"
+    return sc
+
+
+def hop_negative(rng, i):
+    sc = Scenario("country_hop", "negative", "")
+    _seed(sc, "victim", ip=HOME_POOL[0])
+    kind = i % 4
+    if kind == 0:  # 2 quốc gia (ngưỡng − 1)
+        countries = rng.sample(sorted(COUNTRY_POOLS), 2)
+        n = rng.randint(2, 6)
+        gap = rng.uniform(20 * 60, 3 * 3600)
+        sc.steps += [Step("victim", False, rng.choice(COUNTRY_POOLS[countries[j % 2]]), j * gap) for j in range(n)]
+        sc.variant = f"{n} lần sai từ 2 quốc gia ({', '.join(countries)})"
+    elif kind == 1:  # đi công tác: đăng nhập ĐÚNG ở 3 nước, gõ sai một lần ở một nước
+        legs = [HOME_POOL[0], rng.choice(JP_POOL), rng.choice(FR_POOL)]
+        times = [0.0, rng.uniform(7, 9) * 3600, rng.uniform(21, 23) * 3600]
+        typo_leg = rng.randrange(3)
+        for leg, (ip, at) in enumerate(zip(legs, times)):
+            if leg == typo_leg:
+                sc.steps.append(Step("victim", False, ip, at - 30))
+            sc.steps.append(Step("victim", True, ip, at))
+        sc.variant = "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)"
+    elif kind == 2:  # 3 quốc gia nhưng quá 24h
+        countries = rng.sample(sorted(COUNTRY_POOLS), 3)
+        times = [0.0, rng.uniform(10, 20) * 3600, rng.uniform(24.5, 30) * 3600]
+        sc.steps += [Step("victim", False, rng.choice(COUNTRY_POOLS[c]), t) for c, t in zip(countries, times)]
+        sc.variant = f"3 quốc gia ({', '.join(countries)}) trải hơn 24h"
+    else:  # chủ tài khoản gõ sai nhiều lần từ trong nước
+        n = rng.randint(3, 8)
+        sc.steps += [Step("victim", False, rng.choice((HOME_POOL[0], MOBILE_POOL[0])), j * rng.uniform(600, 7200)) for j in range(n)]
+        sc.variant = f"{n} lần gõ sai, chỉ trong nước"
+    sc.steps.sort(key=lambda st: st.offset_s)
+    return sc
+
+
 GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "username_enumeration": (enum_positive, enum_negative),
     "password_spray_slow": (spray_positive, spray_negative),
@@ -598,4 +653,5 @@ GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "credential_stuffing": (cs_positive, cs_negative),
     "blocklist_hit": (bl_positive, bl_negative),
     "impossible_travel": (it_positive, it_negative),
+    "country_hop": (hop_positive, hop_negative),
 }
