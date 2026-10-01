@@ -148,6 +148,9 @@ NOT_EVALUABLE = {
     "vpn_ip": "IP của RBA là tổng hợp, danh sách VPN công khai không áp dụng",
     "blocklist_hit": "không có mục chặn do quản trị viên đặt",
     "unusual_device": "thêm ở Phase 3 (Milestone B), chưa hiệu chỉnh trên RBA — kiểm chứng bằng scripts/behavior_verification.py",
+    "unusual_location": "thêm ở Phase 3 (Milestone C), RBA không có toạ độ/thành phố đủ tin cậy — kiểm chứng bằng scripts/behavior_verification.py",
+    "unusual_hour": "thêm ở Phase 3 (Milestone C), timestamp RBA có thành phần ngẫu nhiên (thẻ dữ liệu) — kiểm chứng bằng scripts/behavior_verification.py",
+    "login_velocity_spike": "thêm ở Phase 3 (Milestone C), chưa hiệu chỉnh trên RBA — kiểm chứng bằng scripts/behavior_verification.py",
 }
 
 

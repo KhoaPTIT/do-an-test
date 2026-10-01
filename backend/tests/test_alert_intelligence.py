@@ -93,7 +93,7 @@ def test_every_registered_rule_maps_to_its_own_category_with_full_confidence_whe
     CATEGORIES hiện có."""
     # 19 luật của MR9 + `unusual_device` (Milestone B, nhóm "Hồ sơ hành vi") — đổi số này thì phải xem lại kịch bản của
     # alert_intelligence_sim.py (không phụ thuộc số luật: kiểm tra lại ở Milestone B).
-    assert len(REGISTRY) == 20
+    assert len(REGISTRY) == 23  # + unusual_location, unusual_hour, login_velocity_spike (Milestone C)
     for rule_id, spec in REGISTRY.items():
         group = "reputation" if spec.category == "Danh tiếng hạ tầng" else "rule"
         contribution = Contribution(rule_id, spec.title, 0.77, group)

@@ -115,6 +115,9 @@ class LoginAttempt:
         )
 
 
+VELOCITY_WINDOW_S = 600.0  # cửa sổ của login_velocity_spike — đỉnh lịch sử (`peak_success_in_window`) đo trên CÙNG cửa sổ này
+
+
 @dataclass(slots=True)  # slots: replay giữ hàng triệu tài khoản, bỏ `__dict__` từng đối tượng tiết kiệm hàng trăm MB
 class AccountHistory:
     """Quá khứ của một tài khoản mà luật cần: dựng từ DB ở luồng thật, từ luồng sự kiện đã phát ở replay."""
@@ -132,6 +135,55 @@ class AccountHistory:
     first_success_ts: float | None = None
     known_device_families: tuple[str, ...] = ()
     device_family_first_seen: tuple[float, ...] = ()  # song song với known_device_families
+    # Milestone C — cùng hồ sơ hành vi, CHỈ học từ lần THÀNH CÔNG (`record_success`; lần thất bại không bao giờ chạm vào
+    # đây — chống đầu độc hồ sơ): giờ đăng nhập dạng thống kê vòng tròn (tổng sin/cos, O(1) bộ nhớ mỗi tài khoản), các vị
+    # trí "quốc gia|thành phố" kèm số lần/thấy lần đầu/thấy lần cuối, và đỉnh số lần thành công trong cửa sổ vận tốc.
+    hour_sin_sum: float = 0.0
+    hour_cos_sum: float = 0.0
+    known_locations: tuple[str, ...] = ()
+    location_counts: tuple[int, ...] = ()
+    location_first_seen: tuple[float, ...] = ()
+    location_last_seen: tuple[float, ...] = ()
+    first_location: str | None = None
+    recent_success_ts: tuple[float, ...] = ()  # các lần thành công trong VELOCITY_WINDOW_S gần nhất (để tính đỉnh)
+    peak_success_in_window: int = 0
+
+    def record_success(self, ts: float, *, lat: float | None, lon: float | None, country: str | None, city: str | None, device_family: str, agent_hash: str) -> None:
+        """Cập nhật hồ sơ bằng MỘT lần đăng nhập THÀNH CÔNG — điểm cập nhật DUY NHẤT, dùng chung cho lịch sử dựng từ DB
+        (`rule_engine_runtime.DbAccountHistory`) và từ luồng sự kiện (`context.MemoryHistory`)."""
+        import math
+        import sys
+
+        if self.first_success_ts is None:
+            self.first_success_ts = ts
+        if device_family and device_family not in self.known_device_families:
+            self.known_device_families += (sys.intern(device_family),)
+            self.device_family_first_seen += (ts,)
+        self.last_success_ts = ts
+        self.last_success_lat, self.last_success_lon = lat, lon
+        self.n_success += 1
+        if country and country not in self.known_countries:
+            self.known_countries += (sys.intern(country),)
+        if agent_hash and agent_hash not in self.known_devices:
+            self.known_devices += (sys.intern(agent_hash),)
+        angle = 2 * math.pi * ((ts % 86_400) / 3600) / 24
+        self.hour_sin_sum += math.sin(angle)
+        self.hour_cos_sum += math.cos(angle)
+        if country:
+            location = sys.intern(f"{country}|{city or '?'}")
+            if self.first_location is None:
+                self.first_location = location
+            if location in self.known_locations:
+                i = self.known_locations.index(location)
+                self.location_counts = self.location_counts[:i] + (self.location_counts[i] + 1,) + self.location_counts[i + 1:]
+                self.location_last_seen = self.location_last_seen[:i] + (ts,) + self.location_last_seen[i + 1:]
+            else:
+                self.known_locations += (location,)
+                self.location_counts += (1,)
+                self.location_first_seen += (ts,)
+                self.location_last_seen += (ts,)
+        self.recent_success_ts = tuple(t for t in self.recent_success_ts if t > ts - VELOCITY_WINDOW_S) + (ts,)
+        self.peak_success_in_window = max(self.peak_success_in_window, len(self.recent_success_ts))
     n_success: int = 0
     # Hai tập nhỏ của MỘT tài khoản, chỉ dùng phép `in`: tuple nhẹ hơn frozenset ~4 lần khi có hàng triệu tài khoản (replay giai đoạn train RBA có 2,5 triệu).
     known_countries: tuple[str, ...] = ()  # quốc gia đã từng đăng nhập thành công

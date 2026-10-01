@@ -36,7 +36,10 @@ MARKER_WINDOW = timedelta(hours=1)
 CAMPAIGN_GROUPS: dict[str, tuple[str, frozenset[str]]] = {
     "ip_credential_attack": ("ip", frozenset({"credential_stuffing", "password_spray_slow", "username_enumeration"})),
     "account_password_attack": ("account", frozenset({"success_after_failures", "distributed_bruteforce", "brute_force"})),
-    "account_context": ("account", frozenset({"impossible_travel", "multi_context_simultaneous", "dormant_account_login", "country_hop", "rare_network_login", "unusual_device"})),
+    "account_context": ("account", frozenset({
+        "impossible_travel", "multi_context_simultaneous", "dormant_account_login", "country_hop", "rare_network_login",
+        "unusual_device", "unusual_location", "unusual_hour", "login_velocity_spike",
+    })),
 }
 _IP_SCOPED_RULES = frozenset({"credential_stuffing", "password_spray_slow", "username_enumeration"})
 _RANK = {r: i for i, r in enumerate(PRIORITY)}

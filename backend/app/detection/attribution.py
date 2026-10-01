@@ -44,6 +44,8 @@ PRIORITY: tuple[str, ...] = (
     "dormant_account_login",
     "country_hop",
     "rare_network_login",
+    # Milestone C: dồn dập đăng nhập THÀNH CÔNG — mẫu lạm dụng cụ thể hơn dấu hiệu công cụ (scripted_client là phụ)
+    "login_velocity_spike",
     # --- đánh dấu: danh tiếng hạ tầng / tự động hoá
     "tor_exit",
     "ua_rotation",
@@ -52,11 +54,13 @@ PRIORITY: tuple[str, ...] = (
     "bot_user_agent",
     "datacenter_ip",
     "vpn_ip",
-    # --- hồ sơ hành vi (Milestone B): ÍT ĐẶC HIỆU NHẤT — "thiết bị lần đầu thấy" đúng với MỌI thiết bị mới. Khi tín hiệu
+    # --- hồ sơ hành vi (Milestone B/C): ÍT ĐẶC HIỆU NHẤT — vị trí > giờ > thiết bị; — "thiết bị lần đầu thấy" đúng với MỌI thiết bị mới. Khi tín hiệu
     # cụ thể hơn cùng khớp (công cụ kịch bản, crawler, Tor, hay một hành vi tấn công), tín hiệu đó giải thích thiết bị
     # tốt hơn và làm detector chính; unusual_device là bằng chứng bổ trợ. Lộ ra ở regression Milestone B: xếp
     # unusual_device trên nhóm đánh dấu khiến một tài khoản trưởng thành đăng nhập bằng curl bị quy cho "thiết bị mới"
     # thay vì "client kịch bản".
+    "unusual_location",
+    "unusual_hour",
     "unusual_device",
 )
 _RANK = {rule_id: i for i, rule_id in enumerate(PRIORITY)}
@@ -77,6 +81,9 @@ BEHAVIOR_OF: dict[str, str] = {
     "country_hop": "country_hopping",
     "rare_network_login": "rare_network_login",
     "unusual_device": "unusual_device",
+    "unusual_location": "unusual_location",
+    "unusual_hour": "unusual_hour",
+    "login_velocity_spike": "login_velocity_spike",
     "tor_exit": "tor_login",
     "ua_rotation": "user_agent_rotation",
     "regular_rhythm": "machine_like_timing",

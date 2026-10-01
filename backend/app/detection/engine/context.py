@@ -47,20 +47,11 @@ class MemoryHistory:
         h = self._accounts.setdefault(attempt.user_key, AccountHistory())
         h.last_event_ts = attempt.ts
         h.last_event_lat, h.last_event_lon = attempt.latitude, attempt.longitude
-        if attempt.success:
-            if h.first_success_ts is None:
-                h.first_success_ts = attempt.ts
-            family = attempt.device_family
-            if family and family not in h.known_device_families:
-                h.known_device_families += (sys.intern(family),)
-                h.device_family_first_seen += (attempt.ts,)
-            h.last_success_ts = attempt.ts
-            h.last_success_lat, h.last_success_lon = attempt.latitude, attempt.longitude
-            h.n_success += 1
-            if attempt.country and attempt.country not in h.known_countries:
-                h.known_countries += (sys.intern(attempt.country),)  # intern: hàng triệu tài khoản dùng chung vài trăm mã quốc gia/UA phổ biến
-            if attempt.ua_hash and attempt.ua_hash not in h.known_devices:
-                h.known_devices += (sys.intern(attempt.ua_hash),)
+        if attempt.success:  # hồ sơ CHỈ học từ lần thành công (AccountHistory.record_success)
+            h.record_success(
+                attempt.ts, lat=attempt.latitude, lon=attempt.longitude, country=attempt.country, city=attempt.city,
+                device_family=attempt.device_family, agent_hash=attempt.ua_hash,
+            )
 
 
 class MemoryGlobalStats:

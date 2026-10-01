@@ -6,7 +6,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 
 ## 1. Tổng quan
 
-**20 luật** trong 5 nhóm; 16 luật mặc định ở chế độ `enforce`, 4 ở chế độ `shadow` (`regular_rhythm`, `rare_network_login`, `datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
+**23 luật** trong 5 nhóm; 19 luật mặc định ở chế độ `enforce`, 4 ở chế độ `shadow` (`regular_rhythm`, `rare_network_login`, `datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
 
 | Mã | Tên | Nhóm | Mức | Chế độ mặc định | Kiểm chứng | MITRE ATT&CK |
 |---|---|---|---|---|---|---|
@@ -30,6 +30,9 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`dormant_account_login`](#dormant_account_login) | Tài khoản ngủ đông đăng nhập lại | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078 |
 | [`rare_network_login`](#rare_network_login) | Đăng nhập từ nhà mạng cực hiếm | Ngữ cảnh tài khoản | trung bình | shadow | experimental | T1078 |
 | [`unusual_device`](#unusual_device) | Thiết bị chưa từng thấy | Hồ sơ hành vi | thấp | enforce | verified | T1078 |
+| [`unusual_location`](#unusual_location) | Vị trí chưa từng thấy | Hồ sơ hành vi | trung bình | enforce | experimental | T1078 |
+| [`unusual_hour`](#unusual_hour) | Giờ đăng nhập khác thói quen | Hồ sơ hành vi | thấp | enforce | experimental | T1078 |
+| [`login_velocity_spike`](#login_velocity_spike) | Đăng nhập thành công dồn dập bất thường | Hồ sơ hành vi | trung bình | enforce | experimental | T1078 |
 
 ## 2. Cách hoạt động
 
@@ -58,7 +61,7 @@ Ghi đè chế độ và tham số theo từng luật bằng JSON (`RuleConfig.f
 | [T1110.001](https://attack.mitre.org/techniques/T1110/001/) | Brute Force: Password Guessing | `brute_force`, `distributed_bruteforce`, `success_after_failures` |
 | [T1110.003](https://attack.mitre.org/techniques/T1110/003/) | Brute Force: Password Spraying | `password_spray_slow` |
 | [T1110.004](https://attack.mitre.org/techniques/T1110/004/) | Brute Force: Credential Stuffing | `credential_stuffing`, `ua_rotation` |
-| [T1078](https://attack.mitre.org/techniques/T1078/) | Valid Accounts | `unusual_device`, `impossible_travel`, `multi_context_simultaneous`, `country_hop`, `dormant_account_login`, `rare_network_login` |
+| [T1078](https://attack.mitre.org/techniques/T1078/) | Valid Accounts | `unusual_device`, `unusual_location`, `unusual_hour`, `login_velocity_spike`, `impossible_travel`, `multi_context_simultaneous`, `country_hop`, `dormant_account_login`, `rare_network_login` |
 | [T1090](https://attack.mitre.org/techniques/T1090/) | Proxy | `distributed_bruteforce`, `country_hop`, `vpn_ip` |
 | [T1090.002](https://attack.mitre.org/techniques/T1090/002/) | Proxy: External Proxy | `datacenter_ip` |
 | [T1090.003](https://attack.mitre.org/techniques/T1090/003/) | Proxy: Multi-hop Proxy | `tor_exit` |
@@ -71,12 +74,12 @@ Thiếu dữ liệu thì luật tương ứng bị bỏ qua (xem mục 2).
 
 | Dữ liệu | Ý nghĩa | Luật cần |
 |---|---|---|
-| `account` | tài khoản tồn tại (không phải tên đăng nhập bịa) | `success_after_failures`, `unusual_device`, `impossible_travel`, `multi_context_simultaneous`, `dormant_account_login`, `rare_network_login` |
+| `account` | tài khoản tồn tại (không phải tên đăng nhập bịa) | `success_after_failures`, `unusual_device`, `unusual_location`, `unusual_hour`, `login_velocity_spike`, `impossible_travel`, `multi_context_simultaneous`, `dormant_account_login`, `rare_network_login` |
 | `asn` | ASN của IP (cần file GeoLite2-ASN.mmdb) | `rare_network_login` |
-| `country` | quốc gia của IP (GeoIP) | `multi_context_simultaneous`, `country_hop` |
+| `country` | quốc gia của IP (GeoIP) | `unusual_location`, `multi_context_simultaneous`, `country_hop` |
 | `geo` | toạ độ của IP (GeoLite2-City) | `impossible_travel` |
 | `user_agent` | User-Agent của request | `ua_rotation`, `unusual_device` |
-| `history` | lịch sử tài khoản (DB hoặc luồng sự kiện đã phát) | `unusual_device`, `impossible_travel`, `dormant_account_login` |
+| `history` | lịch sử tài khoản (DB hoặc luồng sự kiện đã phát) | `unusual_device`, `unusual_location`, `unusual_hour`, `login_velocity_spike`, `impossible_travel`, `dormant_account_login` |
 | `tor_list` | danh sách Tor exit node (python -m scripts.update_threat_feeds) | `tor_exit` |
 | `datacenter_list` | danh sách dải IP datacenter | `datacenter_ip` |
 | `vpn_list` | danh sách dải IP VPN | `vpn_ip` |
@@ -362,3 +365,50 @@ Tài khoản không có lần đăng nhập thành công nào trong nhiều thá
 |---|---|---|---|---|
 | `min_successes` | `10` | lần | 1–10000 | số lần đăng nhập thành công tối thiểu để hồ sơ được coi là trưởng thành |
 | `min_profile_days` | `7` | ngày | 0–3650 | tuổi hồ sơ tối thiểu (từ lần thành công đầu tiên) |
+
+#### <a id="unusual_location"></a>`unusual_location` — Vị trí chưa từng thấy
+
+Đăng nhập THÀNH CÔNG từ một QUỐC GIA chưa từng xuất hiện trong lịch sử đăng nhập thành công của tài khoản, khi hồ sơ đã trưởng thành. Thành phố mới trong một quốc gia đã quen không bị coi là lạ.
+
+- **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
+- **MITRE ATT&CK:** T1078 (Valid Accounts)
+- **Dữ liệu cần:** `account`, `history`, `country`
+- **Ghi chú:** So với TOÀN BỘ hồ sơ vị trí (mọi quốc gia/thành phố từng đăng nhập thành công, kèm số lần/thấy lần đầu/lần cuối), không chỉ lần trước. Thiếu GeoIP (không có quốc gia) thì bỏ qua. Không phân biệt được chuyến đi hợp lệ ĐẦU TIÊN tới một nước với kẻ tấn công — mức trung bình, chỉ cảnh báo. Hai lần thành công cách nhau quá xa so với thời gian là impossible_travel (detector chính), vị trí mới là bằng chứng bổ trợ.
+
+| Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
+|---|---|---|---|---|
+| `min_successes` | `10` | lần | 1–10000 | số lần đăng nhập thành công tối thiểu để hồ sơ được coi là trưởng thành |
+| `min_profile_days` | `7` | ngày | 0–3650 | tuổi hồ sơ tối thiểu (từ lần thành công đầu tiên) |
+
+#### <a id="unusual_hour"></a>`unusual_hour` — Giờ đăng nhập khác thói quen
+
+Đăng nhập THÀNH CÔNG vào một giờ lệch xa khỏi giờ trung tâm (trung bình vòng tròn) của các lần thành công trước đó của CHÍNH tài khoản, khi hồ sơ đã trưởng thành và đủ tập trung. Không có giờ nào 'luôn nguy hiểm': người làm ca đêm có giờ trung tâm ban đêm.
+
+- **Mức nghiêm trọng:** thấp · **chế độ mặc định:** enforce (tạo cảnh báo)
+- **MITRE ATT&CK:** T1078 (Valid Accounts)
+- **Dữ liệu cần:** `account`, `history`
+- **Ghi chú:** Thống kê vòng tròn trên đồng hồ 24h (23:30 và 00:30 cách 1 giờ). Giờ tính theo UTC nhất quán cho cả hồ sơ và lần đăng nhập (hệ thống không có dữ liệu múi giờ của người dùng). Hồ sơ hai cực (sáng + tối) có R thấp nên không được chấm.
+
+| Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
+|---|---|---|---|---|
+| `min_successes` | `10` | lần | 1–10000 | số lần đăng nhập thành công tối thiểu để hồ sơ được coi là trưởng thành |
+| `min_profile_days` | `7` | ngày | 0–3650 | tuổi hồ sơ tối thiểu (từ lần thành công đầu tiên) |
+| `deviation_sigmas` | `3` | σ | 0.5–10 | số độ lệch chuẩn vòng tròn tối thiểu so với giờ trung tâm |
+| `min_deviation_hours` | `4` | giờ | 0.5–12 | độ lệch tối thiểu tuyệt đối (giờ) — không báo lệch nhỏ dù hồ sơ rất đều |
+| `min_concentration` | `0.5` | — | 0–1 | độ tập trung tối thiểu R của hồ sơ giờ (dưới mức này: không có giờ quen rõ ràng, bỏ qua) |
+
+#### <a id="login_velocity_spike"></a>`login_velocity_spike` — Đăng nhập thành công dồn dập bất thường
+
+NHIỀU lần đăng nhập THÀNH CÔNG vào cùng một tài khoản trong 10 phút, vượt hẳn đỉnh lịch sử của chính tài khoản trong cùng độ dài cửa sổ. Khác brute_force (nhiều lần THẤT BẠI): đây là phiên đăng nhập hợp lệ bị dùng dồn dập (bot dùng thông tin đăng nhập đã chiếm được, chia sẻ tài khoản...).
+
+- **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
+- **MITRE ATT&CK:** T1078 (Valid Accounts)
+- **Dữ liệu cần:** `account`, `history`
+- **Ghi chú:** Cửa sổ cố định 600s để so cùng độ dài với đỉnh lịch sử (`peak_success_in_window`, chỉ học từ lần thành công — lần thất bại không làm tăng nền). Tài khoản dịch vụ/lập trình viên có đỉnh lịch sử cao nên cần dồn dập hơn hẳn mới khớp. Chỉ sự kiện XÁC THỰC (/login) được tính; làm mới phiên/token không đi qua pipeline này.
+
+| Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
+|---|---|---|---|---|
+| `min_successes` | `10` | lần | 1–10000 | số lần đăng nhập thành công tối thiểu để hồ sơ được coi là trưởng thành |
+| `min_profile_days` | `7` | ngày | 0–3650 | tuổi hồ sơ tối thiểu (từ lần thành công đầu tiên) |
+| `min_successes_in_window` | `8` | lần | 2–10000 | số lần thành công tối thiểu trong cửa sổ 10 phút (gồm lần này) |
+| `min_velocity_ratio` | `2` | lần | 1–100 | tối thiểu số lần gấp ĐỈNH lịch sử của tài khoản trong cùng cửa sổ |

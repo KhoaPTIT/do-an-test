@@ -87,33 +87,22 @@ class DbAccountHistory:
         except ValueError:
             return None
         rows = self.db.execute(
-            select(LoginEvent.created_at, LoginEvent.latitude, LoginEvent.longitude, LoginEvent.success, LoginEvent.country, LoginEvent.user_agent)
+            select(LoginEvent.created_at, LoginEvent.latitude, LoginEvent.longitude, LoginEvent.success, LoginEvent.country, LoginEvent.city, LoginEvent.user_agent)
             .where(LoginEvent.user_id == user_id, LoginEvent.created_at < self.before)
             .order_by(LoginEvent.created_at)
         ).all()
         if not rows:
             return None
         history = AccountHistory()
-        for created_at, lat, lon, success, country, agent in rows:
+        for created_at, lat, lon, success, country, city, agent in rows:
             history.last_event_ts = ensure_utc(created_at).timestamp()
             history.last_event_lat, history.last_event_lon = lat, lon
-            if success:
-                ts = ensure_utc(created_at).timestamp()
-                if history.first_success_ts is None:
-                    history.first_success_ts = ts
+            if success:  # hồ sơ CHỈ học từ lần thành công (AccountHistory.record_success) — cùng mã với MemoryHistory
                 parsed = parse_user_agent(agent)
-                family = device_family_of(agent, parsed.device_type, parsed.os, parsed.browser)
-                if family and family not in history.known_device_families:
-                    history.known_device_families += (family,)
-                    history.device_family_first_seen += (ts,)
-                history.last_success_ts = ts
-                history.last_success_lat, history.last_success_lon = lat, lon
-                history.n_success += 1
-                if country and country not in history.known_countries:
-                    history.known_countries += (country,)
-                hashed = ua_hash(agent)
-                if hashed and hashed not in history.known_devices:
-                    history.known_devices += (hashed,)
+                history.record_success(
+                    ensure_utc(created_at).timestamp(), lat=lat, lon=lon, country=country, city=city,
+                    device_family=device_family_of(agent, parsed.device_type, parsed.os, parsed.browser), agent_hash=ua_hash(agent),
+                )
         return history
 
     def update(self, attempt: LoginAttempt) -> None:
