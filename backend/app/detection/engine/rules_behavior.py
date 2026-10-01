@@ -7,7 +7,7 @@ Cảnh báo của nhóm này có `alert_type="behavior_anomaly"` (app/detection/
 from __future__ import annotations
 
 from app.detection.engine import indexes as K
-from app.detection.engine.profile import MATURITY_PARAMS, circular_hour_distance, hour_of_day, hour_profile, iso, maturity
+from app.detection.engine.profile import MATURITY_PARAMS, assess_hour, iso, maturity
 from app.detection.engine.registry import Param, RuleContext, rule
 from app.detection.engine.types import VELOCITY_WINDOW_S, Finding
 
@@ -112,18 +112,20 @@ def unusual_location(ctx: RuleContext) -> Finding | None:
     severity="low",
     techniques=("T1078",),
     description=(
-        "Đăng nhập THÀNH CÔNG vào một giờ lệch xa khỏi giờ trung tâm (trung bình vòng tròn) của các lần thành công trước đó của CHÍNH tài khoản, "
-        "khi hồ sơ đã trưởng thành và đủ tập trung. Không có giờ nào 'luôn nguy hiểm': người làm ca đêm có giờ trung tâm ban đêm."
+        "Đăng nhập THÀNH CÔNG vào một giờ nằm NGOÀI mọi khung giờ mà CHÍNH tài khoản đã từng đăng nhập thành công (histogram 24 giờ "
+        "làm mượt vòng tròn), khi hồ sơ đã trưởng thành và có khung giờ rõ ràng. Không có giờ nào 'luôn nguy hiểm': người làm ca đêm "
+        "có khung giờ ban đêm; người có nhiều khung giờ (sáng, trưa, tối) được coi là bình thường ở cả ba."
     ),
     params=MATURITY_PARAMS + (
-        Param("deviation_sigmas", 3.0, "số độ lệch chuẩn vòng tròn tối thiểu so với giờ trung tâm", "σ", 0.5, 10.0),
-        Param("min_deviation_hours", 4.0, "độ lệch tối thiểu tuyệt đối (giờ) — không báo lệch nhỏ dù hồ sơ rất đều", "giờ", 0.5, 12.0),
-        Param("min_concentration", 0.5, "độ tập trung tối thiểu R của hồ sơ giờ (dưới mức này: không có giờ quen rõ ràng, bỏ qua)", "", 0.0, 1.0),
+        Param("smoothing_hours", 2, "bán kính làm mượt vòng tròn của histogram giờ (nhân tam giác): giờ cách một lần thành công ≤ bán kính thuộc khung giờ đã thiết lập", "giờ", 0, 6),
+        Param("max_coverage", 0.75, "tỉ lệ tối đa của 24 giờ đã thuộc khung giờ quen; vượt mức này hồ sơ quá phân tán — NOT_APPLICABLE, không cảnh báo", "", 0.0, 1.0),
     ),
     needs=("account", "history"),
     notes=(
-        "Thống kê vòng tròn trên đồng hồ 24h (23:30 và 00:30 cách 1 giờ). Giờ tính theo UTC nhất quán cho cả hồ sơ và lần đăng nhập (hệ thống "
-        "không có dữ liệu múi giờ của người dùng). Hồ sơ hai cực (sáng + tối) có R thấp nên không được chấm."
+        "Milestone C.1 thay detector 3σ quanh giờ trung tâm (giả định một cụm đối xứng — báo nhầm 32 lần trên lưu lượng bình thường v3, "
+        "artifacts/candidates/unusual_hour/fp_analysis.json). Hồ sơ = histogram 24 ô theo giờ UTC, CHỈ học từ lần thành công. Giờ tính theo "
+        "UTC nhất quán cho cả hồ sơ và lần đăng nhập (hệ thống không có múi giờ người dùng; không mô phỏng DST). Một lần thành công duy "
+        "nhất ở một giờ đã đủ đưa giờ đó (± bán kính) vào khung quen."
     ),
 )
 def unusual_hour(ctx: RuleContext) -> Finding | None:
@@ -133,26 +135,22 @@ def unusual_hour(ctx: RuleContext) -> Finding | None:
     m = maturity(h, a.ts, min_successes=p.min_successes, min_profile_days=p.min_profile_days)
     if not m.mature:
         return None
-    hp = hour_profile(h)
-    if hp is None or hp.concentration < p.min_concentration:
-        return None
-    current = hour_of_day(a.ts)
-    deviation = circular_hour_distance(current, hp.center)
-    threshold = max(p.deviation_sigmas * hp.spread_hours, p.min_deviation_hours)
-    if deviation <= threshold:
+    hour = assess_hour(h, a.ts, smoothing_hours=p.smoothing_hours, max_coverage=p.max_coverage)
+    if hour is None or hour.status != "UNUSUAL":
         return None
     return Finding(
-        f"Tài khoản '{a.username}' đăng nhập lúc {current:.1f}h UTC, lệch {deviation:.1f}h so với giờ quen {hp.center:.1f}h "
-        f"(ngưỡng {threshold:.1f}h, {hp.sample_count} lần thành công).",
+        f"Tài khoản '{a.username}' đăng nhập lúc {hour.current_hour:.1f}h UTC, ngoài mọi khung giờ quen ({', '.join(hour.usual_hour_ranges)}; "
+        f"{hour.sample_count} lần thành công), cách lần thành công gần nhất {hour.nearest_usual_hours_away:.1f}h.",
         {
-            "current_hour": round(current, 2),
-            "usual_hour_center": round(hp.center, 2),
-            "hour_deviation": round(deviation, 2),
-            "threshold_hours": round(threshold, 2),
-            "spread_hours": round(hp.spread_hours, 2),
-            "concentration": round(hp.concentration, 3),
-            "sample_count": hp.sample_count,
+            "current_hour": round(hour.current_hour, 2),
+            "hour_probability": round(hour.hour_probability, 4),
+            "usual_hour_ranges": list(hour.usual_hour_ranges),
+            "nearest_usual_hours_away": round(hour.nearest_usual_hours_away, 2),
+            "profile_coverage": round(hour.coverage, 3),
+            "successful_login_count": m.successful_login_count,
             "profile_age_days": round(m.profile_age_days, 1),
+            "profile_method": f"circular_histogram_24h_triangular_smoothing_{p.smoothing_hours}h",
+            "reason": "outside_established_login_windows",
             "timezone": "UTC",
         },
     )

@@ -384,20 +384,19 @@ Tài khoản không có lần đăng nhập thành công nào trong nhiều thá
 
 #### <a id="unusual_hour"></a>`unusual_hour` — Giờ đăng nhập khác thói quen
 
-Đăng nhập THÀNH CÔNG vào một giờ lệch xa khỏi giờ trung tâm (trung bình vòng tròn) của các lần thành công trước đó của CHÍNH tài khoản, khi hồ sơ đã trưởng thành và đủ tập trung. Không có giờ nào 'luôn nguy hiểm': người làm ca đêm có giờ trung tâm ban đêm.
+Đăng nhập THÀNH CÔNG vào một giờ nằm NGOÀI mọi khung giờ mà CHÍNH tài khoản đã từng đăng nhập thành công (histogram 24 giờ làm mượt vòng tròn), khi hồ sơ đã trưởng thành và có khung giờ rõ ràng. Không có giờ nào 'luôn nguy hiểm': người làm ca đêm có khung giờ ban đêm; người có nhiều khung giờ (sáng, trưa, tối) được coi là bình thường ở cả ba.
 
 - **Mức nghiêm trọng:** thấp · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1078 (Valid Accounts)
 - **Dữ liệu cần:** `account`, `history`
-- **Ghi chú:** Thống kê vòng tròn trên đồng hồ 24h (23:30 và 00:30 cách 1 giờ). Giờ tính theo UTC nhất quán cho cả hồ sơ và lần đăng nhập (hệ thống không có dữ liệu múi giờ của người dùng). Hồ sơ hai cực (sáng + tối) có R thấp nên không được chấm.
+- **Ghi chú:** Milestone C.1 thay detector 3σ quanh giờ trung tâm (giả định một cụm đối xứng — báo nhầm 32 lần trên lưu lượng bình thường v3, artifacts/candidates/unusual_hour/fp_analysis.json). Hồ sơ = histogram 24 ô theo giờ UTC, CHỈ học từ lần thành công. Giờ tính theo UTC nhất quán cho cả hồ sơ và lần đăng nhập (hệ thống không có múi giờ người dùng; không mô phỏng DST). Một lần thành công duy nhất ở một giờ đã đủ đưa giờ đó (± bán kính) vào khung quen.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|
 | `min_successes` | `10` | lần | 1–10000 | số lần đăng nhập thành công tối thiểu để hồ sơ được coi là trưởng thành |
 | `min_profile_days` | `7` | ngày | 0–3650 | tuổi hồ sơ tối thiểu (từ lần thành công đầu tiên) |
-| `deviation_sigmas` | `3` | σ | 0.5–10 | số độ lệch chuẩn vòng tròn tối thiểu so với giờ trung tâm |
-| `min_deviation_hours` | `4` | giờ | 0.5–12 | độ lệch tối thiểu tuyệt đối (giờ) — không báo lệch nhỏ dù hồ sơ rất đều |
-| `min_concentration` | `0.5` | — | 0–1 | độ tập trung tối thiểu R của hồ sơ giờ (dưới mức này: không có giờ quen rõ ràng, bỏ qua) |
+| `smoothing_hours` | `2` | giờ | 0–6 | bán kính làm mượt vòng tròn của histogram giờ (nhân tam giác): giờ cách một lần thành công ≤ bán kính thuộc khung giờ đã thiết lập |
+| `max_coverage` | `0.75` | — | 0–1 | tỉ lệ tối đa của 24 giờ đã thuộc khung giờ quen; vượt mức này hồ sơ quá phân tán — NOT_APPLICABLE, không cảnh báo |
 
 #### <a id="login_velocity_spike"></a>`login_velocity_spike` — Đăng nhập thành công dồn dập bất thường
 

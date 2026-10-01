@@ -69,3 +69,69 @@ def hour_profile(history: AccountHistory) -> HourProfile | None:
     center = (math.degrees(math.atan2(s, c)) % 360) / 15.0
     spread = math.sqrt(-2 * math.log(r)) * 24 / (2 * math.pi) if r > 1e-12 else float("inf")
     return HourProfile(center=center, concentration=r, spread_hours=spread, sample_count=n)
+
+
+# ------------------------------------------------------------------------------------------------ hồ sơ giờ thực nghiệm (Milestone C.1)
+
+@dataclass(frozen=True)
+class HourAssessment:
+    """Giờ hiện tại so với PHÂN BỐ THỰC NGHIỆM giờ đăng nhập thành công của chính tài khoản (histogram 24 ô, làm mượt vòng tròn).
+
+    status: USUAL (thuộc một khung giờ đã thiết lập) | UNUSUAL (ngoài mọi khung giờ đã thiết lập) | NOT_APPLICABLE (hồ sơ quá phân
+    tán — không có khung giờ rõ ràng thì không thể có "giờ bất thường" đáng tin cậy)."""
+
+    status: str
+    current_hour: float
+    hour_probability: float  # khối xác suất ĐÃ LÀM MƯỢT ở ô giờ hiện tại (tổng 24 ô = 1)
+    usual_hour_ranges: tuple[str, ...]  # các khung giờ đã thiết lập (ô có xác suất làm mượt > 0), dạng "HH:00-HH:00"
+    coverage: float  # tỉ lệ 24 giờ thuộc khung giờ đã thiết lập
+    nearest_usual_hours_away: float  # khoảng cách (giờ, vòng tròn) tới lần thành công gần nhất trong histogram (theo tâm ô)
+    sample_count: int
+    histogram: tuple[int, ...]
+
+
+def smoothed_hour_probabilities(counts: tuple[int, ...], smoothing_hours: int) -> tuple[float, ...]:
+    """Làm mượt VÒNG TRÒN bằng nhân tam giác bán kính `smoothing_hours` ô (bán kính 2: trọng số 1,2,3,2,1 cho h−2..h+2 —
+    23h và 0h là hai ô kề nhau), chuẩn hoá thành xác suất. Ô h nhận khối từ các lần thành công ở các ô cách ≤ bán kính."""
+    n = sum(counts)
+    if n == 0:
+        return (0.0,) * 24
+    weights = [(k, smoothing_hours + 1 - abs(k)) for k in range(-smoothing_hours, smoothing_hours + 1)]
+    total_w = sum(w for _, w in weights)
+    return tuple(sum(w * counts[(h - k) % 24] for k, w in weights) / (total_w * n) for h in range(24))
+
+
+def hour_ranges(probabilities: tuple[float, ...]) -> tuple[str, ...]:
+    """Các dải ô liên tiếp (vòng tròn) có xác suất > 0, dạng "HH:00-HH:00" (giờ kết thúc không tính)."""
+    inside = [p > 0 for p in probabilities]
+    if all(inside):
+        return ("00:00-24:00",)
+    if not any(inside):
+        return ()
+    start = next(h for h in range(24) if not inside[h])  # bắt đầu quét từ một ô trống để dải qua nửa đêm không bị cắt đôi
+    ranges, run_start = [], None
+    for step in range(1, 25):
+        h = (start + step) % 24
+        if inside[h] and run_start is None:
+            run_start = h
+        if run_start is not None and (not inside[h] or step == 24):
+            end = h if not inside[h] else (h + 1) % 24
+            ranges.append(f"{run_start:02d}:00-{end:02d}:00")
+            run_start = None
+    return tuple(ranges)
+
+
+def assess_hour(history: AccountHistory, ts: float, *, smoothing_hours: int, max_coverage: float) -> HourAssessment | None:
+    counts = history.hour_counts
+    if not counts or sum(counts) == 0:
+        return None
+    probabilities = smoothed_hour_probabilities(counts, smoothing_hours)
+    current = hour_of_day(ts)
+    p = probabilities[int(current) % 24]
+    coverage = sum(1 for q in probabilities if q > 0) / 24
+    nearest = min(circular_hour_distance(current, h + 0.5) for h in range(24) if counts[h])
+    if coverage > max_coverage:
+        status = "NOT_APPLICABLE"
+    else:
+        status = "USUAL" if p > 0 else "UNUSUAL"
+    return HourAssessment(status, current, p, hour_ranges(probabilities), coverage, nearest, sum(counts), tuple(counts))

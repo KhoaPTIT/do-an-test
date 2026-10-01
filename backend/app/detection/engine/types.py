@@ -140,6 +140,8 @@ class AccountHistory:
     # trí "quốc gia|thành phố" kèm số lần/thấy lần đầu/thấy lần cuối, và đỉnh số lần thành công trong cửa sổ vận tốc.
     hour_sin_sum: float = 0.0
     hour_cos_sum: float = 0.0
+    # Milestone C.1 — histogram giờ (24 ô theo giờ UTC) của các lần THÀNH CÔNG; () = chưa có lần nào (tiết kiệm bộ nhớ ở replay)
+    hour_counts: tuple[int, ...] = ()
     known_locations: tuple[str, ...] = ()
     location_counts: tuple[int, ...] = ()
     location_first_seen: tuple[float, ...] = ()
@@ -178,6 +180,9 @@ class AccountHistory:
         angle = 2 * math.pi * ((ts % 86_400) / 3600) / 24
         self.hour_sin_sum += math.sin(angle)
         self.hour_cos_sum += math.cos(angle)
+        counts = list(self.hour_counts or (0,) * 24)
+        counts[int((ts % 86_400) // 3600)] += 1
+        self.hour_counts = tuple(counts)
         if country:
             location = sys.intern(f"{country}|{city or '?'}")
             if self.first_location is None:
