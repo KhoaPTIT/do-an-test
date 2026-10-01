@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T14:35:23.199213+00:00",
+  "generated_at": "2026-10-01T16:14:37.758469+00:00",
   "git": {
-    "commit": "a58bc12ff4e7b3380861769a271eb66b7023afef",
+    "commit": "9f28fac3d19643943211d099db59403f69e00cb1",
     "dirty": false
   },
   "seed": 20260302,
@@ -14,12 +14,12 @@
   },
   "candidates_promoted_in_runner": [],
   "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
-  "note": "Đo trên kịch bản dương tính của MỌI hành vi trong lần chạy này. legacy = alert tầng 1/2/3 cũ (không qua gộp chiến dịch) — chỉ đo, không refactor ở Milestone C (C12).",
+  "note": "Đo trên kịch bản dương tính của MỌI hành vi trong lần chạy này. legacy = alert tầng 1/2/3 cũ (không qua gộp chiến dịch) — chỉ đo, không refactor (Milestone C — C12, C.1 §15).",
   "all_behaviors_positive_totals": {
     "total_alerts": 913,
     "detection_alerts": 345,
     "legacy_alerts": 568,
-    "secondary_signals": 163,
+    "secondary_signals": 170,
     "duplicate_suppressed": 1196,
     "campaigns": 360
   },
@@ -44,7 +44,7 @@
       "total_alerts": 766,
       "detection_alerts": 200,
       "legacy_alerts": 566,
-      "secondary_signals": 117,
+      "secondary_signals": 118,
       "duplicate_suppressed": 943,
       "behaviors_counted": 10
     }
@@ -98,7 +98,7 @@
       "total_alerts": 20,
       "detection_alerts": 20,
       "legacy_alerts": 0,
-      "secondary_signals": 10,
+      "secondary_signals": 11,
       "duplicate_suppressed": 0,
       "superseded_detectors": 0,
       "campaigns": 20,
@@ -208,7 +208,7 @@
       "total_alerts": 20,
       "detection_alerts": 20,
       "legacy_alerts": 0,
-      "secondary_signals": 6,
+      "secondary_signals": 9,
       "duplicate_suppressed": 0,
       "superseded_detectors": 0,
       "campaigns": 20,
@@ -219,7 +219,7 @@
       "total_alerts": 21,
       "detection_alerts": 20,
       "legacy_alerts": 1,
-      "secondary_signals": 3,
+      "secondary_signals": 6,
       "duplicate_suppressed": 0,
       "superseded_detectors": 0,
       "campaigns": 20,

@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T14:35:23.199213+00:00",
+  "generated_at": "2026-10-01T16:14:37.758469+00:00",
   "git": {
-    "commit": "a58bc12ff4e7b3380861769a271eb66b7023afef",
+    "commit": "9f28fac3d19643943211d099db59403f69e00cb1",
     "dirty": false
   },
   "seed": 20260302,
@@ -201,6 +201,23 @@
       "passed": true
     },
     {
+      "case": "unusual_hour + unusual_location",
+      "expected_primary": "unusual_location",
+      "expected_secondary": [
+        "unusual_hour"
+      ],
+      "detection_alerts": [
+        "unusual_location"
+      ],
+      "secondary_signals": [
+        "unusual_hour"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
       "case": "login_velocity_spike + scripted_client",
       "expected_primary": "login_velocity_spike",
       "expected_secondary": [
@@ -236,6 +253,6 @@
       "passed": true
     }
   ],
-  "passed": 12,
-  "total": 12
+  "passed": 13,
+  "total": 13
 }

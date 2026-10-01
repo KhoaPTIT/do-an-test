@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T14:35:23.199213+00:00",
+  "generated_at": "2026-10-01T16:14:37.758469+00:00",
   "git": {
-    "commit": "a58bc12ff4e7b3380861769a271eb66b7023afef",
+    "commit": "9f28fac3d19643943211d099db59403f69e00cb1",
     "dirty": false
   },
   "seed": 20260302,
@@ -41,7 +41,7 @@
     "total_alerts": 21,
     "detection_alerts": 20,
     "legacy_alerts": 1,
-    "secondary_signals": 3,
+    "secondary_signals": 6,
     "duplicate_suppressed": 0,
     "superseded_detectors": 0,
     "campaigns": 20,
@@ -190,7 +190,7 @@
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
+        "secondary_signals": 1,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
@@ -414,7 +414,7 @@
         "total_alerts": 2,
         "detection_alerts": 1,
         "legacy_alerts": 1,
-        "secondary_signals": 1,
+        "secondary_signals": 2,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
@@ -434,7 +434,7 @@
         "total_alerts": 1,
         "detection_alerts": 1,
         "legacy_alerts": 0,
-        "secondary_signals": 0,
+        "secondary_signals": 1,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
