@@ -875,6 +875,207 @@ def device_negative(rng, i):
     return sc
 
 
+# ------------------------------------------------------------------------------------------------ unusual_location (Milestone C)
+
+NO_GEO_POOL = [f"100.64.{i}.{j}" for i in range(1, 4) for j in range(1, 30)]  # không có trong GeoIP fixture
+COUNTRY_OF_POOL = {"JP": JP_POOL, "FR": FR_POOL, "BR": BR_POOL, "US": US_NY_POOL + US_LA_POOL, "DE": TOR_NEIGHBOURS}
+
+
+def _vn_profile(sc, rng, username, *, days, extra_countries=(), ua=CHROME_UA):
+    """Hồ sơ Việt Nam (chủ yếu một thành phố nhà, đôi khi thành phố khác) + tuỳ chọn các nước đã từng công tác."""
+    sc.accounts.append(username)
+    home = rng.choice((HOME_POOL, HCM_POOL))
+    for d in range(days, 0, -1):
+        pool = home if rng.random() < 0.85 else rng.choice((HOME_POOL, HCM_POOL, DANANG_POOL, HAIPHONG_POOL))
+        sc.history.append(HistoryLogin(username, rng.choice(pool), -d * DAY + rng.uniform(8, 20) * 3600, ua))
+    for c in extra_countries:
+        visit = -rng.uniform(60, 200) * DAY
+        for k in range(rng.randint(2, 4)):
+            sc.history.append(HistoryLogin(username, rng.choice(COUNTRY_OF_POOL[c]), visit + k * DAY, ua))
+
+
+def loc_positive(rng, i):
+    sc = Scenario("unusual_location", "positive", "")
+    known_foreign = rng.sample(sorted(COUNTRY_OF_POOL), rng.choice((0, 0, 1)))
+    days = rng.randint(param("unusual_location", "min_successes"), 40)
+    _vn_profile(sc, rng, "alice", days=days, extra_countries=known_foreign)
+    new_country = rng.choice([c for c in sorted(COUNTRY_OF_POOL) if c not in known_foreign])
+    after = rng.uniform(1.0, 5.0) * DAY  # sau lần cuối ≥ 1 ngày: không phải impossible travel
+    sc.steps.append(Step("alice", True, rng.choice(COUNTRY_OF_POOL[new_country]), after - DAY, CHROME_UA))
+    sc.variant = f"hồ sơ VN {days} ngày" + (f" (+từng đến {known_foreign[0]})" if known_foreign else "") + f" → lần đầu ở {new_country}"
+    return sc
+
+
+def loc_negative(rng, i):
+    sc = Scenario("unusual_location", "negative", "")
+    kind = i % 6
+    days = rng.randint(14, 40)
+    if kind == 0:
+        _vn_profile(sc, rng, "alice", days=days)
+        sc.steps.append(Step("alice", True, rng.choice(HOME_POOL + HCM_POOL), 3600))
+        sc.variant = "vị trí quen"
+    elif kind == 1:
+        _vn_profile(sc, rng, "alice", days=days)
+        sc.steps.append(Step("alice", True, rng.choice(DANANG_POOL + HAIPHONG_POOL), DAY))
+        sc.variant = "thành phố khác trong quốc gia đã quen"
+    elif kind == 2:
+        _vn_profile(sc, rng, "newbie", days=rng.randint(1, param("unusual_location", "min_successes") - 1))
+        sc.steps.append(Step("newbie", True, rng.choice(rng.choice(list(COUNTRY_OF_POOL.values()))), DAY))
+        sc.variant = "tài khoản mới + quốc gia lạ"
+    elif kind == 3:
+        _vn_profile(sc, rng, "alice", days=days)
+        country = rng.choice(sorted(COUNTRY_OF_POOL))
+        sc.steps += [Step("alice", False, rng.choice(COUNTRY_OF_POOL[country]), DAY + k * 600) for k in range(rng.randint(1, 5))]
+        sc.variant = f"thử SAI từ {country}"
+    elif kind == 4:
+        country = rng.choice(sorted(COUNTRY_OF_POOL))
+        _vn_profile(sc, rng, "alice", days=days, extra_countries=(country,))
+        sc.steps.append(Step("alice", True, rng.choice(COUNTRY_OF_POOL[country]), rng.uniform(1, 3) * DAY))
+        sc.variant = f"công tác {country} — nước đã có trong lịch sử"
+    else:
+        _vn_profile(sc, rng, "alice", days=days)
+        sc.steps.append(Step("alice", True, rng.choice(NO_GEO_POOL), DAY))
+        sc.variant = "IP không có dữ liệu GeoIP"
+    return sc
+
+
+# ------------------------------------------------------------------------------------------------ unusual_hour (Milestone C)
+
+T0_HOUR_UTC = T0.hour  # T0 = 09:00 UTC; offset_s của kịch bản tính từ T0
+
+
+def at_utc_hour(day: float, hour: float) -> float:
+    """offset_s (so với T0) của thời điểm `hour` giờ UTC ở ngày `day` (0 = ngày của T0)."""
+    return day * DAY + (hour - T0_HOUR_UTC) * 3600
+
+
+def _hour_profile(sc, rng, username, *, days, center, width, per_day=(1, 2)):
+    sc.accounts.append(username)
+    for d in range(days, 0, -1):
+        for _ in range(rng.choice(per_day)):
+            sc.history.append(HistoryLogin(username, HOME_POOL[0], at_utc_hour(-d, (center + rng.uniform(-width / 2, width / 2)) % 24)))
+
+
+def hour_positive(rng, i):
+    sc = Scenario("unusual_hour", "positive", "")
+    center, width = rng.uniform(0, 24), rng.uniform(1, 8)
+    days = rng.randint(param("unusual_hour", "min_successes"), 40)
+    _hour_profile(sc, rng, "alice", days=days, center=center, width=width)
+    odd = (center + 12 + rng.uniform(-3, 3)) % 24  # phía đối diện của đồng hồ: lệch 9–12h
+    sc.steps.append(Step("alice", True, HOME_POOL[0], at_utc_hour(0, odd) + (DAY if at_utc_hour(0, odd) <= 0 else 0)))
+    sc.variant = f"quen {center:.1f}h±{width / 2:.1f}h ({days} ngày) → đăng nhập {odd:.1f}h"
+    return sc
+
+
+def hour_negative(rng, i):
+    sc = Scenario("unusual_hour", "negative", "")
+    kind = i % 6
+    days = rng.randint(14, 40)
+
+    def login(hour, success=True, name="alice"):
+        offset = at_utc_hour(0, hour % 24)
+        sc.steps.append(Step(name, success, HOME_POOL[0], offset + (DAY if offset <= 0 else 0)))
+
+    if kind == 0:  # người dùng quen đăng nhập ban đêm
+        center = rng.uniform(21, 27) % 24
+        _hour_profile(sc, rng, "alice", days=days, center=center, width=rng.uniform(1, 4))
+        login(center + rng.uniform(-1, 1))
+        sc.variant = f"quen ban đêm {center:.1f}h, đăng nhập ban đêm"
+    elif kind == 1:  # lệch khoảng 1 giờ
+        center, width = rng.uniform(0, 24), rng.uniform(1, 4)
+        _hour_profile(sc, rng, "alice", days=days, center=center, width=width)
+        login(center + rng.choice((-1, 1)) * (width / 2 + 1))
+        sc.variant = f"lệch ~1h ngoài khung quen {center:.1f}h±{width / 2:.1f}h"
+    elif kind == 2:  # tài khoản mới
+        center = rng.uniform(0, 24)
+        _hour_profile(sc, rng, "newbie", days=rng.randint(1, 6), center=center, width=2, per_day=(1,))
+        login(center + 12, name="newbie")
+        sc.variant = "tài khoản mới + giờ đối diện"
+    elif kind == 3:  # THẤT BẠI ở giờ lạ
+        center = rng.uniform(0, 24)
+        _hour_profile(sc, rng, "alice", days=days, center=center, width=rng.uniform(1, 4))
+        login(center + 12, success=False)
+        sc.variant = "thử SAI ở giờ đối diện"
+    elif kind == 4:  # ca đêm 22–02
+        _hour_profile(sc, rng, "alice", days=days, center=0.0, width=4.0)
+        login(rng.uniform(22, 26))
+        sc.variant = "ca đêm 22–02, đăng nhập trong ca"
+    else:  # quanh 23:00–01:00, kiểm tra tính vòng tròn
+        _hour_profile(sc, rng, "alice", days=days, center=0.0, width=2.0)
+        login(rng.choice((23.25, 23.75, 0.25, 0.75, 1.5, 22.5)))
+        sc.variant = "hồ sơ 23:00–01:00, đăng nhập quanh nửa đêm"
+    return sc
+
+
+# ------------------------------------------------------------------------------------------------ login_velocity_spike (Milestone C)
+
+
+def _daily_profile(sc, rng, username, *, days, per_day=(1, 2, 3)):
+    sc.accounts.append(username)
+    for d in range(days, 0, -1):
+        for _ in range(rng.choice(per_day)):
+            sc.history.append(HistoryLogin(username, HOME_POOL[0], at_utc_hour(-d, rng.uniform(7, 22))))
+
+
+def _burst_profile(sc, rng, username, *, days, burst):
+    """Tài khoản dùng chung/dịch vụ: lịch sử 1–3 đợt/ngày, mỗi đợt `burst` lần trong vài phút."""
+    sc.accounts.append(username)
+    for d in range(days, 0, -1):
+        for b in range(rng.randint(1, 3)):
+            start = at_utc_hour(-d, 8 + b * 3)
+            sc.history += [HistoryLogin(username, HOME_POOL[0], start + k * rng.uniform(30, 50)) for k in range(burst)]
+
+
+def velocity_positive(rng, i):
+    sc = Scenario("login_velocity_spike", "positive", "")
+    days = rng.randint(param("login_velocity_spike", "min_successes"), 40)
+    _daily_profile(sc, rng, "alice", days=days)
+    n = rng.randint(9, 15)
+    gap = rng.uniform(10, 570 / (n - 1))
+    ip = rng.choice((HOME_POOL[0], rng.choice(HCM_POOL), _foreign_ip(rng)))
+    ua = _ua(rng, 0.3)
+    start = at_utc_hour(0, rng.uniform(10, 20))
+    sc.steps += [Step("alice", True, ip, start + k * gap, ua) for k in range(n)]
+    sc.variant = f"hồ sơ 1–3 lần/ngày ({days} ngày) → {n} lần thành công cách {gap:.0f}s"
+    return sc
+
+
+def velocity_negative(rng, i):
+    sc = Scenario("login_velocity_spike", "negative", "")
+    kind = i % 5
+    days = rng.randint(14, 40)
+    start = at_utc_hour(0, rng.uniform(10, 20))
+    if kind == 0:  # 2–3 lần trong 10 phút
+        _daily_profile(sc, rng, "alice", days=days)
+        n = rng.randint(2, 3)
+        sc.steps += [Step("alice", True, HOME_POOL[0], start + k * rng.uniform(60, 250)) for k in range(n)]
+        sc.variant = f"{n} lần đăng nhập trong 10 phút"
+    elif kind == 1:  # tài khoản mới
+        _daily_profile(sc, rng, "newbie", days=rng.randint(1, 6), per_day=(1,))
+        sc.steps += [Step("newbie", True, HOME_POOL[0], start + k * 40) for k in range(12)]
+        sc.variant = "tài khoản mới + 12 lần thành công"
+    elif kind == 2:  # dồn dập THẤT BẠI (brute force)
+        _daily_profile(sc, rng, "alice", days=days)
+        ip = _foreign_ip(rng)
+        n = rng.randint(8, 15)
+        sc.steps += [Step("alice", False, ip, start + k * rng.uniform(10, 30)) for k in range(n)]
+        if rng.random() < 0.5:
+            sc.steps.append(Step("alice", True, ip, start + n * 30))
+        sc.variant = f"{n} lần THẤT BẠI dồn dập"
+    elif kind == 3:  # tài khoản dịch vụ có nền cao
+        burst = rng.randint(10, 14)
+        _burst_profile(sc, rng, "svc", days=days, burst=burst)
+        n = rng.randint(8, burst + burst // 2)
+        sc.steps += [Step("svc", True, HOME_POOL[0], start + k * rng.uniform(30, 50)) for k in range(n)]
+        sc.variant = f"tài khoản dịch vụ (đỉnh lịch sử {burst}/10 phút) → {n} lần"
+    else:  # ngưỡng − 1
+        _daily_profile(sc, rng, "alice", days=days)
+        n = param("login_velocity_spike", "min_successes_in_window") - 1
+        sc.steps += [Step("alice", True, HOME_POOL[0], start + k * 60) for k in range(n)]
+        sc.variant = f"{n} lần thành công trong 10 phút (ngưỡng − 1)"
+    return sc
+
+
 GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "username_enumeration": (enum_positive, enum_negative),
     "password_spray_slow": (spray_positive, spray_negative),
@@ -891,4 +1092,7 @@ GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "scripted_client": (scripted_positive, scripted_negative),
     "bot_user_agent": (bot_positive, bot_negative),
     "unusual_device": (device_positive, device_negative),
+    "unusual_location": (loc_positive, loc_negative),
+    "unusual_hour": (hour_positive, hour_negative),
+    "login_velocity_spike": (velocity_positive, velocity_negative),
 }
