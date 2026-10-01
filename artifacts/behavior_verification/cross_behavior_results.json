@@ -1,0 +1,146 @@
+{
+  "generated_at": "2026-10-01T10:33:01.099652+00:00",
+  "git": {
+    "commit": "23091d0a560bd5886476c29cbcdab5e18460d681",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "cases": [
+    {
+      "case": "distributed_bruteforce + brute_force + scripted_client",
+      "expected_primary": "distributed_bruteforce",
+      "expected_secondary": [
+        "brute_force",
+        "scripted_client"
+      ],
+      "detection_alerts": [
+        "distributed_bruteforce"
+      ],
+      "secondary_signals": [
+        "brute_force",
+        "scripted_client"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "scripted_client",
+        "brute_force"
+      ],
+      "passed": true
+    },
+    {
+      "case": "credential_stuffing + username_enumeration",
+      "expected_primary": "credential_stuffing",
+      "expected_secondary": [
+        "username_enumeration"
+      ],
+      "detection_alerts": [
+        "credential_stuffing"
+      ],
+      "secondary_signals": [
+        "regular_rhythm",
+        "username_enumeration"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "username_enumeration"
+      ],
+      "passed": true
+    },
+    {
+      "case": "password_spray_slow + scripted_client",
+      "expected_primary": "password_spray_slow",
+      "expected_secondary": [
+        "scripted_client"
+      ],
+      "detection_alerts": [
+        "password_spray_slow"
+      ],
+      "secondary_signals": [
+        "scripted_client"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "scripted_client"
+      ],
+      "passed": true
+    },
+    {
+      "case": "brute_force + bot_user_agent",
+      "expected_primary": "brute_force",
+      "expected_secondary": [
+        "bot_user_agent"
+      ],
+      "detection_alerts": [
+        "brute_force"
+      ],
+      "secondary_signals": [
+        "bot_user_agent"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "bot_user_agent"
+      ],
+      "passed": true
+    },
+    {
+      "case": "ua_rotation + credential_stuffing",
+      "expected_primary": "credential_stuffing",
+      "expected_secondary": [
+        "ua_rotation"
+      ],
+      "detection_alerts": [
+        "credential_stuffing"
+      ],
+      "secondary_signals": [
+        "regular_rhythm",
+        "ua_rotation"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_device + impossible_travel",
+      "expected_primary": "impossible_travel",
+      "expected_secondary": [
+        "unusual_device"
+      ],
+      "detection_alerts": [
+        "impossible_travel"
+      ],
+      "secondary_signals": [
+        "unusual_device"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_device + scripted_client",
+      "expected_primary": "scripted_client",
+      "expected_secondary": [
+        "unusual_device"
+      ],
+      "detection_alerts": [
+        "scripted_client"
+      ],
+      "secondary_signals": [
+        "unusual_device"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "passed": true
+    }
+  ],
+  "passed": 7,
+  "total": 7
+}

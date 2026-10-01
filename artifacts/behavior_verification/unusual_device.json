@@ -14,8 +14,8 @@
   },
   "candidates_promoted_in_runner": [],
   "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
-  "behavior": "ua_rotation",
-  "detector": "ua_rotation",
+  "behavior": "unusual_device",
+  "detector": "unusual_device",
   "status": "VERIFIED",
   "failed_criteria": [],
   "scenario_count": {
@@ -34,14 +34,14 @@
   "attribution_total": 20,
   "normal_traffic_false_alerts": 0,
   "cross_detector_alerts_in_positives": {
-    "ua_rotation": 20
+    "unusual_device": 20
   },
   "alert_noise_positive_scenarios": {
     "total_alerts": 20,
     "detection_alerts": 20,
     "legacy_alerts": 0,
     "secondary_signals": 0,
-    "duplicate_suppressed": 48,
+    "duplicate_suppressed": 0,
     "superseded_detectors": 0,
     "campaigns": 20,
     "alerts_per_attack_campaign": 1.0,
@@ -49,40 +49,40 @@
   },
   "example_alert": {
     "id": 1,
-    "login_event_id": 20,
-    "user_id": 4,
-    "alert_type": "hybrid_risk",
-    "rule_id": "ua_rotation",
-    "severity": "medium",
+    "login_event_id": 23,
+    "user_id": 1,
+    "alert_type": "behavior_anomaly",
+    "rule_id": "unusual_device",
+    "severity": "low",
     "risk_score": 5,
-    "message": "[user_agent_rotation] IP 203.0.113.155 đổi 5 họ User-Agent khác nhau trong 8 lần sai/10 phút (xoay UA để né nhận diện). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — IP 203.0.113.155 đổi 5 họ User-Agent khác nhau trong 8 lần sai/10 phút (xoay UA để né nhận diện). (5%). Lần đầu quốc gia này (BR), trước đó dùng VN 3 lần. Họ tấn công gợi ý: Tự động hoá (5%). Đã lặp lại 4 lần trong 15 phút gần đây.",
+    "message": "[unusual_device] Tài khoản 'alice' đăng nhập từ thiết bị chưa từng thấy (mobile|iOS|Mobile Safari); đã quen 1 thiết bị qua 22 lần thành công trong 22 ngày. Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Tài khoản 'alice' đăng nhập từ thiết bị chưa từng thấy (mobile|iOS|Mobile Safari); đã quen 1 thiết bị qua 22 lần thành công trong 22 ngày. (5%). Lần đầu nhà mạng này (AS64513), trước đó dùng AS64512 22 lần. Họ tấn công gợi ý: Hồ sơ hành vi (5%).",
     "explanation": {
       "contributions": [
         {
-          "source": "ua_rotation",
-          "label": "IP 203.0.113.155 đổi 5 họ User-Agent khác nhau trong 8 lần sai/10 phút (xoay UA để né nhận diện).",
+          "source": "unusual_device",
+          "label": "Tài khoản 'alice' đăng nhập từ thiết bị chưa từng thấy (mobile|iOS|Mobile Safari); đã quen 1 thiết bị qua 22 lần thành công trong 22 ngày.",
           "weight": 0.05,
           "group": "rule"
         }
       ],
       "action": "allow",
-      "behavior": "user_agent_rotation",
-      "primary_detector": "ua_rotation",
+      "behavior": "unusual_device",
+      "primary_detector": "unusual_device",
       "matched_rules": [
-        "ua_rotation"
+        "unusual_device"
       ],
       "secondary_signals": [],
       "enforced_rules": [
-        "ua_rotation"
+        "unusual_device"
       ],
       "standalone_rules": [
-        "ua_rotation"
+        "unusual_device"
       ],
       "experimental_rules": [],
       "shadow_rules": [],
       "contributing_rules": [
         {
-          "rule": "ua_rotation",
+          "rule": "unusual_device",
           "weight": 0.05,
           "group": "rule"
         }
@@ -91,169 +91,41 @@
       "ml_probability": null,
       "alert_reason": "rule_enforced",
       "evidence": {
-        "ip": "203.0.113.155",
-        "distinct_user_agents": 5,
-        "canonical": true,
-        "fails": 8,
-        "successes": 0,
-        "window_s": 600
+        "current_device": "mobile|iOS|Mobile Safari",
+        "known_devices": [
+          "desktop|Linux|Chrome"
+        ],
+        "known_device_count": 1,
+        "successful_login_count": 22,
+        "profile_age_days": 21.5,
+        "profile_first_seen": "2026-02-09T03:00:00+00:00",
+        "known_devices_first_seen": {
+          "desktop|Linux|Chrome": "2026-02-09T03:00:00+00:00"
+        },
+        "current_context": {
+          "ip": "192.0.2.87",
+          "country": "VN",
+          "browser": "Mobile Safari",
+          "os": "iOS",
+          "device_type": "mobile"
+        }
       },
       "superseded_detectors": [],
-      "consolidated_events": 4,
+      "consolidated_events": 1,
       "telemetry_gaps": []
     },
-    "occurrence_count": 4
+    "occurrence_count": 1
   },
   "scenarios": [
     {
       "kind": "positive",
-      "variant": "11 lần sai, 5 họ UA, 4 tài khoản, cách 79s",
-      "steps": 11,
-      "detected": true,
-      "attribution_events": 4,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "10 lần sai, 8 họ UA, 4 tài khoản, cách 81s",
-      "steps": 10,
-      "detected": true,
-      "attribution_events": 3,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 2,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "10 lần sai, 7 họ UA, 3 tài khoản, cách 81s",
-      "steps": 10,
-      "detected": true,
-      "attribution_events": 3,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 2,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "11 lần sai, 8 họ UA, 3 tài khoản, cách 84s",
-      "steps": 11,
-      "detected": true,
-      "attribution_events": 4,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "12 lần sai, 6 họ UA, 4 tài khoản, cách 85s",
-      "steps": 12,
-      "detected": true,
-      "attribution_events": 5,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "9 lần sai, 6 họ UA, 2 tài khoản, cách 45s",
-      "steps": 9,
-      "detected": true,
-      "attribution_events": 2,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 1,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "9 lần sai, 5 họ UA, 4 tài khoản, cách 79s",
-      "steps": 9,
-      "detected": true,
-      "attribution_events": 2,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 1,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "8 lần sai, 5 họ UA, 1 tài khoản (không tồn tại), cách 79s",
-      "steps": 8,
+      "variant": "hồ sơ 22 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "ua_rotation": 1
+        "unusual_device": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -267,193 +139,13 @@
     },
     {
       "kind": "positive",
-      "variant": "11 lần sai, 8 họ UA, 2 tài khoản (không tồn tại), cách 64s",
-      "steps": 11,
-      "detected": true,
-      "attribution_events": 4,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "12 lần sai, 7 họ UA, 4 tài khoản (không tồn tại), cách 85s",
-      "steps": 12,
-      "detected": true,
-      "attribution_events": 5,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "11 lần sai, 7 họ UA, 2 tài khoản, cách 57s",
-      "steps": 11,
-      "detected": true,
-      "attribution_events": 4,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "11 lần sai, 6 họ UA, 4 tài khoản, cách 81s",
-      "steps": 11,
-      "detected": true,
-      "attribution_events": 4,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "12 lần sai, 6 họ UA, 1 tài khoản, cách 83s",
-      "steps": 12,
-      "detected": true,
-      "attribution_events": 5,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "10 lần sai, 6 họ UA, 1 tài khoản, cách 78s",
-      "steps": 10,
-      "detected": true,
-      "attribution_events": 3,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 2,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "12 lần sai, 8 họ UA, 2 tài khoản (không tồn tại), cách 77s",
-      "steps": 12,
-      "detected": true,
-      "attribution_events": 5,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "12 lần sai, 7 họ UA, 2 tài khoản, cách 82s",
-      "steps": 12,
-      "detected": true,
-      "attribution_events": 5,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "12 lần sai, 5 họ UA, 1 tài khoản, cách 85s",
-      "steps": 12,
-      "detected": true,
-      "attribution_events": 5,
-      "misattributed_to": [],
-      "alerts_by_detector": {
-        "ua_rotation": 1
-      },
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 1,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "positive",
-      "variant": "8 lần sai, 7 họ UA, 2 tài khoản, cách 58s",
-      "steps": 8,
+      "variant": "hồ sơ 23 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "ua_rotation": 1
+        "unusual_device": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -467,13 +159,13 @@
     },
     {
       "kind": "positive",
-      "variant": "8 lần sai, 7 họ UA, 2 tài khoản, cách 78s",
-      "steps": 8,
+      "variant": "hồ sơ 32 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
       "detected": true,
       "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "ua_rotation": 1
+        "unusual_device": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -487,13 +179,13 @@
     },
     {
       "kind": "positive",
-      "variant": "9 lần sai, 7 họ UA, 4 tài khoản (không tồn tại), cách 83s",
-      "steps": 9,
+      "variant": "hồ sơ 37 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
       "detected": true,
-      "attribution_events": 2,
+      "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "ua_rotation": 1
+        "unusual_device": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -501,91 +193,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 1,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "đổi Chrome → Firefox, gõ sai 2 lần rồi đúng",
-      "steps": 3,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
     },
     {
-      "kind": "negative",
-      "variant": "laptop sai 1 lần → điện thoại sai 1 lần rồi đúng",
-      "steps": 3,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "9 lần sai, 9 phiên bản Chrome (một họ)",
-      "steps": 9,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "≥8 lần sai nhưng chỉ 4 họ UA (ngưỡng − 1)",
-      "steps": 12,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "NAT văn phòng: 11 người, nhiều trình duyệt, mỗi người gõ sai 1 lần rồi đúng",
-      "steps": 22,
-      "detected": false,
-      "attribution_events": 0,
+      "kind": "positive",
+      "variant": "hồ sơ 15 ngày, 3 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "credential_stuffing": 1
+        "unusual_device": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -593,95 +213,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 6,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "đổi Chrome → Firefox, gõ sai 2 lần rồi đúng",
-      "steps": 3,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
     },
     {
-      "kind": "negative",
-      "variant": "laptop sai 2 lần → điện thoại sai 1 lần rồi đúng",
-      "steps": 4,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {
-        "high_risk_score": 1
-      },
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 0,
-        "legacy_alerts": 1,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "12 lần sai, 12 phiên bản Chrome (một họ)",
-      "steps": 12,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "2 trình duyệt hợp lệ, 4 lần sai rồi đúng",
-      "steps": 5,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {
-        "high_risk_score": 1
-      },
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 0,
-        "legacy_alerts": 1,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "NAT văn phòng: 9 người, nhiều trình duyệt, mỗi người gõ sai 1 lần rồi đúng",
-      "steps": 18,
-      "detected": false,
-      "attribution_events": 0,
+      "kind": "positive",
+      "variant": "hồ sơ 22 ngày, 3 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "credential_stuffing": 1
+        "unusual_device": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -689,95 +233,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 4,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "đổi Chrome → Firefox, gõ sai 2 lần rồi đúng",
-      "steps": 3,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
     },
     {
-      "kind": "negative",
-      "variant": "laptop sai 3 lần → điện thoại sai 1 lần rồi đúng",
-      "steps": 5,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {
-        "high_risk_score": 1
-      },
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 0,
-        "legacy_alerts": 1,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "11 lần sai, 11 phiên bản Chrome (một họ)",
-      "steps": 11,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "3 trình duyệt hợp lệ, 4 lần sai rồi đúng",
-      "steps": 5,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {
-        "high_risk_score": 1
-      },
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 0,
-        "legacy_alerts": 1,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "NAT văn phòng: 8 người, nhiều trình duyệt, mỗi người gõ sai 1 lần rồi đúng",
-      "steps": 16,
-      "detected": false,
-      "attribution_events": 0,
+      "kind": "positive",
+      "variant": "hồ sơ 24 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "credential_stuffing": 1
+        "unusual_device": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -785,95 +253,19 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 3,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "đổi Chrome → Firefox, gõ sai 2 lần rồi đúng",
-      "steps": 3,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
         "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
     },
     {
-      "kind": "negative",
-      "variant": "laptop sai 2 lần → điện thoại sai 1 lần rồi đúng",
-      "steps": 4,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {
-        "high_risk_score": 1
-      },
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 0,
-        "legacy_alerts": 1,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "12 lần sai, 12 phiên bản Chrome (một họ)",
-      "steps": 12,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {},
-      "noise": {
-        "total_alerts": 0,
-        "detection_alerts": 0,
-        "legacy_alerts": 0,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "3 trình duyệt hợp lệ, 3 lần sai rồi đúng",
-      "steps": 4,
-      "detected": false,
-      "attribution_events": 0,
-      "misattributed_to": [],
-      "alerts_by_detector": {},
-      "legacy_alerts": {
-        "high_risk_score": 1
-      },
-      "noise": {
-        "total_alerts": 1,
-        "detection_alerts": 0,
-        "legacy_alerts": 1,
-        "secondary_signals": 0,
-        "duplicate_suppressed": 0,
-        "superseded_detectors": 0
-      }
-    },
-    {
-      "kind": "negative",
-      "variant": "NAT văn phòng: 11 người, nhiều trình duyệt, mỗi người gõ sai 1 lần rồi đúng",
-      "steps": 22,
-      "detected": false,
-      "attribution_events": 0,
+      "kind": "positive",
+      "variant": "hồ sơ 34 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
       "misattributed_to": [],
       "alerts_by_detector": {
-        "credential_stuffing": 1
+        "unusual_device": 1
       },
       "legacy_alerts": {},
       "noise": {
@@ -881,7 +273,607 @@
         "detection_alerts": 1,
         "legacy_alerts": 0,
         "secondary_signals": 0,
-        "duplicate_suppressed": 6,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 29 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 36 ngày, 3 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 39 ngày, 2 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 32 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 22 ngày, 2 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 19 ngày, 3 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 28 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 10 ngày, 2 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 38 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 17 ngày, 1 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 39 ngày, 2 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "hồ sơ 13 ngày, 3 thiết bị quen → thiết bị mới",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_device": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thiết bị quen",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "Chrome cập nhật phiên bản (cùng họ thiết bị)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản mới (hồ sơ chưa trưởng thành) + thiết bị khác",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "điện thoại đã quen (laptop + mobile trong lịch sử)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "dùng một trong 3 trình duyệt quen",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thiết bị quen",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "Chrome cập nhật phiên bản (cùng họ thiết bị)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản mới (hồ sơ chưa trưởng thành) + thiết bị khác",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "điện thoại đã quen (laptop + mobile trong lịch sử)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "dùng một trong 3 trình duyệt quen",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thiết bị quen",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "Chrome cập nhật phiên bản (cùng họ thiết bị)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản mới (hồ sơ chưa trưởng thành) + thiết bị khác",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "điện thoại đã quen (laptop + mobile trong lịch sử)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "dùng một trong 3 trình duyệt quen",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thiết bị quen",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "Chrome cập nhật phiên bản (cùng họ thiết bị)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "tài khoản mới (hồ sơ chưa trưởng thành) + thiết bị khác",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "điện thoại đã quen (laptop + mobile trong lịch sử)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "dùng một trong 3 trình duyệt quen",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
         "superseded_detectors": 0
       }
     }
