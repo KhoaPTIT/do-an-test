@@ -128,7 +128,10 @@ def country_hop(ctx: RuleContext) -> Finding | None:
         Param("require_change", True, "chỉ báo khi lần này có quốc gia hoặc thiết bị mới so với lịch sử"),
     ),
     needs=("account", "history"),
-    notes="Người dùng thật quay lại sau kỳ nghỉ là chuyện thường: mặc định phải kèm dấu hiệu 'mới' để giảm báo nhầm.",
+    notes=(
+        "Người dùng thật quay lại sau kỳ nghỉ là chuyện thường: mặc định phải kèm dấu hiệu 'mới' để giảm báo nhầm. Thiết bị so theo HỌ chuẩn hoá "
+        "(Milestone C, cùng unusual_device): chỉ cập nhật phiên bản trình duyệt không phải thiết bị mới."
+    ),
 )
 def dormant_account_login(ctx: RuleContext) -> Finding | None:
     a, h, p = ctx.attempt, ctx.history, ctx.p
@@ -138,7 +141,9 @@ def dormant_account_login(ctx: RuleContext) -> Finding | None:
     if idle_days < p.dormant_days:
         return None
     new_country = bool(a.country) and a.country not in h.known_countries
-    new_device = bool(a.ua_hash) and a.ua_hash not in h.known_devices
+    # Milestone C (C11): CÙNG định danh thiết bị chuẩn hoá với unusual_device (họ: loại | HĐH | trình duyệt, bỏ phiên bản) —
+    # trước đây so chuỗi UA thô nên Chrome tự cập nhật phiên bản trong lúc ngủ đông bị tính là "thiết bị mới".
+    new_device = bool(a.device_family) and a.device_family not in h.known_device_families
     if p.require_change and not (new_country or new_device):
         return None
     changes = [label for flag, label in ((new_country, f"quốc gia mới {a.country}"), (new_device, "thiết bị mới")) if flag]

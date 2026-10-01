@@ -77,3 +77,22 @@ def test_attribution_dormant_return_through_tor_keeps_dormant_as_primary(env):
     assert len(alerts) == 1
     assert "tor_exit" in alerts[0].explanation["matched_rules"]
     assert env.detector_alerts("tor_exit") == []
+
+
+def test_negative_browser_version_update_while_dormant_is_not_a_new_device(env):
+    """Milestone C (C11): cùng định danh thiết bị chuẩn hoá với unusual_device — Chrome 120 → 125 sau 150 ngày ngủ đông,
+    cùng máy, cùng nước: không phải thiết bị mới (trước C11 so chuỗi UA thô nên bị tính là mới)."""
+    from verification.scenarios import chrome_version_ua
+
+    seed_user(env, "sleeper", days=5, user_agent=chrome_version_ua(120), end=T0 - timedelta(days=150) + timedelta(days=1))
+    env.login("sleeper", success=True, ip=HOME_IP, ts=T0, user_agent=chrome_version_ua(125))
+    assert env.detector_alerts(RULE) == []
+
+
+def test_positive_different_browser_family_while_dormant_is_still_a_new_device(env):
+    from verification.scenarios import chrome_version_ua
+
+    seed_user(env, "sleeper", days=5, user_agent=chrome_version_ua(120), end=T0 - timedelta(days=150) + timedelta(days=1))
+    env.login("sleeper", success=True, ip=HOME_IP, ts=T0, user_agent=SAFARI_UA)
+    alerts = env.detector_alerts(RULE)
+    assert len(alerts) == 1 and alerts[0].explanation["evidence"]["new_device"] is True
