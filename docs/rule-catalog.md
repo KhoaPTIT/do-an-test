@@ -6,7 +6,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 
 ## 1. Tổng quan
 
-**23 luật** trong 5 nhóm; 20 luật mặc định ở chế độ `enforce`, 3 ở chế độ `shadow` (`rare_network_login`, `datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
+**23 luật** trong 5 nhóm; 21 luật mặc định ở chế độ `enforce`, 2 ở chế độ `shadow` (`datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
 
 | Mã | Tên | Nhóm | Mức | Chế độ mặc định | Kiểm chứng | MITRE ATT&CK |
 |---|---|---|---|---|---|---|
@@ -28,7 +28,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`multi_context_simultaneous`](#multi_context_simultaneous) | Đăng nhập cùng lúc từ nhiều quốc gia | Ngữ cảnh tài khoản | cao | enforce | experimental | T1078 |
 | [`country_hop`](#country_hop) | Tài khoản bị thử từ nhiều quốc gia | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078, T1090 |
 | [`dormant_account_login`](#dormant_account_login) | Tài khoản ngủ đông đăng nhập lại | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078 |
-| [`rare_network_login`](#rare_network_login) | Đăng nhập từ nhà mạng cực hiếm | Ngữ cảnh tài khoản | trung bình | shadow | experimental | T1078 |
+| [`rare_network_login`](#rare_network_login) | Đăng nhập từ nhà mạng cực hiếm | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078 |
 | [`unusual_device`](#unusual_device) | Thiết bị chưa từng thấy | Hồ sơ hành vi | thấp | enforce | verified | T1078 |
 | [`unusual_location`](#unusual_location) | Vị trí chưa từng thấy | Hồ sơ hành vi | trung bình | enforce | verified | T1078 |
 | [`unusual_hour`](#unusual_hour) | Giờ đăng nhập khác thói quen | Hồ sơ hành vi | thấp | enforce | experimental | T1078 |
@@ -342,10 +342,10 @@ Tài khoản không có lần đăng nhập thành công nào trong nhiều thá
 
 Đăng nhập THÀNH CÔNG từ một ASN (nhà mạng) hiếm so với toàn hệ thống, theo mức trưởng thành của dữ liệu: COLD_START (quá ít lượt thành công toàn hệ thống) không chấm; WARM: ASN chưa từng có trong lịch sử thành công của CHÍNH tài khoản (hồ sơ đã trưởng thành) VÀ chiếm ≤ `warm_max_share` lượt thành công toàn hệ thống; MATURE: tỉ lệ toàn hệ thống ≤ `max_share` (luật gốc).
 
-- **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** shadow (chỉ ghi nhận)
+- **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1078 (Valid Accounts)
 - **Dữ liệu cần:** `account`, `asn`, `global_stats`
-- **Ghi chú:** Thêm theo quyết định D3 ở CP2. Trên RBA, luật một đặc trưng `rare_asn` với ngưỡng ở phân vị 99 của đăng nhập hợp lệ bắt 65,8% trong 38 ATO tương lai (chẩn đoán MR7, chọn sau khi đã thấy ATO) nhưng ATO của bộ dữ liệu tổng hợp đến từ nhà mạng hiếm một cách nhân tạo, nên đánh giá luật trên ATO của RBA mang tính vòng tròn. Ngưỡng MATURE 2e-5 ≈ phân vị 99 của đăng nhập hợp lệ ở RBA. Milestone C+ (thiết kế C7 ở Phase 2): thêm COLD_START/WARM — trước đó luật cần 20.000 lượt thành công nên không bao giờ khớp ở DB demo. Người dùng thật đổi sang nhà mạng hiếm (wifi khách sạn, nhà mạng nhỏ) sẽ khớp ở WARM.
+- **Ghi chú:** Thêm theo quyết định D3 ở CP2. Trên RBA, luật một đặc trưng `rare_asn` với ngưỡng ở phân vị 99 của đăng nhập hợp lệ bắt 65,8% trong 38 ATO tương lai (chẩn đoán MR7, chọn sau khi đã thấy ATO) nhưng ATO của bộ dữ liệu tổng hợp đến từ nhà mạng hiếm một cách nhân tạo, nên đánh giá luật trên ATO của RBA mang tính vòng tròn. Ngưỡng MATURE 2e-5 ≈ phân vị 99 của đăng nhập hợp lệ ở RBA. Milestone C+ (thiết kế C7 ở Phase 2): thêm COLD_START/WARM — trước đó luật cần 20.000 lượt thành công nên không bao giờ khớp ở DB demo. Người dùng thật đổi sang nhà mạng hiếm (wifi khách sạn, nhà mạng nhỏ) sẽ khớp ở WARM. Kiểm chứng Milestone C+ chỉ ở trạng thái WARM; lưu lượng bình thường v3 chỉ có 3 lần tài khoản trưởng thành dùng nhà mạng mới (đều > 1%), nên 0 báo nhầm ở đó là bằng chứng yếu.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|

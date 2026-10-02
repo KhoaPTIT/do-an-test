@@ -156,6 +156,7 @@ def dormant_account_login(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="rare_network_login",
+    verification="verified",  # Milestone C+ — artifacts/behavior_verification/rare_network_login.json
     title="Đăng nhập từ nhà mạng cực hiếm",
     category=CATEGORY,
     severity="medium",
@@ -172,12 +173,13 @@ def dormant_account_login(ctx: RuleContext) -> Finding | None:
         Param("min_total", 20_000, "số đăng nhập thành công toàn hệ thống tối thiểu để vào MATURE (luật gốc theo tỉ lệ toàn hệ thống)", "lần", 100, 100_000_000),
     ),
     needs=("account", "asn", "global_stats"),
-    default_mode="shadow",
+    default_mode="enforce",  # Milestone C+: shadow -> enforce sau khi qua kiểm chứng (chỉ tạo cảnh báo, không tự step_up/lock)
     notes=(
         "Thêm theo quyết định D3 ở CP2. Trên RBA, luật một đặc trưng `rare_asn` với ngưỡng ở phân vị 99 của đăng nhập hợp lệ bắt 65,8% trong 38 ATO tương lai (chẩn đoán MR7, chọn sau "
         "khi đã thấy ATO) nhưng ATO của bộ dữ liệu tổng hợp đến từ nhà mạng hiếm một cách nhân tạo, nên đánh giá luật trên ATO của RBA mang tính vòng tròn. Ngưỡng MATURE 2e-5 ≈ phân vị 99 "
         "của đăng nhập hợp lệ ở RBA. Milestone C+ (thiết kế C7 ở Phase 2): thêm COLD_START/WARM — trước đó luật cần 20.000 lượt thành công nên không bao giờ khớp ở DB demo. Người dùng "
-        "thật đổi sang nhà mạng hiếm (wifi khách sạn, nhà mạng nhỏ) sẽ khớp ở WARM."
+        "thật đổi sang nhà mạng hiếm (wifi khách sạn, nhà mạng nhỏ) sẽ khớp ở WARM. Kiểm chứng Milestone C+ chỉ ở trạng thái WARM; lưu lượng bình thường v3 "
+        "chỉ có 3 lần tài khoản trưởng thành dùng nhà mạng mới (đều > 1%), nên 0 báo nhầm ở đó là bằng chứng yếu."
     ),
 )
 def rare_network_login(ctx: RuleContext) -> Finding | None:

@@ -425,12 +425,13 @@ def engine_with_stats(total, per_asn, config=None):
     return RuleEngine(config, stats=stats)
 
 
-def test_login_from_a_network_nobody_else_uses_is_flagged_in_shadow_mode():
+def test_login_from_a_network_nobody_else_uses_is_flagged_in_mature_state():
+    # Milestone C+: shadow -> enforce sau kiểm chứng (thay đổi thiết kế có chủ ý; trước đó test kiểm found.mode == "shadow")
     engine = engine_with_stats(30_000, {100: 29_990, 200: 10})
     never_seen = engine.evaluate(make(1, success=True, asn=300))
     assert fired([never_seen], "rare_network_login") == [0]
     found = hit(never_seen, "rare_network_login")
-    assert found.mode == "shadow" and found.evidence["never_seen"] is True and found.evidence["asn_successes"] == 0 and "AS300" in found.message
+    assert found.mode == "enforce" and found.evidence["data_state"] == "MATURE" and found.evidence["never_seen"] is True and found.evidence["asn_successes"] == 0 and "AS300" in found.message
     assert fired([engine.evaluate(make(2, success=True, asn=200))], "rare_network_login") == []  # 10/30.000 = 0,033% > ngưỡng 0,002%
     assert fired([engine.evaluate(make(3, success=True, asn=100))], "rare_network_login") == []
 
