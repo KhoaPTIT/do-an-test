@@ -15,6 +15,7 @@ chứng minh IMPLEMENTATION + PIPELINE + QUY KẾT đúng, KHÔNG chứng minh h
 from __future__ import annotations
 
 import ipaddress
+import math
 import random
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -1076,6 +1077,93 @@ def velocity_negative(rng, i):
     return sc
 
 
+
+# ------------------------------------------------------------------------------------------------ regular_rhythm (Milestone C+)
+
+def _rhythm_targets(sc, rng, m):
+    real = rng.random() < 0.6
+    names = _names(rng, "rr" if real else "ghost", m)
+    if real:
+        for name in names:
+            _seed(sc, name, days=3)
+    return names, real
+
+
+def rhythm_positive(rng, i):
+    """Công cụ thử mật khẩu theo nhịp máy (khoảng cách đều, jitter ≤ ±12% ⇒ CV ≤ 0,12) KHI CHƯA chạm ngưỡng của hành vi đặc
+    hiệu hơn: 3–4 tài khoản (dưới ngưỡng nhồi thông tin 5 tên), mỗi tài khoản ≤ 4 lần sai (dưới brute force 5 lần), ≤ 7 tên
+    không tồn tại (dưới dò danh sách 8 tên), một User-Agent (không xoay UA), không dùng IP Tor/blocklist."""
+    sc = Scenario("regular_rhythm", "positive", "")
+    m = rng.choice((3, 3, 4))
+    names, real = _rhythm_targets(sc, rng, m)
+    n = rng.randint(param("regular_rhythm", "samples"), 4 * m)
+    gap = rng.uniform(2, 26)
+    jitter = rng.uniform(0, 0.12)
+    ua = rng.choice(SCRIPTED + BROWSERS)
+    ip = rng.choice(rng.choice(FOREIGN_POOLS + VN_OTHER_POOLS + (DATACENTER_POOL,)))
+    t = 0.0
+    for j in range(n):
+        sc.steps.append(Step(names[j % m], False, ip, t, ua))
+        t += gap * (1 + rng.uniform(-jitter, jitter))
+    sc.variant = f"{n} lần sai cách đều ~{gap:.1f}s (±{jitter:.0%}), {m} tài khoản{'' if real else ' (không tồn tại)'}"
+    return sc
+
+
+def rhythm_negative(rng, i):
+    sc = Scenario("regular_rhythm", "negative", "")
+    kind = i % 6
+    ip = rng.choice(rng.choice(FOREIGN_POOLS + VN_OTHER_POOLS))
+    if kind == 0:  # nhịp ngẫu nhiên kiểu người (log-chuẩn, CV ≈ 0,6), cùng quy mô với dương tính
+        names, _ = _rhythm_targets(sc, rng, 3)
+        mean = rng.uniform(8, 25)
+        sigma = (math.log(1 + 0.6**2)) ** 0.5
+        t = 0.0
+        for j in range(12):
+            sc.steps.append(Step(names[j % 3], False, ip, t))
+            t += mean * math.exp(rng.gauss(-sigma**2 / 2, sigma))
+        sc.variant = f"12 lần sai, khoảng cách ngẫu nhiên kiểu người (TB {mean:.0f}s, CV≈0,6)"
+    elif kind == 1:  # đều nhưng CHẬM hơn ngưỡng 30s
+        names, _ = _rhythm_targets(sc, rng, 3)
+        gap = rng.uniform(34, 60)
+        t = 0.0
+        for j in range(12):
+            sc.steps.append(Step(names[j % 3], False, ip, t))
+            t += gap * (1 + rng.uniform(-0.1, 0.1))
+        sc.variant = f"12 lần sai đều nhưng chậm (~{gap:.0f}s > 30s)"
+    elif kind == 2:  # ngưỡng − 1 mẫu
+        names, _ = _rhythm_targets(sc, rng, 3)
+        gap = rng.uniform(5, 25)
+        sc.steps += [Step(names[j % 3], False, ip, j * gap) for j in range(param("regular_rhythm", "samples") - 1)]
+        sc.variant = f"{param('regular_rhythm', 'samples') - 1} lần sai cách đều {gap:.0f}s (ngưỡng − 1)"
+    elif kind == 3:  # NAT văn phòng: nhiều nhân viên gõ sai rải rác
+        office = _pick(rng, OFFICE_POOL)
+        names = _names(rng, "nv", rng.randint(8, 12))
+        t = 0.0
+        for name in names:
+            _seed(sc, name, days=3, ip=office)
+            for _ in range(rng.randint(1, 2)):
+                sc.steps.append(Step(name, False, office, t))
+                t += rng.uniform(4, 12)
+            sc.steps.append(Step(name, True, office, t))
+            t += rng.uniform(20, 90)
+        sc.variant = f"NAT văn phòng: {len(names)} nhân viên gõ sai 1–2 lần rồi đúng"
+    elif kind == 4:  # chủ tài khoản gõ sai vài lần rồi đúng
+        _seed(sc, "owner", ip=HOME_POOL[0])
+        n = rng.randint(2, 4)
+        sc.steps += [Step("owner", False, HOME_POOL[0], j * rng.uniform(5, 15)) for j in range(n)]
+        sc.steps.append(Step("owner", True, HOME_POOL[0], n * 15 + 10))
+        sc.variant = f"chủ tài khoản gõ sai {n} lần rồi đúng"
+    else:  # ứng dụng thử lại mật khẩu cũ theo backoff luỹ thừa
+        _seed(sc, "owner", ip=HOME_POOL[0])
+        t, wait = 0.0, rng.uniform(1, 3)
+        for _ in range(10):
+            sc.steps.append(Step("owner", False, MOBILE_POOL[0], t, MOBILE_UA))
+            t += wait
+            wait *= 2
+        sc.variant = "ứng dụng di động thử lại mật khẩu cũ, backoff luỹ thừa (10 lần)"
+    return sc
+
+
 GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "username_enumeration": (enum_positive, enum_negative),
     "password_spray_slow": (spray_positive, spray_negative),
@@ -1095,4 +1183,5 @@ GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "unusual_location": (loc_positive, loc_negative),
     "unusual_hour": (hour_positive, hour_negative),
     "login_velocity_spike": (velocity_positive, velocity_negative),
+    "regular_rhythm": (rhythm_positive, rhythm_negative),
 }
