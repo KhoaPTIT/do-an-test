@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T16:14:37.758469+00:00",
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
   "git": {
-    "commit": "9f28fac3d19643943211d099db59403f69e00cb1",
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
     "dirty": false
   },
   "seed": 20260302,
@@ -69,11 +69,11 @@
   },
   "studies_git": {
     "legacy_sigma": {
-      "commit": "9f28fac3d19643943211d099db59403f69e00cb1",
+      "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
       "dirty": false
     },
     "current": {
-      "commit": "9f28fac3d19643943211d099db59403f69e00cb1",
+      "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
       "dirty": false
     }
   }

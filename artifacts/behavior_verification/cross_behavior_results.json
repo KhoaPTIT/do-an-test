@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T16:14:37.758469+00:00",
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
   "git": {
-    "commit": "9f28fac3d19643943211d099db59403f69e00cb1",
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
     "dirty": false
   },
   "seed": 20260302,
@@ -251,8 +251,113 @@
       "superseded_detectors": [],
       "forbidden_matched": [],
       "passed": true
+    },
+    {
+      "case": "regular_rhythm + scripted_client",
+      "expected_primary": "regular_rhythm",
+      "expected_secondary": [
+        "scripted_client"
+      ],
+      "detection_alerts": [
+        "regular_rhythm"
+      ],
+      "secondary_signals": [
+        "scripted_client"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "scripted_client"
+      ],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "brute_force + regular_rhythm",
+      "expected_primary": "brute_force",
+      "expected_secondary": [
+        "regular_rhythm"
+      ],
+      "detection_alerts": [
+        "brute_force"
+      ],
+      "secondary_signals": [
+        "regular_rhythm"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "rare_network_login + unusual_location",
+      "expected_primary": "rare_network_login",
+      "expected_secondary": [
+        "unusual_location"
+      ],
+      "detection_alerts": [
+        "rare_network_login"
+      ],
+      "secondary_signals": [
+        "unusual_location"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "rare_network_login + unusual_device",
+      "expected_primary": "rare_network_login",
+      "expected_secondary": [
+        "unusual_device"
+      ],
+      "detection_alerts": [
+        "rare_network_login"
+      ],
+      "secondary_signals": [
+        "unusual_device"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "impossible_travel + multi_context_simultaneous",
+      "expected_primary": "impossible_travel",
+      "expected_secondary": [
+        "multi_context_simultaneous"
+      ],
+      "detection_alerts": [
+        "impossible_travel"
+      ],
+      "secondary_signals": [
+        "multi_context_simultaneous",
+        "unusual_location"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "multi_context_simultaneous + unusual_location (thiếu toạ độ)",
+      "expected_primary": "multi_context_simultaneous",
+      "expected_secondary": [
+        "unusual_location"
+      ],
+      "detection_alerts": [
+        "multi_context_simultaneous"
+      ],
+      "secondary_signals": [
+        "unusual_location"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
     }
   ],
-  "passed": 13,
-  "total": 13
+  "passed": 19,
+  "total": 19
 }

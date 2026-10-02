@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-01T16:14:37.758469+00:00",
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
   "git": {
-    "commit": "9f28fac3d19643943211d099db59403f69e00cb1",
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
     "dirty": false
   },
   "seed": 20260302,
@@ -526,6 +526,51 @@
         "campaigns": 20,
         "alerts_per_attack_campaign": 1.0,
         "all_alert_rows_per_attack_campaign": 1.05
+      }
+    },
+    "regular_rhythm": {
+      "before_b0": null,
+      "after_b0": null,
+      "current": {
+        "total_alerts": 20,
+        "detection_alerts": 20,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 42,
+        "superseded_detectors": 2,
+        "campaigns": 20,
+        "alerts_per_attack_campaign": 1.0,
+        "all_alert_rows_per_attack_campaign": 1.0
+      }
+    },
+    "rare_network_login": {
+      "before_b0": null,
+      "after_b0": null,
+      "current": {
+        "total_alerts": 20,
+        "detection_alerts": 20,
+        "legacy_alerts": 0,
+        "secondary_signals": 31,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0,
+        "campaigns": 20,
+        "alerts_per_attack_campaign": 1.0,
+        "all_alert_rows_per_attack_campaign": 1.0
+      }
+    },
+    "multi_context_simultaneous": {
+      "before_b0": null,
+      "after_b0": null,
+      "current": {
+        "total_alerts": 20,
+        "detection_alerts": 20,
+        "legacy_alerts": 0,
+        "secondary_signals": 22,
+        "duplicate_suppressed": 9,
+        "superseded_detectors": 6,
+        "campaigns": 20,
+        "alerts_per_attack_campaign": 1.0,
+        "all_alert_rows_per_attack_campaign": 1.0
       }
     }
   }

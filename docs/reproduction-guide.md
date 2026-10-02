@@ -116,6 +116,21 @@ python -m scripts.benchmark_login --n 50 --concurrency 5   # độ trễ có t�
 python -m scripts.soak_test --minutes 15           # tải nhẹ liên tục, tìm suy giảm theo thời gian — docs/soak-test.md (MR19)
 ```
 
+## Giai đoạn 9 — Kiểm chứng hành vi phát hiện (Phase 3)
+
+Không cần bộ RBA hay dịch vụ ngoài: mỗi kịch bản chạy trong SQLite in-memory + fakeredis với GeoIP/threat intel TEST
+FIXTURE (`backend/verification/fixtures/`), thành phần ML của hybrid tắt.
+
+```bash
+cd backend
+python -m pytest tests/behavior_detection/        # test hành vi: dương tính, âm tính, biên, quy kết, chống đầu độc hồ sơ
+python -m scripts.behavior_verification            # ~45 phút: 21 hành vi × (20 dương tính + 20 âm tính) + lưu lượng bình thường
+                                                   # + cross-behavior + nghiên cứu unusual_hour -> artifacts/behavior_verification/
+```
+
+Kết quả mong đợi (commit `a465dfb`): 20/21 VERIFIED (`unusual_hour` PARTIAL), cross-behavior 19/19, 0 cảnh báo của
+detector trên lưu lượng bình thường. Đọc kết quả: [`behavior-coverage-matrix.md`](behavior-coverage-matrix.md).
+
 ## Tổng thời gian ước tính
 
 Giai đoạn 1-4 (toàn bộ pipeline RBA từ đầu) mất khoảng **60-90 phút** trên máy dev hiện tại, phần lớn ở Giai đoạn 2-4

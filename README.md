@@ -5,7 +5,8 @@ chấm điểm rủi ro qua nhiều tầng phát hiện chạy **song song** (ru
 → rule engine v2 có thể cấu hình → behavioral scoring tầng 2 → ML tầng 3 → mô
 hình hybrid học từ dữ liệu học thuật RBA) và cảnh báo gần như tức thời trên
 dashboard, thay vì chỉ xác thực đúng/sai mật khẩu như một web app thông thường.
-Toàn cảnh tầng nào bắt hành vi nào: [`docs/behavior-coverage-matrix.md`](docs/behavior-coverage-matrix.md).
+Toàn cảnh hành vi nào được phát hiện, bằng detector nào, kiểm chứng tới đâu (Phase 3: **20/21 hành vi VERIFIED**
+qua pipeline thật, bằng chứng do máy sinh): [`docs/behavior-coverage-matrix.md`](docs/behavior-coverage-matrix.md).
 
 Tiến độ triển khai theo hai giai đoạn: **Tuần 1-8** (khung hệ thống, xem "Trạng
 thái" bên dưới) rồi **giai đoạn mở rộng AI, MR1-19** (nâng cấp lên rule engine
@@ -139,15 +140,20 @@ liệu findings riêng, liệt kê đầy đủ ở [`docs/checklist.md`](docs/c
   [`docs/rba-data-card.md`](docs/rba-data-card.md)), có khoảng tin cậy, kiểm định rò rỉ/dấu vân tay của bộ mô phỏng
   kẻ tấn công. Mô hình chốt `hybrid_cp2` đang chạy live trên `/login` thật (MR12). Kết quả đầy đủ:
   [`docs/ml-evaluation-v2.md`](docs/ml-evaluation-v2.md), model card: [`docs/model-card-rba.md`](docs/model-card-rba.md).
-- **Rule engine v2** (MR9-10): 19 luật hành vi/hạ tầng cấu hình được qua admin UI (MR17), một số chạy `shadow` chưa
-  đủ chứng cứ để bật `enforce` — danh mục đầy đủ: [`docs/rule-catalog.md`](docs/rule-catalog.md).
+- **Rule engine v2** (MR9-10, mở rộng ở Phase 3): 23 luật hành vi/hạ tầng cấu hình được qua admin UI (MR17); luật
+  `verified` tự tạo cảnh báo gắn đúng luật, `datacenter_ip`/`vpn_ip` vẫn `shadow`, `unusual_hour` vẫn `experimental` —
+  danh mục đầy đủ: [`docs/rule-catalog.md`](docs/rule-catalog.md).
 - **Hybrid risk engine** (MR11): ghép luật + ML thành một điểm rủi ro, ngưỡng cảnh báo/xác thực thêm/khoá — [`docs/hybrid-risk-engine.md`](docs/hybrid-risk-engine.md).
 - **Giải thích cảnh báo** (MR8): mỗi cảnh báo kèm tối đa 3 lý do bằng tiếng Việt, đã kiểm định độ trung thực — [`docs/ml-explanations.md`](docs/ml-explanations.md).
 - **Phản ứng tự động** (MR16): OTP xác thực thêm (mô phỏng), khoá tài khoản/IP có hạn, admin mở khoá — [`docs/automated-response.md`](docs/automated-response.md).
 - **Vòng phản hồi & ngưỡng thích nghi** (MR15): nút "Đúng/Báo nhầm" nới ngưỡng theo user/nhóm, không bao giờ tự siết dưới mức mặc định — [`docs/feedback-loop.md`](docs/feedback-loop.md).
 - **Tương quan chiến dịch** (MR14) và **thư viện kịch bản tấn công mô phỏng v2** (MR18, 9 kịch bản có scorecard) — [`docs/attack-scenarios-v2.md`](docs/attack-scenarios-v2.md).
 - **Dashboard quản trị v2** (MR17): cấu hình luật, sức khoẻ mô hình (PSI drift), hồ sơ rủi ro theo user.
-- **Tổng hợp cuối cùng** (MR19): ma trận phủ toàn bộ hành vi × tầng phát hiện — [`docs/behavior-coverage-matrix.md`](docs/behavior-coverage-matrix.md); so với công cụ thương mại (Okta, Microsoft Entra ID Protection, Auth0) và baseline học thuật — [`docs/commercial-comparison.md`](docs/commercial-comparison.md).
+- **Kiểm chứng hành vi phát hiện** (Phase 3, Milestone A → C+): mỗi hành vi 20 kịch bản dương tính + 20 âm tính sát
+  ngưỡng + lưu lượng bình thường 63 người dùng × 30 ngày, chấm theo QUY KẾT (cảnh báo phải mang đúng `rule_id`) —
+  20/21 VERIFIED, cross-behavior 19/19; bằng chứng: [`artifacts/behavior_verification/`](artifacts/behavior_verification/),
+  chạy lại: `cd backend && python -m scripts.behavior_verification`. Phần bổ sung hành vi phát hiện đã KẾT THÚC ở Milestone C+.
+- **Tổng hợp cuối cùng** (MR19, ma trận cập nhật ở Phase 3): ma trận phủ toàn bộ hành vi × tầng phát hiện — [`docs/behavior-coverage-matrix.md`](docs/behavior-coverage-matrix.md); so với công cụ thương mại (Okta, Microsoft Entra ID Protection, Auth0) và baseline học thuật — [`docs/commercial-comparison.md`](docs/commercial-comparison.md).
 
 ⚠️ Mọi số liệu ML trong các tài liệu trên đo trên dữ liệu **tổng hợp** hoặc **tự mô phỏng**, không phải log tấn công
 thật ngoài đời — xem giới hạn ở từng tài liệu trước khi trích dẫn.

@@ -331,6 +331,25 @@ Các mục dưới đây đổi mô hình hoặc quy tắc nên cần đồng ý
     ở nhiều script khác, không mới nhưng lần đầu thấy nó có thể che giấu thao tác ĐÃ thành công); mọi mục "Bổ sung
     tuỳ chọn" (MR-S1-S4) bên dưới — không được duyệt trong kế hoạch MR1-19
 
+## Phase 3 — Kiểm chứng và bổ sung hành vi phát hiện (ĐÃ KẾT THÚC)
+
+Tiêu chí VERIFIED, bảng kết quả và giới hạn: [`behavior-coverage-matrix.md`](behavior-coverage-matrix.md); bằng chứng do
+máy sinh: [`artifacts/behavior_verification/`](../artifacts/behavior_verification/).
+
+- [x] Audit Phase 1 (VERIFIED = 4) và thiết kế Phase 2: cảnh báo gắn đúng luật (`primary_detector`, luật `verified` tự
+  tạo cảnh báo, không đổi `step_up`/`lock`), gộp chiến dịch, `impossible_travel` chỉ THÀNH CÔNG → THÀNH CÔNG, threat
+  intel FIXTURE/DEMO/RUNTIME
+- [x] **Milestone A** (4 → 10): `username_enumeration`, `password_spray_slow`, `distributed_bruteforce`,
+  `success_after_failures`, `dormant_account_login`, `tor_exit`
+- [x] **Milestone B** (10 → 15): `country_hop`, `ua_rotation`, `scripted_client`, `bot_user_agent`, `unusual_device`
+- [x] **Milestone C** (15 → 17): `unusual_location`, `login_velocity_spike` VERIFIED; `unusual_hour` PARTIAL
+- [x] **Milestone C.1**: `unusual_hour` đổi 3σ → histogram 24 giờ (báo nhầm 32 → 4) — vẫn PARTIAL, không ép
+- [x] **Milestone C+** (17 → 20, milestone bổ sung hành vi CUỐI CÙNG): `regular_rhythm`, `rare_network_login` (thêm
+  COLD_START/WARM/MATURE), `multi_context_simultaneous` (tách phần thiếu toạ độ khỏi `impossible_travel`) — cả ba
+  VERIFIED; lưu lượng bình thường thử thách chúng yếu (ghi rõ ở ma trận)
+- Kết quả cuối: **20/21 VERIFIED**, cross-behavior 19/19. Không làm: `datacenter_ip`, `vpn_ip` (vẫn `shadow`). Không mở
+  thêm milestone hành vi phát hiện.
+
 ## Bổ sung tuỳ chọn (làm sau CP2 nếu còn thời gian)
 
 - [ ] **MR-S1** Nhật ký truy cập sau đăng nhập và phát hiện IDOR/enumeration (module riêng, dữ liệu mô phỏng, ghi rõ ngoài phạm vi "đăng nhập")

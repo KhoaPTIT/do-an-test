@@ -1,0 +1,250 @@
+{
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
+  "git": {
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "baseline_verified": [
+    "brute_force",
+    "credential_stuffing",
+    "blocklist_hit",
+    "impossible_travel",
+    "username_enumeration",
+    "password_spray_slow",
+    "distributed_bruteforce",
+    "success_after_failures",
+    "dormant_account_login",
+    "tor_exit",
+    "country_hop",
+    "ua_rotation",
+    "scripted_client",
+    "bot_user_agent",
+    "unusual_device",
+    "unusual_location",
+    "login_velocity_spike"
+  ],
+  "baseline_still_verified": {
+    "brute_force": true,
+    "credential_stuffing": true,
+    "blocklist_hit": true,
+    "impossible_travel": true,
+    "username_enumeration": true,
+    "password_spray_slow": true,
+    "distributed_bruteforce": true,
+    "success_after_failures": true,
+    "dormant_account_login": true,
+    "tor_exit": true,
+    "country_hop": true,
+    "ua_rotation": true,
+    "scripted_client": true,
+    "bot_user_agent": true,
+    "unusual_device": true,
+    "unusual_location": true,
+    "login_velocity_spike": true
+  },
+  "all_baseline_still_verified": true,
+  "milestone_cplus": {
+    "regular_rhythm": {
+      "registry_verification": "verified",
+      "default_mode": "enforce",
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "tn": 20,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "rare_network_login": {
+      "registry_verification": "verified",
+      "default_mode": "enforce",
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "tn": 20,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "multi_context_simultaneous": {
+      "registry_verification": "verified",
+      "default_mode": "enforce",
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "tn": 20,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    }
+  },
+  "normal_traffic_exposure": {
+    "regular_rhythm": {
+      "ips_with_10plus_failures": 22,
+      "min_mean_interval_over_10_failures_s": 564.4,
+      "threshold_s": 30
+    },
+    "rare_network_login": {
+      "mature_account_logins_from_asn_new_to_account": 3,
+      "their_global_shares": [
+        0.0196,
+        0.0582,
+        0.2592
+      ],
+      "warm_threshold": 0.01
+    },
+    "multi_context_simultaneous": {
+      "success_pairs_two_countries_within_1h": 0,
+      "gaps_s": [],
+      "window_s": 600
+    }
+  },
+  "unusual_hour": {
+    "registry_verification": "experimental",
+    "official_run": {
+      "status": "FAILED_CRITERIA",
+      "failed_criteria": [
+        "recall 0.00 < 0.9",
+        "quy kết đúng 0.00 < 0.9"
+      ],
+      "tp": 0,
+      "fp": 0,
+      "tn": 20,
+      "fn": 20,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "attribution_accuracy": 0.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "candidate_old_3sigma": {
+      "status": "FAILED_CRITERIA",
+      "failed_criteria": [
+        "32 báo nhầm trên lưu lượng bình thường"
+      ],
+      "tp": 20,
+      "fn": 0,
+      "fp": 0,
+      "tn": 20,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 32
+    },
+    "candidate_new_histogram": {
+      "status": "FAILED_CRITERIA",
+      "failed_criteria": [
+        "4 báo nhầm trên lưu lượng bình thường"
+      ],
+      "tp": 20,
+      "fn": 0,
+      "fp": 0,
+      "tn": 20,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 4
+    },
+    "candidate_new_meets_verified_criteria": false,
+    "status": "PARTIAL",
+    "comparison_table": {
+      "TP": {
+        "OLD": 20,
+        "NEW": 20
+      },
+      "FN": {
+        "OLD": 0,
+        "NEW": 0
+      },
+      "Recall": {
+        "OLD": 1.0,
+        "NEW": 1.0
+      },
+      "Scenario FP": {
+        "OLD": 0,
+        "NEW": 0
+      },
+      "Normal Traffic FP": {
+        "OLD": 32,
+        "NEW": 4
+      },
+      "Attribution": {
+        "OLD": 1.0,
+        "NEW": 1.0
+      },
+      "Status": {
+        "OLD": "FAILED_CRITERIA",
+        "NEW": "FAILED_CRITERIA"
+      },
+      "Failed criteria": {
+        "OLD": [
+          "32 báo nhầm trên lưu lượng bình thường"
+        ],
+        "NEW": [
+          "4 báo nhầm trên lưu lượng bình thường"
+        ]
+      }
+    }
+  },
+  "verified_count": 20,
+  "verified": [
+    "blocklist_hit",
+    "bot_user_agent",
+    "brute_force",
+    "country_hop",
+    "credential_stuffing",
+    "distributed_bruteforce",
+    "dormant_account_login",
+    "impossible_travel",
+    "login_velocity_spike",
+    "multi_context_simultaneous",
+    "password_spray_slow",
+    "rare_network_login",
+    "regular_rhythm",
+    "scripted_client",
+    "success_after_failures",
+    "tor_exit",
+    "ua_rotation",
+    "unusual_device",
+    "unusual_location",
+    "username_enumeration"
+  ],
+  "not_verified": [
+    "unusual_hour"
+  ],
+  "cross_behavior_passed": "19/19",
+  "normal_traffic": {
+    "total_steps": 5647,
+    "history_logins": 2053,
+    "users": 63,
+    "detector_false_alerts": {},
+    "legacy_alerts": {
+      "high_risk_score": 114,
+      "brute_force": 6
+    }
+  }
+}
