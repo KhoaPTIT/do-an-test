@@ -44,8 +44,10 @@ def test_tallies_split_the_hits_of_each_rule_by_label():
     assert stuffing.tally.success_hits == 0 and report.per_10k(stuffing.tally.unlabelled) == 0.0
     assert dict(stuffing.tally.by_scope) == {"ip": 3} and dict(stuffing.tally.unlabelled_by_scope) == {} and stuffing.tally.unlabelled_ips == set()
 
-    rhythm = report.rules["regular_rhythm"]  # cách đều 2 giây: khớp ở chế độ shadow
-    assert rhythm.mode == "shadow" and rhythm.tally.hits == 3
+    # cách đều 2 giây: khớp — chế độ enforce từ Milestone C+ (shadow -> enforce sau kiểm chứng, thay đổi thiết kế có chủ ý;
+    # trước đó test kiểm mode == "shadow"). Ba lần khớp trùng đúng ba lần khớp của credential_stuffing nên any_enforced vẫn 3.
+    rhythm = report.rules["regular_rhythm"]
+    assert rhythm.mode == "enforce" and rhythm.tally.hits == 3
     assert report.any_enforced.hits == 3 and report.any_rule.hits == 3 and report.any_enforced.unlabelled == 0
 
 
