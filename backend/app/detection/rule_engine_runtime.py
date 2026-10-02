@@ -87,21 +87,21 @@ class DbAccountHistory:
         except ValueError:
             return None
         rows = self.db.execute(
-            select(LoginEvent.created_at, LoginEvent.latitude, LoginEvent.longitude, LoginEvent.success, LoginEvent.country, LoginEvent.city, LoginEvent.user_agent)
+            select(LoginEvent.created_at, LoginEvent.latitude, LoginEvent.longitude, LoginEvent.success, LoginEvent.country, LoginEvent.city, LoginEvent.user_agent, LoginEvent.asn)
             .where(LoginEvent.user_id == user_id, LoginEvent.created_at < self.before)
             .order_by(LoginEvent.created_at)
         ).all()
         if not rows:
             return None
         history = AccountHistory()
-        for created_at, lat, lon, success, country, city, agent in rows:
+        for created_at, lat, lon, success, country, city, agent, asn in rows:
             history.last_event_ts = ensure_utc(created_at).timestamp()
             history.last_event_lat, history.last_event_lon = lat, lon
             if success:  # hồ sơ CHỈ học từ lần thành công (AccountHistory.record_success) — cùng mã với MemoryHistory
                 parsed = parse_user_agent(agent)
                 history.record_success(
                     ensure_utc(created_at).timestamp(), lat=lat, lon=lon, country=country, city=city,
-                    device_family=device_family_of(agent, parsed.device_type, parsed.os, parsed.browser), agent_hash=ua_hash(agent),
+                    device_family=device_family_of(agent, parsed.device_type, parsed.os, parsed.browser), agent_hash=ua_hash(agent), asn=asn,
                 )
         return history
 

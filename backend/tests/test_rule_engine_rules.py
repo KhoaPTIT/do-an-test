@@ -436,14 +436,32 @@ def test_login_from_a_network_nobody_else_uses_is_flagged_in_shadow_mode():
 
 
 def test_rare_network_needs_enough_global_data_a_success_and_an_asn():
-    small = engine_with_stats(5_000, {100: 5_000})  # dưới min_total: ASN nào cũng "hiếm" nên luật chưa có hiệu lực
+    small = engine_with_stats(5_000, {100: 5_000})  # dưới min_total (MATURE): WARM chỉ chấm tài khoản có hồ sơ trưởng thành — ở đây không có
     assert fired([small.evaluate(make(1, success=True, asn=999))], "rare_network_login") == []
+    cold = engine_with_stats(400, {100: 400})  # COLD_START (< 500): không chấm kể cả tài khoản trưởng thành
+    for d in range(12):
+        cold.evaluate(make(d * DAY, success=True, asn=100))
+    assert fired([cold.evaluate(make(13 * DAY, success=True, asn=999))], "rare_network_login") == []
     engine = engine_with_stats(30_000, {100: 30_000})
     assert fired([engine.evaluate(make(1, success=False, asn=999))], "rare_network_login") == []  # thất bại: chưa vào được tài khoản
     no_asn = engine.evaluate(make(2, success=True))
     assert fired([no_asn], "rare_network_login") == [] and "rare_network_login" in no_asn.skipped
     unknown_user = engine.evaluate(make(3, success=True, asn=999, exists=False))
     assert fired([unknown_user], "rare_network_login") == []
+
+
+def test_rare_network_warm_state_needs_a_new_asn_for_a_mature_account_and_a_small_global_share():
+    """Milestone C+ (C7): 500 ≤ tổng < 20.000 ⇒ WARM — ASN chưa có trong lịch sử thành công của CHÍNH tài khoản và ≤ 1% toàn hệ thống."""
+    engine = engine_with_stats(2_000, {100: 1_900, 200: 100})
+    for d in range(12):  # hồ sơ trưởng thành: 12 lần thành công trong 11 ngày, nhà mạng 100
+        engine.evaluate(make(d * DAY, success=True, asn=100))
+    rare = engine.evaluate(make(12 * DAY, success=True, asn=999))
+    assert fired([rare], "rare_network_login") == [0]
+    found = hit(rare, "rare_network_login")
+    assert found.evidence["data_state"] == "WARM" and found.evidence["known_asns"] == [100] and found.evidence["share"] == 0.0
+    assert fired([engine.evaluate(make(12 * DAY + 60, success=True, asn=200))], "rare_network_login") == []  # 100/2.012 ≈ 5% > 1%
+    assert fired([engine.evaluate(make(12 * DAY + 120, success=True, asn=100))], "rare_network_login") == []  # nhà mạng quen
+    assert fired([engine.evaluate(make(12 * DAY + 180, success=True, asn=999))], "rare_network_login") == []  # 999 nay đã quen (lần thành công trước)
 
 
 def test_rare_network_threshold_is_configurable():

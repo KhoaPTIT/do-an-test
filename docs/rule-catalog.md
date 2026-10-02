@@ -340,17 +340,21 @@ Tài khoản không có lần đăng nhập thành công nào trong nhiều thá
 
 #### <a id="rare_network_login"></a>`rare_network_login` — Đăng nhập từ nhà mạng cực hiếm
 
-Đăng nhập thành công từ một ASN mà tỉ lệ đăng nhập thành công của CẢ HỆ THỐNG từ ASN đó cực nhỏ (hoặc chưa từng có) — nhà mạng lạ so với mọi người dùng khác.
+Đăng nhập THÀNH CÔNG từ một ASN (nhà mạng) hiếm so với toàn hệ thống, theo mức trưởng thành của dữ liệu: COLD_START (quá ít lượt thành công toàn hệ thống) không chấm; WARM: ASN chưa từng có trong lịch sử thành công của CHÍNH tài khoản (hồ sơ đã trưởng thành) VÀ chiếm ≤ `warm_max_share` lượt thành công toàn hệ thống; MATURE: tỉ lệ toàn hệ thống ≤ `max_share` (luật gốc).
 
 - **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** shadow (chỉ ghi nhận)
 - **MITRE ATT&CK:** T1078 (Valid Accounts)
 - **Dữ liệu cần:** `account`, `asn`, `global_stats`
-- **Ghi chú:** Thêm theo quyết định D3 ở CP2. Trên RBA, luật một đặc trưng `rare_asn` với ngưỡng ở phân vị 99 của đăng nhập hợp lệ bắt 65,8% trong 38 ATO tương lai (chẩn đoán MR7, chọn sau khi đã thấy ATO) nhưng ATO của bộ dữ liệu tổng hợp đến từ nhà mạng hiếm một cách nhân tạo, nên đánh giá luật trên ATO của RBA mang tính vòng tròn; giá trị thật đo bằng kịch bản mô phỏng ở MR18. Ngưỡng mặc định 2e-5 ≈ phân vị 99 của đăng nhập hợp lệ ở RBA; chỉnh ở MR10.
+- **Ghi chú:** Thêm theo quyết định D3 ở CP2. Trên RBA, luật một đặc trưng `rare_asn` với ngưỡng ở phân vị 99 của đăng nhập hợp lệ bắt 65,8% trong 38 ATO tương lai (chẩn đoán MR7, chọn sau khi đã thấy ATO) nhưng ATO của bộ dữ liệu tổng hợp đến từ nhà mạng hiếm một cách nhân tạo, nên đánh giá luật trên ATO của RBA mang tính vòng tròn. Ngưỡng MATURE 2e-5 ≈ phân vị 99 của đăng nhập hợp lệ ở RBA. Milestone C+ (thiết kế C7 ở Phase 2): thêm COLD_START/WARM — trước đó luật cần 20.000 lượt thành công nên không bao giờ khớp ở DB demo. Người dùng thật đổi sang nhà mạng hiếm (wifi khách sạn, nhà mạng nhỏ) sẽ khớp ở WARM.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|
-| `max_share` | `2e-05` | — | 0–0.01 | tỉ lệ đăng nhập thành công của cả hệ thống từ ASN này (bằng hoặc thấp hơn thì báo) |
-| `min_total` | `20000` | lần | 100–100000000 | số đăng nhập thành công toàn hệ thống tối thiểu trước khi luật có hiệu lực (thống kê quá ít thì ASN nào cũng 'hiếm') |
+| `min_successes` | `10` | lần | 1–10000 | số lần đăng nhập thành công tối thiểu để hồ sơ được coi là trưởng thành |
+| `min_profile_days` | `7` | ngày | 0–3650 | tuổi hồ sơ tối thiểu (từ lần thành công đầu tiên) |
+| `warm_min_total` | `500` | lần | 10–100000000 | số đăng nhập thành công toàn hệ thống tối thiểu để thoát COLD_START (ít hơn thì không chấm) |
+| `warm_max_share` | `0.01` | — | 0–0.5 | WARM: tỉ lệ đăng nhập thành công toàn hệ thống từ ASN này (bằng hoặc thấp hơn thì coi là hiếm) |
+| `max_share` | `2e-05` | — | 0–0.01 | MATURE: tỉ lệ đăng nhập thành công của cả hệ thống từ ASN này (bằng hoặc thấp hơn thì báo) |
+| `min_total` | `20000` | lần | 100–100000000 | số đăng nhập thành công toàn hệ thống tối thiểu để vào MATURE (luật gốc theo tỉ lệ toàn hệ thống) |
 
 ### Hồ sơ hành vi
 

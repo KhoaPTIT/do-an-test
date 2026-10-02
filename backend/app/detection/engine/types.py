@@ -142,6 +142,8 @@ class AccountHistory:
     hour_cos_sum: float = 0.0
     # Milestone C.1 — histogram giờ (24 ô theo giờ UTC) của các lần THÀNH CÔNG; () = chưa có lần nào (tiết kiệm bộ nhớ ở replay)
     hour_counts: tuple[int, ...] = ()
+    # Milestone C+ — các ASN (nhà mạng) mà tài khoản đã từng đăng nhập THÀNH CÔNG (cho `rare_network_login` ở trạng thái WARM)
+    known_asns: tuple[int, ...] = ()
     known_locations: tuple[str, ...] = ()
     location_counts: tuple[int, ...] = ()
     location_first_seen: tuple[float, ...] = ()
@@ -159,7 +161,7 @@ class AccountHistory:
         cutoff = now_ts - VELOCITY_WINDOW_S
         return max([self.settled_peak] + [c for t, c in self.recent_window_counts if t <= cutoff])
 
-    def record_success(self, ts: float, *, lat: float | None, lon: float | None, country: str | None, city: str | None, device_family: str, agent_hash: str) -> None:
+    def record_success(self, ts: float, *, lat: float | None, lon: float | None, country: str | None, city: str | None, device_family: str, agent_hash: str, asn: int | None = None) -> None:
         """Cập nhật hồ sơ bằng MỘT lần đăng nhập THÀNH CÔNG — điểm cập nhật DUY NHẤT, dùng chung cho lịch sử dựng từ DB
         (`rule_engine_runtime.DbAccountHistory`) và từ luồng sự kiện (`context.MemoryHistory`)."""
         import math
@@ -180,6 +182,8 @@ class AccountHistory:
         angle = 2 * math.pi * ((ts % 86_400) / 3600) / 24
         self.hour_sin_sum += math.sin(angle)
         self.hour_cos_sum += math.cos(angle)
+        if asn is not None and asn not in self.known_asns:
+            self.known_asns += (asn,)
         counts = list(self.hour_counts or (0,) * 24)
         counts[int((ts % 86_400) // 3600)] += 1
         self.hour_counts = tuple(counts)

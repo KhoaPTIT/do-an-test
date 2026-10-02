@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from app.detection.engine import indexes as K
 from app.detection.engine.messages import window_text
+from app.detection.engine.profile import MATURITY_PARAMS, maturity
 from app.detection.engine.registry import Param, RuleContext, rule
 from app.detection.engine.types import Finding
 from app.detection.rules import IMPOSSIBLE_TRAVEL_SPEED_KMH, haversine_distance
@@ -159,17 +160,24 @@ def dormant_account_login(ctx: RuleContext) -> Finding | None:
     category=CATEGORY,
     severity="medium",
     techniques=("T1078",),
-    description="Đăng nhập thành công từ một ASN mà tỉ lệ đăng nhập thành công của CẢ HỆ THỐNG từ ASN đó cực nhỏ (hoặc chưa từng có) — nhà mạng lạ so với mọi người dùng khác.",
-    params=(
-        Param("max_share", 2e-5, "tỉ lệ đăng nhập thành công của cả hệ thống từ ASN này (bằng hoặc thấp hơn thì báo)", "", 0.0, 0.01),
-        Param("min_total", 20_000, "số đăng nhập thành công toàn hệ thống tối thiểu trước khi luật có hiệu lực (thống kê quá ít thì ASN nào cũng 'hiếm')", "lần", 100, 100_000_000),
+    description=(
+        "Đăng nhập THÀNH CÔNG từ một ASN (nhà mạng) hiếm so với toàn hệ thống, theo mức trưởng thành của dữ liệu: COLD_START (quá ít "
+        "lượt thành công toàn hệ thống) không chấm; WARM: ASN chưa từng có trong lịch sử thành công của CHÍNH tài khoản (hồ sơ đã trưởng "
+        "thành) VÀ chiếm ≤ `warm_max_share` lượt thành công toàn hệ thống; MATURE: tỉ lệ toàn hệ thống ≤ `max_share` (luật gốc)."
+    ),
+    params=MATURITY_PARAMS + (
+        Param("warm_min_total", 500, "số đăng nhập thành công toàn hệ thống tối thiểu để thoát COLD_START (ít hơn thì không chấm)", "lần", 10, 100_000_000),
+        Param("warm_max_share", 0.01, "WARM: tỉ lệ đăng nhập thành công toàn hệ thống từ ASN này (bằng hoặc thấp hơn thì coi là hiếm)", "", 0.0, 0.5),
+        Param("max_share", 2e-5, "MATURE: tỉ lệ đăng nhập thành công của cả hệ thống từ ASN này (bằng hoặc thấp hơn thì báo)", "", 0.0, 0.01),
+        Param("min_total", 20_000, "số đăng nhập thành công toàn hệ thống tối thiểu để vào MATURE (luật gốc theo tỉ lệ toàn hệ thống)", "lần", 100, 100_000_000),
     ),
     needs=("account", "asn", "global_stats"),
     default_mode="shadow",
     notes=(
         "Thêm theo quyết định D3 ở CP2. Trên RBA, luật một đặc trưng `rare_asn` với ngưỡng ở phân vị 99 của đăng nhập hợp lệ bắt 65,8% trong 38 ATO tương lai (chẩn đoán MR7, chọn sau "
-        "khi đã thấy ATO) nhưng ATO của bộ dữ liệu tổng hợp đến từ nhà mạng hiếm một cách nhân tạo, nên đánh giá luật trên ATO của RBA mang tính vòng tròn; giá trị thật đo bằng kịch bản "
-        "mô phỏng ở MR18. Ngưỡng mặc định 2e-5 ≈ phân vị 99 của đăng nhập hợp lệ ở RBA; chỉnh ở MR10."
+        "khi đã thấy ATO) nhưng ATO của bộ dữ liệu tổng hợp đến từ nhà mạng hiếm một cách nhân tạo, nên đánh giá luật trên ATO của RBA mang tính vòng tròn. Ngưỡng MATURE 2e-5 ≈ phân vị 99 "
+        "của đăng nhập hợp lệ ở RBA. Milestone C+ (thiết kế C7 ở Phase 2): thêm COLD_START/WARM — trước đó luật cần 20.000 lượt thành công nên không bao giờ khớp ở DB demo. Người dùng "
+        "thật đổi sang nhà mạng hiếm (wifi khách sạn, nhà mạng nhỏ) sẽ khớp ở WARM."
     ),
 )
 def rare_network_login(ctx: RuleContext) -> Finding | None:
@@ -177,13 +185,29 @@ def rare_network_login(ctx: RuleContext) -> Finding | None:
     if not a.success:
         return None
     total = stats.total_successes
-    if total < p.min_total:
-        return None
-    seen = stats.asn_successes(a.asn)  # chưa gồm lần này: thống kê được cập nhật SAU khi chấm
+    if total < p.warm_min_total:
+        return None  # COLD_START: thống kê quá ít thì ASN nào cũng "hiếm"
+    # MemoryGlobalStats (replay) chưa gồm lần này; DbGlobalStats (luồng thật) đọc bảng login_events mà sự kiện này ĐÃ được ghi
+    # trước khi chấm, nên ASN chưa ai dùng đếm được 1 — không ảnh hưởng ngưỡng (1/500 = 0,2% ≪ 1%)
+    seen = stats.asn_successes(a.asn)
     share = seen / total
-    if share > p.max_share:
+    evidence = {"asn": a.asn, "asn_successes": seen, "total_successes": total, "share": share, "never_seen": seen == 0}
+    if total >= p.min_total:
+        if share > p.max_share:
+            return None
+        return Finding(
+            f"Đăng nhập từ nhà mạng cực hiếm AS{a.asn}: {seen} lần trong {total:,} lượt thành công ({share:.4%}; ngưỡng {p.max_share:.4%}).",
+            {**evidence, "data_state": "MATURE", "share_threshold": p.max_share},
+        )
+    h = ctx.history
+    m = maturity(h, a.ts, min_successes=p.min_successes, min_profile_days=p.min_profile_days)
+    if not m.mature or a.asn in h.known_asns or share > p.warm_max_share:
         return None
     return Finding(
-        f"Đăng nhập từ nhà mạng cực hiếm AS{a.asn}: {seen} lần trong {total:,} lượt thành công ({share:.4%}; ngưỡng {p.max_share:.4%}).",
-        {"asn": a.asn, "asn_successes": seen, "total_successes": total, "share": share, "never_seen": seen == 0},
+        f"Tài khoản '{a.username}' đăng nhập từ nhà mạng AS{a.asn} chưa từng dùng ({len(h.known_asns)} nhà mạng quen) và hiếm toàn hệ thống: "
+        f"{seen}/{total:,} lượt thành công ({share:.2%}; ngưỡng {p.warm_max_share:.0%}).",
+        {
+            **evidence, "data_state": "WARM", "share_threshold": p.warm_max_share, "known_asns": list(h.known_asns),
+            "new_for_account": True, "successful_login_count": m.successful_login_count, "profile_age_days": round(m.profile_age_days, 1),
+        },
     )

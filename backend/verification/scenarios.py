@@ -1164,6 +1164,101 @@ def rhythm_negative(rng, i):
     return sc
 
 
+
+# ------------------------------------------------------------------------------------------------ rare_network_login (Milestone C+)
+
+COMMON_POOLS = (HOME_POOL, HOME_POOL, MOBILE_POOL, HCM_POOL, OFFICE_POOL, HAIPHONG_POOL)  # ASN 64512/64513/64514/64516 — nhà mạng phổ biến
+RARE_POOLS = {  # nhà mạng không người dùng nền nào dùng (FIXTURE)
+    "VN Đà Nẵng (ASN 64515, cùng quốc gia)": DANANG_POOL,
+    "JP dân cư (64530)": JP_POOL, "FR dân cư (64531)": FR_POOL, "BR dân cư (64532)": BR_POOL, "US dân cư (64523)": US_NY_POOL,
+    "NL datacenter (64521)": DATACENTER_POOL, "SG VPN (64522)": VPN_POOL,
+}
+
+
+def _population(sc, rng, total, *, extra=None):
+    """Người dùng NỀN: `total` lần đăng nhập thành công trong 30 ngày qua, chủ yếu từ các nhà mạng phổ biến (thống kê toàn hệ
+    thống của rare_network_login). `extra`: (pool, n) — n lần trong số đó từ một nhà mạng cụ thể."""
+    n_users = max(10, total // 40)
+    names = [f"bg{rng.randrange(10**6)}_{k:03d}" for k in range(n_users)]
+    sc.accounts += names
+    special = extra[1] if extra else 0
+    for j in range(total):
+        pool = extra[0] if j < special else rng.choice(COMMON_POOLS)
+        sc.history.append(HistoryLogin(names[j % n_users], rng.choice(pool), -rng.uniform(1, 30) * DAY))
+
+
+def _rare_target(sc, rng, username="alice", *, days=None, extra_pool=None):
+    """Tài khoản trưởng thành quen nhà mạng nhà (+ di động); `extra_pool`: thêm vài lần thành công cũ từ một nhà mạng khác."""
+    days = days or rng.randint(14, 30)
+    _seed(sc, username, days=days, ip=rng.choice(HOME_POOL), end_offset_s=-DAY)
+    if rng.random() < 0.5:
+        sc.history.append(HistoryLogin(username, rng.choice(MOBILE_POOL), -rng.uniform(3, days) * DAY, MOBILE_UA))
+    if extra_pool is not None:
+        for k in range(rng.randint(1, 3)):
+            sc.history.append(HistoryLogin(username, rng.choice(extra_pool), -rng.uniform(40, 90) * DAY))
+
+
+def rare_positive(rng, i):
+    """WARM (500 ≤ lượt thành công toàn hệ thống < 20.000): tài khoản trưởng thành đăng nhập ĐÚNG từ một nhà mạng chưa từng
+    dùng và chiếm ≤ 1% lượt thành công toàn hệ thống (gồm cả ca sát ngưỡng ≈ 0,8%)."""
+    sc = Scenario("rare_network_login", "positive", "")
+    label, pool = rng.choice(list(RARE_POOLS.items()))
+    total = rng.randint(520, 2500)
+    near = i % 4 == 3
+    share = rng.uniform(0.004, 0.008) if near else 0.0
+    _population(sc, rng, total, extra=(pool, int(total * share)) if near else None)
+    _rare_target(sc, rng)
+    sc.steps.append(Step("alice", True, rng.choice(pool), rng.uniform(0, 6) * 3600))
+    sc.variant = f"{label}, nền {total} lượt" + (f", ASN chiếm ~{share:.1%}" if near else ", ASN chưa ai dùng")
+    return sc
+
+
+def rare_negative(rng, i):
+    sc = Scenario("rare_network_login", "negative", "")
+    kind = i % 7
+    label, pool = rng.choice(list(RARE_POOLS.items()))
+    at = rng.uniform(0, 6) * 3600
+    if kind == 0:  # nhà mạng hiếm nhưng QUEN với chính tài khoản
+        _population(sc, rng, rng.randint(520, 2500))
+        _rare_target(sc, rng, extra_pool=pool)
+        sc.steps.append(Step("alice", True, rng.choice(pool), at))
+        sc.variant = f"{label}: hiếm toàn hệ thống nhưng tài khoản đã từng dùng"
+    elif kind == 1:  # mới với tài khoản nhưng PHỔ BIẾN (nhiều người dùng khác dùng)
+        _population(sc, rng, rng.randint(520, 2500))
+        _seed(sc, "alice", days=rng.randint(14, 30), ip=rng.choice(HOME_POOL), end_offset_s=-DAY)
+        sc.steps.append(Step("alice", True, rng.choice(HCM_POOL if rng.random() < 0.5 else OFFICE_POOL), at))
+        sc.variant = "nhà mạng mới với tài khoản nhưng phổ biến (HCM/NAT văn phòng)"
+    elif kind == 2:  # ngay trên ngưỡng 1%
+        total = rng.randint(800, 2500)
+        share = rng.uniform(0.013, 0.025)
+        _population(sc, rng, total, extra=(pool, int(total * share)))
+        _rare_target(sc, rng)
+        sc.steps.append(Step("alice", True, rng.choice(pool), at))
+        sc.variant = f"{label}: mới với tài khoản, chiếm ~{share:.1%} (> 1%)"
+    elif kind == 3:  # COLD_START
+        total = rng.randint(150, 420)
+        _population(sc, rng, total)
+        _rare_target(sc, rng)
+        sc.steps.append(Step("alice", True, rng.choice(pool), at))
+        sc.variant = f"{label}: COLD_START (nền {total} lượt < 500)"
+    elif kind == 4:  # tài khoản chưa trưởng thành
+        _population(sc, rng, rng.randint(520, 2500))
+        _seed(sc, "newbie", days=rng.randint(2, 6), ip=rng.choice(HOME_POOL), end_offset_s=-DAY)
+        sc.steps.append(Step("newbie", True, rng.choice(pool), at))
+        sc.variant = f"{label}: tài khoản mới (< 10 lần / < 7 ngày)"
+    elif kind == 5:  # thử SAI từ nhà mạng hiếm
+        _population(sc, rng, rng.randint(520, 2500))
+        _rare_target(sc, rng)
+        sc.steps += [Step("alice", False, rng.choice(pool), at + k * 40) for k in range(rng.randint(1, 3))]
+        sc.variant = f"{label}: chỉ thử SAI"
+    else:  # thiếu ASN (IP ngoài GeoIP)
+        _population(sc, rng, rng.randint(520, 2500))
+        _rare_target(sc, rng)
+        sc.steps.append(Step("alice", True, f"100.64.{rng.randint(1, 250)}.{rng.randint(1, 250)}", at))
+        sc.variant = "IP không có trong GeoIP/ASN (thiếu telemetry)"
+    return sc
+
+
 GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "username_enumeration": (enum_positive, enum_negative),
     "password_spray_slow": (spray_positive, spray_negative),
@@ -1184,4 +1279,5 @@ GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "unusual_hour": (hour_positive, hour_negative),
     "login_velocity_spike": (velocity_positive, velocity_negative),
     "regular_rhythm": (rhythm_positive, rhythm_negative),
+    "rare_network_login": (rare_positive, rare_negative),
 }

@@ -50,7 +50,7 @@ class MemoryHistory:
         if attempt.success:  # hồ sơ CHỈ học từ lần thành công (AccountHistory.record_success)
             h.record_success(
                 attempt.ts, lat=attempt.latitude, lon=attempt.longitude, country=attempt.country, city=attempt.city,
-                device_family=attempt.device_family, agent_hash=attempt.ua_hash,
+                device_family=attempt.device_family, agent_hash=attempt.ua_hash, asn=attempt.asn,
             )
 
 
