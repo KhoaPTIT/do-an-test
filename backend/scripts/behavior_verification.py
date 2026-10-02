@@ -14,7 +14,8 @@ Chấm điểm (không dùng nhãn trong phát hiện — nhãn chỉ để ch�
 
 Đầu ra (runner TỰ SINH, không sửa tay): `artifacts/behavior_verification/<behavior>.json`, `normal_traffic.json`,
 `summary.json` ở gốc repo. Lần chạy đầy đủ sinh thêm `cross_behavior_results.json`, `alert_noise_*.json`,
-`milestone_c1_summary.json`, `unusual_hour_comparison.json` và `unusual_hour_fp_analysis.json` (Milestone C.1: detector
+`milestone_cplus_summary.json` (tổng hợp cuối: 17 hành vi baseline, 3 hành vi Milestone C+, mức thử thách của lưu lượng
+bình thường), `unusual_hour_comparison.json` và `unusual_hour_fp_analysis.json` (Milestone C.1: detector
 unusual_hour cũ 3σ và hiện tại, ở trạng thái ứng viên, trên cùng bộ đánh giá).
 
 Detector ỨNG VIÊN (`--candidates`, Milestone B): luật chưa `verified` không tự tạo cảnh báo ở runtime (B0.1), nên để đo
@@ -179,6 +180,7 @@ MILESTONE_B = ("country_hop", "ua_rotation", "scripted_client", "bot_user_agent"
 BASELINE_AFTER_B = BASELINE_VERIFIED + MILESTONE_B  # 15 hành vi VERIFIED sau Milestone B (đã được người dùng xác nhận)
 MILESTONE_C = ("unusual_location", "unusual_hour", "login_velocity_spike")
 BASELINE_AFTER_C = BASELINE_AFTER_B + ("unusual_location", "login_velocity_spike")  # 17 hành vi VERIFIED sau Milestone C (đã được người dùng xác nhận)
+MILESTONE_CPLUS = ("regular_rhythm", "rare_network_login", "multi_context_simultaneous")  # milestone bổ sung hành vi CUỐI CÙNG
 NOISE_BASELINE_DIR = REPO_ROOT / "artifacts" / "noise_baselines"  # summary.json do CHÍNH runner này sinh ở hai mốc trước (xem README ở đó)
 
 
@@ -214,6 +216,52 @@ def noise_comparison(final_summary: list[dict]) -> dict:
         "stages": {"before_b0": before_meta, "after_b0": after_meta},
         "baseline_10_totals": {"before_b0": total("before_b0", common), "after_b0": total("after_b0", common), "current": total("current", common)},
         "per_behavior": rows,
+    }
+
+
+def normal_traffic_exposure(seed: int) -> dict:
+    """Lưu lượng bình thường THỬ THÁCH các detector Milestone C+ tới đâu — tính thẳng từ dữ liệu sinh ra (không qua detector),
+    để biết "0 báo nhầm" là bằng chứng mạnh hay chỉ vì không có tình huống nào gần ngưỡng."""
+    import statistics
+    from collections import defaultdict
+
+    from verification.fixtures import fixture_lookup_asn, fixture_lookup_ip
+
+    traffic = generate_normal_traffic(seed)
+    steps = sorted(traffic.steps, key=lambda st: st.offset_s)
+    # regular_rhythm: khoảng cách trung bình nhỏ nhất trên 10 lần sai liên tiếp của một IP
+    fails = defaultdict(list)
+    for st in steps:
+        if not st.success:
+            fails[st.ip].append(st.offset_s)
+    means = [statistics.fmean([b - a for a, b in zip(ts[k - 9:k], ts[k - 8:k + 1])]) for ts in fails.values() for k in range(9, len(ts))]
+    # rare_network_login: lần thành công của tài khoản trưởng thành từ ASN mới với chính nó (WARM), kèm tỉ lệ toàn hệ thống
+    events = sorted([(h.offset_s, h.username, h.ip) for h in traffic.history if h.success] + [(st.offset_s, st.username, st.ip) for st in steps if st.success])
+    known, count, first, by_asn, total, new_asn_shares = defaultdict(set), defaultdict(int), {}, defaultdict(int), 0, []
+    for ts, user, ip in events:
+        a = fixture_lookup_asn(ip)
+        asn = a.asn if a else None
+        if ts >= 0 and asn is not None and total >= 500 and count[user] >= 10 and ts - first[user] >= 7 * 86_400 and asn not in known[user]:
+            new_asn_shares.append(round(by_asn[asn] / total, 4))
+        if asn is not None:
+            known[user].add(asn)
+            by_asn[asn] += 1
+        count[user] += 1
+        first.setdefault(user, ts)
+        total += 1
+    # multi_context_simultaneous: cặp đăng nhập thành công của cùng tài khoản ở hai quốc gia cách nhau ≤ 1 giờ
+    recent, pairs = defaultdict(list), []
+    for st in (st for st in steps if st.success):
+        g = fixture_lookup_ip(st.ip)
+        country = g.country if g else None
+        recent[st.username] = [(t, c) for t, c in recent[st.username] if st.offset_s - t <= 3600]
+        pairs += [round(st.offset_s - t) for t, c in recent[st.username] if country and c and c != country]
+        recent[st.username].append((st.offset_s, country))
+    return {
+        "regular_rhythm": {"ips_with_10plus_failures": sum(1 for ts in fails.values() if len(ts) >= 10),
+                           "min_mean_interval_over_10_failures_s": round(min(means), 1) if means else None, "threshold_s": 30},
+        "rare_network_login": {"mature_account_logins_from_asn_new_to_account": len(new_asn_shares), "their_global_shares": sorted(new_asn_shares), "warm_threshold": 0.01},
+        "multi_context_simultaneous": {"success_pairs_two_countries_within_1h": len(pairs), "gaps_s": sorted(pairs)[:10], "window_s": 600},
     }
 
 
@@ -324,11 +372,14 @@ def main(argv: list[str] | None = None) -> int:
 
         new_hour = study["current"]["metrics"] if study else None
         official_hour = by_name.get("unusual_hour", {})
-        (out_dir / "milestone_c1_summary.json").write_text(json.dumps({
+        (out_dir / "milestone_cplus_summary.json").write_text(json.dumps({
             **meta,
             "baseline_verified": list(BASELINE_AFTER_C),
             "baseline_still_verified": {b: by_name.get(b, {}).get("status") == "VERIFIED" for b in BASELINE_AFTER_C},
             "all_baseline_still_verified": all(by_name.get(b, {}).get("status") == "VERIFIED" for b in BASELINE_AFTER_C),
+            "milestone_cplus": {b: {"registry_verification": REGISTRY[b].verification, "default_mode": REGISTRY[b].default_mode,
+                                    **({k: by_name[b][k] for k in fields} if b in by_name else {"status": "NOT_RUN"})} for b in MILESTONE_CPLUS},
+            "normal_traffic_exposure": normal_traffic_exposure(args.seed),
             "unusual_hour": {
                 "registry_verification": REGISTRY["unusual_hour"].verification,
                 "official_run": {k: official_hour[k] for k in fields} if official_hour else {"status": "NOT_RUN"},
