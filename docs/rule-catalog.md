@@ -6,7 +6,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 
 ## 1. Tổng quan
 
-**23 luật** trong 5 nhóm; 19 luật mặc định ở chế độ `enforce`, 4 ở chế độ `shadow` (`regular_rhythm`, `rare_network_login`, `datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
+**23 luật** trong 5 nhóm; 20 luật mặc định ở chế độ `enforce`, 3 ở chế độ `shadow` (`rare_network_login`, `datacenter_ip`, `vpn_ip`) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.
 
 | Mã | Tên | Nhóm | Mức | Chế độ mặc định | Kiểm chứng | MITRE ATT&CK |
 |---|---|---|---|---|---|---|
@@ -19,7 +19,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`bot_user_agent`](#bot_user_agent) | User-Agent là bot | Tự động hoá | thấp | enforce | verified | T1110 |
 | [`scripted_client`](#scripted_client) | Client kịch bản / công cụ | Tự động hoá | thấp | enforce | verified | T1110 |
 | [`ua_rotation`](#ua_rotation) | Xoay User-Agent | Tự động hoá | trung bình | enforce | verified | T1110.004 |
-| [`regular_rhythm`](#regular_rhythm) | Nhịp thử đều như máy | Tự động hoá | trung bình | shadow | experimental | T1110 |
+| [`regular_rhythm`](#regular_rhythm) | Nhịp thử đều như máy | Tự động hoá | trung bình | enforce | verified | T1110 |
 | [`tor_exit`](#tor_exit) | Đăng nhập từ Tor exit node | Danh tiếng hạ tầng | trung bình | enforce | verified | T1090.003 |
 | [`datacenter_ip`](#datacenter_ip) | Đăng nhập từ dải IP datacenter | Danh tiếng hạ tầng | thấp | shadow | experimental | T1090.002 |
 | [`vpn_ip`](#vpn_ip) | Đăng nhập từ dải IP VPN thương mại | Danh tiếng hạ tầng | thấp | shadow | experimental | T1090 |
@@ -231,10 +231,10 @@ Cùng một IP thất bại đăng nhập nhiều lần với NHIỀU họ User-
 
 Các lần đăng nhập SAI gần nhất từ một IP cách nhau đều đặn và dày (độ lệch chuẩn nhỏ so với trung bình) — con người không gõ đều đến vậy.
 
-- **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** shadow (chỉ ghi nhận)
+- **Mức nghiêm trọng:** trung bình · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1110 (Brute Force)
 - **Dữ liệu cần:** không (chỉ cần `LoginAttempt`)
-- **Ghi chú:** Chưa kiểm chứng trên log thật (chỉ dựa vào giả thuyết nhịp), nên mặc định ở chế độ shadow; máy có jitter ngẫu nhiên lớn sẽ né được.
+- **Ghi chú:** Milestone C+: kiểm chứng trên kịch bản tổng hợp (20 dương tính / 20 âm tính sát ngưỡng / lưu lượng bình thường v3) — chưa kiểm chứng trên log thật. Là tín hiệu ĐÁNH DẤU: khi brute force/nhồi thông tin/Tor cùng khớp thì chúng làm detector chính. Máy có jitter ngẫu nhiên lớn (CV > 0,15) hoặc chậm hơn 30s/lần sẽ né được; dịch vụ cấu hình sai mật khẩu thử lại đều đặn sẽ khớp.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|

@@ -120,6 +120,7 @@ def ua_rotation(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="regular_rhythm",
+    verification="verified",  # Milestone C+ — artifacts/behavior_verification/regular_rhythm.json
     title="Nhịp thử đều như máy",
     category=CATEGORY,
     severity="medium",
@@ -130,8 +131,12 @@ def ua_rotation(ctx: RuleContext) -> Finding | None:
         Param("max_mean_interval_s", 30.0, "khoảng cách trung bình tối đa giữa hai lần (chậm hơn thì không tính là dồn dập)", "giây", 0.0, 3600.0),
         Param("max_cv", 0.15, "hệ số biến thiên tối đa (độ lệch chuẩn / trung bình) của khoảng cách", "", 0.0, 1.0),
     ),
-    default_mode="shadow",
-    notes="Chưa kiểm chứng trên log thật (chỉ dựa vào giả thuyết nhịp), nên mặc định ở chế độ shadow; máy có jitter ngẫu nhiên lớn sẽ né được.",
+    default_mode="enforce",  # Milestone C+: shadow -> enforce sau khi qua kiểm chứng (chỉ tạo cảnh báo, không tự step_up/lock)
+    notes=(
+        "Milestone C+: kiểm chứng trên kịch bản tổng hợp (20 dương tính / 20 âm tính sát ngưỡng / lưu lượng bình thường v3) — chưa kiểm chứng "
+        "trên log thật. Là tín hiệu ĐÁNH DẤU: khi brute force/nhồi thông tin/Tor cùng khớp thì chúng làm detector chính. Máy có jitter "
+        "ngẫu nhiên lớn (CV > 0,15) hoặc chậm hơn 30s/lần sẽ né được; dịch vụ cấu hình sai mật khẩu thử lại đều đặn sẽ khớp."
+    ),
 )
 def regular_rhythm(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p

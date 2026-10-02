@@ -265,12 +265,14 @@ def test_user_agent_rotation_needs_many_agents_and_many_failures():
     assert fired(hidden, "ua_rotation") == [] and "ua_rotation" in hidden[0].skipped  # không có UA thì bỏ qua
 
 
-def test_regular_rhythm_flags_machine_like_timing_but_only_in_shadow_mode():
+def test_regular_rhythm_flags_machine_like_timing_in_enforce_mode():
+    """Milestone C+: shadow -> enforce SAU khi qua kiểm chứng hành vi (artifacts/behavior_verification/regular_rhythm.json) —
+    thay đổi thiết kế có chủ ý; trước đó test này kiểm luật chỉ chạy shadow."""
     results = run(RuleEngine(), [make(i * 2.0, username=f"user{i}", ip="1.8.8.8") for i in range(12)])  # đúng 2 giây một lần
     assert fired(results, "regular_rhythm") == [9, 10, 11]  # từ khi đủ 10 mẫu
     found = hit(results[9], "regular_rhythm")
-    assert found.mode == "shadow" and found.evidence["mean_interval_s"] == 2.0 and found.evidence["cv"] == 0.0
-    assert all(h.rule_id != "regular_rhythm" for h in results[9].enforced)  # shadow: ghi nhận, không tạo cảnh báo
+    assert found.mode == "enforce" and found.evidence["mean_interval_s"] == 2.0 and found.evidence["cv"] == 0.0
+    assert any(h.rule_id == "regular_rhythm" for h in results[9].enforced)
 
 
 def test_regular_rhythm_ignores_human_jitter_slow_cadence_and_short_histories():
