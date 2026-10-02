@@ -1,5 +1,5 @@
 {
-  "_comment": "TEST FIXTURE — bảng GeoIP/ASN giả lập cho pytest và scripts/behavior_verification.py. Toàn bộ là dải địa chỉ tài liệu RFC 5737 và ASN dành riêng (RFC 6996, 64512-65534 private use). KHÔNG phải dữ liệu GeoIP thật, KHÔNG dùng cho runtime.",
+  "_comment": "TEST FIXTURE — bảng GeoIP/ASN giả lập cho pytest và scripts/behavior_verification.py. Toàn bộ là dải địa chỉ tài liệu RFC 5737 (+ 198.18.0.0/24, dải benchmark RFC 2544, cho các IP GeoIP chỉ biết QUỐC GIA, không có thành phố/toạ độ — Milestone C+) và ASN dành riêng (RFC 6996, 64512-65534 private use). KHÔNG phải dữ liệu GeoIP thật, KHÔNG dùng cho runtime.",
   "ranges": [
     {"cidr": "192.0.2.0/26",     "country": "VN", "city": "Hanoi",            "lat": 21.0285,  "lon": 105.8542,  "asn": 64512, "org": "FIXTURE-VN-HOME-ISP",   "role": "residential"},
     {"cidr": "192.0.2.64/26",    "country": "VN", "city": "Hanoi",            "lat": 21.0285,  "lon": 105.8542,  "asn": 64513, "org": "FIXTURE-VN-MOBILE",     "role": "mobile"},
@@ -14,6 +14,10 @@
     {"cidr": "203.0.113.0/26",   "country": "JP", "city": "Tokyo",            "lat": 35.6762,  "lon": 139.6503,  "asn": 64530, "org": "FIXTURE-JP-ISP",        "role": "residential"},
     {"cidr": "203.0.113.64/26",  "country": "FR", "city": "Paris",            "lat": 48.8566,  "lon": 2.3522,    "asn": 64531, "org": "FIXTURE-FR-ISP",        "role": "residential"},
     {"cidr": "203.0.113.128/26", "country": "BR", "city": "Sao Paulo",        "lat": -23.5505, "lon": -46.6333,  "asn": 64532, "org": "FIXTURE-BR-ISP",        "role": "residential"},
-    {"cidr": "203.0.113.192/26", "country": "US", "city": "Los Angeles",      "lat": 34.0522,  "lon": -118.2437, "asn": 64533, "org": "FIXTURE-US-WEST-ISP",   "role": "residential"}
+    {"cidr": "203.0.113.192/26", "country": "US", "city": "Los Angeles",      "lat": 34.0522,  "lon": -118.2437, "asn": 64533, "org": "FIXTURE-US-WEST-ISP",   "role": "residential"},
+    {"cidr": "198.18.0.0/26",    "country": "SG", "city": null,               "lat": null,     "lon": null,      "asn": 64540, "org": "FIXTURE-SG-COUNTRY-ONLY", "role": "country_only"},
+    {"cidr": "198.18.0.64/26",   "country": "US", "city": null,               "lat": null,     "lon": null,      "asn": 64541, "org": "FIXTURE-US-COUNTRY-ONLY", "role": "country_only"},
+    {"cidr": "198.18.0.128/26",  "country": "VN", "city": null,               "lat": null,     "lon": null,      "asn": 64542, "org": "FIXTURE-VN-COUNTRY-ONLY", "role": "country_only"},
+    {"cidr": "198.18.0.192/26",  "country": "KR", "city": null,               "lat": null,     "lon": null,      "asn": 64543, "org": "FIXTURE-KR-COUNTRY-ONLY", "role": "country_only"}
   ]
 }

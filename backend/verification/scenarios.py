@@ -1259,6 +1259,80 @@ def rare_negative(rng, i):
     return sc
 
 
+
+# ------------------------------------------------------------------------------------------------ multi_context_simultaneous (Milestone C+)
+
+# GeoIP chỉ biết QUỐC GIA (không thành phố/toạ độ) — FIXTURE 198.18.0.0/24: khi đó impossible_travel không tính được tốc độ,
+# và đây là phần multi_context_simultaneous phải tách được khỏi impossible_travel (thiết kế Phase 2).
+COUNTRY_ONLY = {"SG": ips_in("198.18.0.0/26"), "US": ips_in("198.18.0.64/26"), "VN": ips_in("198.18.0.128/26"), "KR": ips_in("198.18.0.192/26")}
+WITH_COORDS = {"VN": HOME_POOL + HCM_POOL, "JP": JP_POOL, "FR": FR_POOL, "BR": BR_POOL}
+
+
+def _context_ip(rng, country, coords):
+    return rng.choice((WITH_COORDS if coords else COUNTRY_ONLY)[country])
+
+
+def multi_positive(rng, i):
+    """Hai (đôi khi ba) lần đăng nhập THÀNH CÔNG vào CÙNG tài khoản từ các quốc gia khác nhau trong 30–590s (cửa sổ 600s), ít
+    nhất một bên GeoIP chỉ biết quốc gia (không toạ độ) nên impossible_travel không áp dụng được."""
+    sc = Scenario("multi_context_simultaneous", "positive", "")
+    _seed(sc, "alice", days=rng.randint(5, 25), ip=rng.choice(HOME_POOL), end_offset_s=-DAY)
+    kind = i % 4
+    gap = rng.uniform(30, 590)
+    if kind == 0:  # chủ ở nhà (có toạ độ) — kẻ chiếm phiên ở nước khác (chỉ quốc gia)
+        first, second = rng.choice(HOME_POOL), _context_ip(rng, rng.choice(("SG", "US", "KR")), coords=False)
+        label = "nhà VN (có toạ độ) → nước khác (chỉ quốc gia)"
+    elif kind == 1:  # chủ dùng di động chỉ có quốc gia — kẻ tấn công ở nước có toạ độ
+        first, second = _context_ip(rng, "VN", coords=False), _context_ip(rng, rng.choice(("JP", "FR", "BR")), coords=True)
+        label = "VN (chỉ quốc gia) → nước khác (có toạ độ)"
+    elif kind == 2:  # kẻ tấn công vào trước, chủ đăng nhập sau
+        first, second = _context_ip(rng, rng.choice(("SG", "US", "KR")), coords=False), rng.choice(HOME_POOL)
+        label = "nước khác (chỉ quốc gia) → chủ ở nhà VN"
+    else:  # hai bên đều chỉ quốc gia
+        a, b = rng.sample(("SG", "US", "VN", "KR"), 2)
+        first, second = _context_ip(rng, a, coords=False), _context_ip(rng, b, coords=False)
+        label = f"{a} → {b} (cả hai chỉ quốc gia)"
+    sc.steps += [Step("alice", True, first, 0.0), Step("alice", True, second, gap, rng.choice((CHROME_UA, MOBILE_UA)))]
+    if rng.random() < 0.25:  # thêm quốc gia thứ ba trong cửa sổ
+        third = _context_ip(rng, rng.choice([c for c in COUNTRY_ONLY if c not in ("VN",)]), coords=False)
+        sc.steps.append(Step("alice", True, third, min(gap + rng.uniform(5, 30), 595)))
+        label += " + quốc gia thứ ba"
+    sc.variant = f"{label}, cách {gap:.0f}s"
+    return sc
+
+
+def multi_negative(rng, i):
+    sc = Scenario("multi_context_simultaneous", "negative", "")
+    kind = i % 6
+    _seed(sc, "alice", days=rng.randint(5, 25), ip=rng.choice(HOME_POOL), end_offset_s=-DAY)
+    gap = rng.uniform(30, 590)
+    foreign = _context_ip(rng, rng.choice(("SG", "US", "KR")), coords=False)
+    if kind == 0:  # cùng một quốc gia: nhà + di động chỉ có quốc gia
+        sc.steps += [Step("alice", True, rng.choice(HOME_POOL), 0.0), Step("alice", True, _context_ip(rng, "VN", coords=False), gap, MOBILE_UA)]
+        sc.variant = f"VN có toạ độ + VN chỉ quốc gia, cách {gap:.0f}s (một quốc gia)"
+    elif kind == 1:  # hai quốc gia nhưng NGOÀI cửa sổ
+        late = param("multi_context_simultaneous", "window_s") + rng.uniform(30, 1200)
+        sc.steps += [Step("alice", True, rng.choice(HOME_POOL), 0.0), Step("alice", True, foreign, late)]
+        sc.variant = f"hai quốc gia cách {late:.0f}s (> cửa sổ 600s)"
+    elif kind == 2:  # bên nước ngoài chỉ thử SAI
+        n = rng.randint(1, 4)
+        sc.steps += [Step("alice", False, foreign, k * 20.0, CURL_UA) for k in range(n)]
+        sc.steps.append(Step("alice", True, rng.choice(HOME_POOL), gap))
+        sc.variant = f"nước ngoài thử SAI {n} lần, chủ đăng nhập đúng ở nhà"
+    elif kind == 3:  # quốc gia không xác định (IP ngoài GeoIP)
+        sc.steps += [Step("alice", True, rng.choice(HOME_POOL), 0.0), Step("alice", True, f"100.64.{rng.randint(1, 250)}.{rng.randint(1, 250)}", gap)]
+        sc.variant = "VN + IP không có trong GeoIP (quốc gia '?')"
+    elif kind == 4:  # hai tài khoản KHÁC nhau ở hai quốc gia cùng lúc
+        _seed(sc, "bob", days=rng.randint(5, 25), ip=rng.choice(HOME_POOL), end_offset_s=-DAY)
+        sc.steps += [Step("alice", True, rng.choice(HOME_POOL), 0.0), Step("bob", True, foreign, gap)]
+        sc.variant = "hai tài khoản khác nhau ở VN và nước ngoài cùng lúc"
+    else:  # cùng một nước ngoài, hai IP (laptop + điện thoại khi đi công tác)
+        country = rng.choice(("SG", "US", "KR"))
+        sc.steps += [Step("alice", True, _context_ip(rng, country, coords=False), 0.0), Step("alice", True, _context_ip(rng, country, coords=False), gap, MOBILE_UA)]
+        sc.variant = f"cùng {country}, hai IP (laptop + điện thoại)"
+    return sc
+
+
 GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "username_enumeration": (enum_positive, enum_negative),
     "password_spray_slow": (spray_positive, spray_negative),
@@ -1280,4 +1354,5 @@ GENERATORS: dict[str, tuple[Callable, Callable]] = {
     "login_velocity_spike": (velocity_positive, velocity_negative),
     "regular_rhythm": (rhythm_positive, rhythm_negative),
     "rare_network_login": (rare_positive, rare_negative),
+    "multi_context_simultaneous": (multi_positive, multi_negative),
 }
