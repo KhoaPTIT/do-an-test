@@ -25,7 +25,7 @@ Mã: [`backend/app/detection/engine/`](../backend/app/detection/engine/) · ki�
 | [`vpn_ip`](#vpn_ip) | Đăng nhập từ dải IP VPN thương mại | Danh tiếng hạ tầng | thấp | shadow | experimental | T1090 |
 | [`blocklist_hit`](#blocklist_hit) | Nguồn nằm trong blocklist | Danh tiếng hạ tầng | cao | enforce | verified | — |
 | [`impossible_travel`](#impossible_travel) | Di chuyển bất khả thi | Ngữ cảnh tài khoản | cao | enforce | verified | T1078 |
-| [`multi_context_simultaneous`](#multi_context_simultaneous) | Đăng nhập cùng lúc từ nhiều quốc gia | Ngữ cảnh tài khoản | cao | enforce | experimental | T1078 |
+| [`multi_context_simultaneous`](#multi_context_simultaneous) | Đăng nhập cùng lúc từ nhiều quốc gia | Ngữ cảnh tài khoản | cao | enforce | verified | T1078 |
 | [`country_hop`](#country_hop) | Tài khoản bị thử từ nhiều quốc gia | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078, T1090 |
 | [`dormant_account_login`](#dormant_account_login) | Tài khoản ngủ đông đăng nhập lại | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078 |
 | [`rare_network_login`](#rare_network_login) | Đăng nhập từ nhà mạng cực hiếm | Ngữ cảnh tài khoản | trung bình | enforce | verified | T1078 |
@@ -302,7 +302,7 @@ Một tài khoản có đăng nhập THÀNH CÔNG từ hai quốc gia khác nhau
 - **Mức nghiêm trọng:** cao · **chế độ mặc định:** enforce (tạo cảnh báo)
 - **MITRE ATT&CK:** T1078 (Valid Accounts)
 - **Dữ liệu cần:** `account`, `country`
-- **Ghi chú:** Người dùng thật dùng VPN trên một thiết bị và đăng nhập thiết bị khác không VPN sẽ khớp; cần đối chiếu thiết bị ở MR11.
+- **Ghi chú:** Người dùng thật dùng VPN trên một thiết bị và đăng nhập thiết bị khác không VPN sẽ khớp (chưa đối chiếu thiết bị). Milestone C+: kiểm chứng ở phần impossible_travel không làm được — GeoIP chỉ biết quốc gia, không toạ độ; khi cả hai bên có toạ độ, impossible_travel làm detector chính. Lưu lượng bình thường v3 không có cặp thành công ở hai quốc gia trong 1 giờ, nên 0 báo nhầm ở đó không phải bằng chứng — sức nặng nằm ở kịch bản âm tính.
 
 | Tham số | Mặc định | Đơn vị | Khoảng | Ý nghĩa |
 |---|---|---|---|---|

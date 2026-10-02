@@ -1,0 +1,47 @@
+{
+  "generated_at": "2026-10-02T16:08:07.984519+00:00",
+  "git": {
+    "commit": "f10001a19892abecbae293524d11812d5a320f10",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [
+    "multi_context_simultaneous"
+  ],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "profile": {
+    "users": 63,
+    "office": 12,
+    "browser_version_update": 10,
+    "successful_logins": 4601,
+    "password_typo": 603,
+    "username_typo": 138,
+    "laptop_and_phone": 36,
+    "multiple_browsers_same_machine": 7,
+    "traveller": 4,
+    "trip_to_previously_visited_country": 2,
+    "dormant": 3,
+    "regular": 31,
+    "night_shift": 3,
+    "heavy_daily": 3,
+    "developer": 1,
+    "service_like": 1,
+    "geo_missing": 2,
+    "new_account": 3,
+    "total_steps": 5647,
+    "history_logins": 2053
+  },
+  "hybrid_alerts_by_detector": {},
+  "legacy_alerts_by_type": {
+    "high_risk_score": 114,
+    "brute_force": 6
+  },
+  "examples": []
+}

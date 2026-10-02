@@ -108,6 +108,54 @@ def rapid_failures_are_brute_force_not_velocity(env):
         env.login("alice", success=False, ip=US_IP, ts=T0 + timedelta(seconds=k * 20))
 
 
+# --- Milestone C+
+
+def rhythm_with_scripted_client(env):
+    for k in range(10):  # 10 lần sai cách đều 12s vào 3 tài khoản bằng python-requests: dưới ngưỡng brute force/nhồi thông tin
+        env.login(f"rr{k % 3}", success=False, ip=US_IP, ts=T0 + timedelta(seconds=k * 12), user_agent=PY_REQUESTS_UA)
+
+
+def brute_force_with_regular_rhythm(env):
+    _seed(env, "victim")
+    for k in range(11):  # nhịp máy vào MỘT tài khoản: hành vi là brute force, nhịp là chi tiết
+        env.login("victim", success=False, ip=US_IP, ts=T0 + timedelta(seconds=k * 20))
+
+
+def _background(env, total=600):
+    names = [f"bg{k:02d}" for k in range(15)]
+    for name in names:
+        env.add_user(name)
+    for j in range(total):
+        env.add_history(names[j % 15], ip=HOME_IP, ts=T0 - timedelta(days=1 + j % 29, minutes=j % 600))
+
+
+def rare_network_with_unusual_location(env):
+    _background(env)
+    _seed(env, "alice", days=20)
+    env.login("alice", success=True, ip=JP_IP, ts=T0 + timedelta(hours=2))  # nhà mạng hiếm VÀ quốc gia mới
+
+
+def rare_network_with_unusual_device(env):
+    _background(env)
+    _seed(env, "alice", days=20, ua=CHROME_UA)
+    env.login("alice", success=True, ip="192.0.2.200", ts=T0 + timedelta(hours=2), user_agent=SAFARI_UA)  # VN/Đà Nẵng, ASN 64515
+
+
+SG_ONLY = "198.18.0.10"  # FIXTURE: GeoIP chỉ biết quốc gia SG, không toạ độ
+
+
+def multi_context_with_impossible_travel(env):
+    _seed(env, "alice", days=20)
+    env.login("alice", success=True, ip=HOME_IP, ts=T0)
+    env.login("alice", success=True, ip=JP_IP, ts=T0 + timedelta(minutes=5))  # cả hai có toạ độ: tính được tốc độ
+
+
+def multi_context_with_unusual_location(env):
+    _seed(env, "alice", days=20)
+    env.login("alice", success=True, ip=HOME_IP, ts=T0)
+    env.login("alice", success=True, ip=SG_ONLY, ts=T0 + timedelta(minutes=5))  # nước mới, KHÔNG toạ độ
+
+
 @dataclass(frozen=True)
 class CrossCase:
     name: str
@@ -135,6 +183,13 @@ CASES: tuple[CrossCase, ...] = (
     CrossCase("unusual_hour + unusual_location", unusual_hour_with_unusual_location, "unusual_location", ("unusual_hour",)),
     CrossCase("login_velocity_spike + scripted_client", velocity_with_scripted_client, "login_velocity_spike", ("scripted_client",)),
     CrossCase("rapid failed logins -> brute_force, not login_velocity_spike", rapid_failures_are_brute_force_not_velocity, "brute_force", (), ("login_velocity_spike",)),
+    # --- Milestone C+
+    CrossCase("regular_rhythm + scripted_client", rhythm_with_scripted_client, "regular_rhythm", ("scripted_client",)),
+    CrossCase("brute_force + regular_rhythm", brute_force_with_regular_rhythm, "brute_force", ("regular_rhythm",)),
+    CrossCase("rare_network_login + unusual_location", rare_network_with_unusual_location, "rare_network_login", ("unusual_location",)),
+    CrossCase("rare_network_login + unusual_device", rare_network_with_unusual_device, "rare_network_login", ("unusual_device",)),
+    CrossCase("impossible_travel + multi_context_simultaneous", multi_context_with_impossible_travel, "impossible_travel", ("multi_context_simultaneous",)),
+    CrossCase("multi_context_simultaneous + unusual_location (thiếu toạ độ)", multi_context_with_unusual_location, "multi_context_simultaneous", ("unusual_location",)),
 )
 
 
@@ -142,13 +197,16 @@ def evaluate(case: CrossCase, env: VerificationEnv) -> dict:
     case.build(env)
     alerts = env.detection_alerts()
     primary = [a for a in alerts if a.rule_id == case.expected_primary]
-    secondary = set((primary[0].explanation or {}).get("secondary_signals", [])) if primary else set()
+    # bằng chứng của detector kia KHÔNG mất: nằm trong tín hiệu phụ, hoặc trong `superseded_detectors` khi nó khớp TRƯỚC rồi bị
+    # detector đặc hiệu hơn tiếp quản chính cảnh báo đó (gộp chiến dịch — consolidation.py)
+    exp = (primary[0].explanation or {}) if primary else {}
+    secondary = set(exp.get("secondary_signals", [])) | set(exp.get("superseded_detectors", []))
     missing = [s for s in case.expected_secondary if s not in secondary]
     forbidden = sorted({r for v in env.verdicts for r in v.matched_rules if r in case.forbidden_matches})
     return {
         "case": case.name, "expected_primary": case.expected_primary, "expected_secondary": list(case.expected_secondary),
-        "detection_alerts": [a.rule_id for a in alerts], "secondary_signals": sorted(secondary), "missing_secondary": missing,
-        "superseded_detectors": (primary[0].explanation or {}).get("superseded_detectors", []) if primary else [],
+        "detection_alerts": [a.rule_id for a in alerts], "secondary_signals": sorted(exp.get("secondary_signals", [])), "missing_secondary": missing,
+        "superseded_detectors": exp.get("superseded_detectors", []),
         "forbidden_matched": forbidden,
         "passed": len(alerts) == 1 and bool(primary) and not missing and not forbidden,
     }

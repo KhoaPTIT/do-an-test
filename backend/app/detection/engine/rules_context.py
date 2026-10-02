@@ -53,6 +53,7 @@ def impossible_travel(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="multi_context_simultaneous",
+    verification="verified",  # Milestone C+ — artifacts/behavior_verification/multi_context_simultaneous.json
     title="Đăng nhập cùng lúc từ nhiều quốc gia",
     category=CATEGORY,
     severity="high",
@@ -63,7 +64,11 @@ def impossible_travel(ctx: RuleContext) -> Finding | None:
         Param("min_countries", 2, "số quốc gia khác nhau tối thiểu", "nước", 2, 50),
     ),
     needs=("account", "country"),
-    notes="Người dùng thật dùng VPN trên một thiết bị và đăng nhập thiết bị khác không VPN sẽ khớp; cần đối chiếu thiết bị ở MR11.",
+    notes=(
+        "Người dùng thật dùng VPN trên một thiết bị và đăng nhập thiết bị khác không VPN sẽ khớp (chưa đối chiếu thiết bị). Milestone C+: kiểm chứng ở phần "
+        "impossible_travel không làm được — GeoIP chỉ biết quốc gia, không toạ độ; khi cả hai bên có toạ độ, impossible_travel làm detector chính. Lưu lượng "
+        "bình thường v3 không có cặp thành công ở hai quốc gia trong 1 giờ, nên 0 báo nhầm ở đó không phải bằng chứng — sức nặng nằm ở kịch bản âm tính."
+    ),
 )
 def multi_context_simultaneous(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p
