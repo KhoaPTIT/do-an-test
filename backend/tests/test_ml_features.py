@@ -1,121 +1,88 @@
-"""Kiểm tra nhiệm vụ 7.1 — trích xuất đặc trưng ML, đặc biệt là chống rò rỉ
-dữ liệu tương lai (data leakage) qua UserHistoryState."""
+"""Đặc tả đặc trưng mô hình bất thường v3 (`ml/features.py`) — hàm thuần, dùng chung offline/runtime.
 
+Phase 4.1 thay bộ đặc trưng tầng 3 cũ (Tuần 7): các test của bản cũ (`UserHistoryState`, `compute_realtime_features`, giờ trung
+bình CỘNG, thiết bị = băm toàn bộ User-Agent) được thay bằng các test dưới đây — thay đổi thiết kế có chủ ý để sửa lệch
+train/serve tìm được ở audit Phase 4.0."""
+
+import math
 from datetime import datetime, timedelta, timezone
 
-import pytest
+from ml.features import FEATURE_NAMES, LoginRecord, compute_features, feature_signature, feature_vector, in_scope, make_record
 
-from ml.features import UserHistoryState, compute_features, update_state
-
-
-def test_first_login_has_neutral_defaults():
-    state = UserHistoryState()
-    now = datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc)
-
-    features = compute_features(
-        state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85,
-        device_fingerprint="fp1", created_at=now,
-    )
-
-    assert features["hour_deviation_from_avg"] == 0.0  # chưa có baseline
-    # Lần đăng nhập ĐẦU TIÊN: đúng nghĩa đen là "chưa từng thấy" vị trí/thiết
-    # bị này -> is_new=1.0 (khác baseline.py tầng 2 vốn coi None là "không lạ"
-    # để tránh false positive rule cứng; ở đây để nguyên giá trị thô, ML tự
-    # học ý nghĩa của is_new=1 kết hợp với "chưa có lịch sử gì" qua các đặc
-    # trưng khác — đây chính là điểm khác biệt triết lý tầng 2 vs tầng 3).
-    assert features["is_new_location"] == 1.0
-    assert features["is_new_device"] == 1.0
-    assert features["distance_km_from_home"] == 0.0  # chưa có home_location
+T = datetime(2026, 3, 1, 9, 0, tzinfo=timezone.utc)
+CHROME_120 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+CHROME_121 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.85 Safari/537.36"
+FIREFOX = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"
 
 
-def test_new_location_and_device_detected_after_history_built():
-    state = UserHistoryState()
-    now = datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc)
-
-    f1 = compute_features(state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85, device_fingerprint="fp1", created_at=now)
-    update_state(state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85, device_fingerprint="fp1", created_at=now)
-
-    later = now + timedelta(days=1)
-    f2 = compute_features(state, country="US", city="New York", latitude=40.71, longitude=-74.01, device_fingerprint="fp2", created_at=later)
-
-    assert f2["is_new_location"] == 1.0
-    assert f2["is_new_device"] == 1.0
-    assert f2["distance_km_from_home"] > 10000  # Hà Nội -> New York rất xa
+def rec(ts, ua=CHROME_120, country="VN", city="Hanoi", lat=21.03, lon=105.85):
+    return make_record(ts, country=country, city=city, latitude=lat, longitude=lon, user_agent=ua)
 
 
-def test_known_location_and_device_not_flagged_as_new():
-    state = UserHistoryState()
-    now = datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc)
-    update_state(state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85, device_fingerprint="fp1", created_at=now)
-
-    later = now + timedelta(days=1)
-    features = compute_features(state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85, device_fingerprint="fp1", created_at=later)
-
-    assert features["is_new_location"] == 0.0
-    assert features["is_new_device"] == 0.0
+def history(days=12, hour=9):
+    return [rec(T - timedelta(days=d) + timedelta(hours=hour - 9)) for d in range(days, 0, -1)]
 
 
-def test_minutes_since_last_login_and_velocity_window():
-    state = UserHistoryState()
-    t0 = datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc)
-    update_state(state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85, device_fingerprint="fp1", created_at=t0)
-
-    t1 = t0 + timedelta(minutes=5)
-    f1 = compute_features(state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85, device_fingerprint="fp1", created_at=t1)
-    assert abs(f1["minutes_since_last_login"] - 5.0) < 0.01
-    assert f1["logins_last_24h"] == 1.0  # chỉ tính lần TRƯỚC (t0), chưa gồm t1
+def test_feature_names_are_fixed_and_signed():
+    assert len(FEATURE_NAMES) == 7 and len(feature_signature()) == 12
+    assert set(compute_features(history(), rec(T))) == set(FEATURE_NAMES)
+    assert not any(word in name for name in FEATURE_NAMES for word in ("label", "attack", "anomaly", "rule", "risk"))
 
 
-def test_hour_deviation_uses_circular_distance():
-    state = UserHistoryState()
-    # 3 lần đăng nhập lúc 23h -> baseline avg_hour ~ 23h
-    base_day = datetime(2026, 1, 1, 23, 0, tzinfo=timezone.utc)
-    for i in range(3):
-        ts = base_day + timedelta(days=i)
-        update_state(state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85, device_fingerprint="fp1", created_at=ts)
-
-    # Đăng nhập lúc 1h sáng -> chỉ cách 2h thật sự (không phải 22h)
-    near = datetime(2026, 1, 5, 1, 0, tzinfo=timezone.utc)
-    features = compute_features(state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85, device_fingerprint="fp1", created_at=near)
-    assert features["hour_deviation_from_avg"] < 3.0
+def test_known_context_gives_zero_novelty():
+    f = compute_features(history(), rec(T))
+    assert f["is_new_location"] == 0.0 and f["is_new_device"] == 0.0 and f["hour_deviation"] < 0.01
+    assert f["log_distance_km_from_home"] == 0.0 and f["log_travel_speed_kmh"] == 0.0
 
 
-def test_compute_features_does_not_mutate_state():
-    """compute_features() KHÔNG được tự ý cập nhật state — phải gọi update_state()
-    riêng, nếu không sẽ tính sai cho batch xử lý nhiều lần đăng nhập liên tiếp."""
-    state = UserHistoryState()
-    now = datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc)
-
-    compute_features(state, country="VN", city="Hanoi", latitude=21.03, longitude=105.85, device_fingerprint="fp1", created_at=now)
-
-    assert state.known_locations == set()
-    assert state.known_devices == set()
-    assert state.login_hours == []
-    assert state.recent_timestamps == []
+def test_browser_version_update_is_the_same_device_but_another_browser_is_new():
+    """Thiết bị chuẩn hoá giống luật `unusual_device`: Chrome 120 → 121 cùng máy KHÔNG phải thiết bị mới."""
+    assert make_record(T, country=None, city=None, latitude=None, longitude=None, user_agent=CHROME_120).device_family == \
+        make_record(T, country=None, city=None, latitude=None, longitude=None, user_agent=CHROME_121).device_family
+    assert compute_features(history(), rec(T, ua=CHROME_121))["is_new_device"] == 0.0
+    assert compute_features(history(), rec(T, ua=FIREFOX))["is_new_device"] == 1.0
 
 
-def test_compute_realtime_features_tolerates_a_previous_event_read_back_naive_from_sqlite(db_session):
-    """Bug thật tự phát hiện ở MR18 (ml/attack_scenarios.py — mọi kịch bản có baseline lịch sử TRƯỚC khi tấn công):
-    `previous_event.created_at` đọc lại từ SQLite mất tzinfo (naive) trong khi `created_at` (tham số, vừa dựng trong
-    Python cho lần đăng nhập ĐANG chấm) vẫn aware — trừ hai loại datetime khác nhau raise TypeError thay vì tính được
-    `minutes_since_last_login`. CÙNG lớp bug đã gặp (và sửa bằng ensure_utc()) ở is_impossible_travel
-    (app/detection/rules.py, MR13) và alert_intelligence_sim.py/pipeline.py (nhiều nơi khác) — lần này ở
-    compute_realtime_features (tầng 3, ml/features.py), một hàm KHÔNG được test này chạm tới trước MR18 vì luôn có
-    baseline history nào đó."""
-    from ml.features import compute_realtime_features
-    from app.models import LoginEvent, User
+def test_new_location_distance_and_travel_speed():
+    f = compute_features(history(), rec(T, country="US", city="New York", lat=40.71, lon=-74.01))
+    assert f["is_new_location"] == 1.0
+    assert 12_000 < math.expm1(f["log_distance_km_from_home"]) < 14_000
+    assert 400 < math.expm1(f["log_travel_speed_kmh"]) < 700  # ~13.000 km sau 24 giờ
 
-    user = User(username="alice_realtime", password_hash="x")
-    db_session.add(user)
-    db_session.flush()
-    aware_previous = datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc)
-    db_session.add(LoginEvent(user_id=user.id, attempted_username="alice_realtime", success=True, ip_address="1.2.3.4", is_synthetic=True, created_at=aware_previous))
-    db_session.commit()
 
-    now = datetime(2026, 1, 1, 10, 30, tzinfo=timezone.utc)  # 90 phút sau, vẫn aware — KHÔNG raise, KHÔNG lệch vì mất tzinfo
-    features = compute_realtime_features(
-        db_session, user_id=user.id, baseline=None, country="VN", city="Hanoi", latitude=21.03, longitude=105.85,
-        device_fingerprint="fp1", created_at=now,
-    )
+def test_minutes_since_last_success_and_24h_count():
+    prior = history() + [rec(T - timedelta(minutes=300))]
+    f = compute_features(prior, rec(T))
+    assert abs(math.expm1(f["log_minutes_since_last_success"]) - 300) < 1e-6
+    # cửa sổ (t − 24h, t) mở ở đầu cũ: 09:00 hôm qua nằm ĐÚNG biên nên không tính, 04:00 hôm nay được tính
+    assert f["logins_last_24h"] == 1.0
+    assert compute_features(history(), rec(T - timedelta(seconds=1)))["logins_last_24h"] == 1.0
 
-    assert features["minutes_since_last_login"] == pytest.approx(90.0)
+
+def test_hour_deviation_is_circular():
+    prior = [rec(T - timedelta(days=d) + timedelta(hours=h - 9)) for d, h in zip(range(12, 0, -1), [23, 0, 23.5, 0.5] * 3)]
+    assert compute_features(prior, rec(T + timedelta(hours=15)))["hour_deviation"] < 0.5  # 00:00 so với hồ sơ 23:00–00:30
+    assert compute_features(prior, rec(T + timedelta(hours=3)))["hour_deviation"] > 11  # 12:00
+
+
+def test_events_at_or_after_the_current_time_are_ignored():
+    """Chống rò rỉ: lịch sử truyền vào có lẫn sự kiện cùng lúc/sau sự kiện hiện tại thì bị bỏ qua."""
+    assert compute_features(history() + [rec(T), rec(T + timedelta(hours=1))], rec(T)) == compute_features(history(), rec(T))
+
+
+def test_scope_requires_a_mature_profile():
+    assert in_scope(history(12), rec(T))
+    assert not in_scope(history(9), rec(T))  # < 10 lần
+    young = [rec(T - timedelta(hours=h)) for h in range(60, 0, -5)]  # 12 lần trong 2,5 ngày
+    assert not in_scope(young, rec(T))
+
+
+def test_missing_geo_and_user_agent_are_neutral():
+    f = compute_features(history(), make_record(T, country=None, city=None, latitude=None, longitude=None, user_agent=None))
+    assert f["is_new_location"] == 0.0 and f["is_new_device"] == 0.0 and f["log_distance_km_from_home"] == 0.0
+
+
+def test_feature_vector_order():
+    f = compute_features(history(), rec(T))
+    assert feature_vector(f) == [f[name] for name in FEATURE_NAMES]
+    assert isinstance(rec(T), LoginRecord)
