@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { apiClient } from "../services/api";
+import AlertDetails from "./AlertDetails";
 import "./AlertListPanel.css";
 
 const PAGE_SIZE = 15;
@@ -28,6 +29,7 @@ export default function AlertListPanel({ latestAlert }) {
   const [error, setError] = useState(null);
   const [submittingId, setSubmittingId] = useState(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [expandedId, setExpandedId] = useState(null);
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
 
   useEffect(() => {
@@ -112,6 +114,10 @@ export default function AlertListPanel({ latestAlert }) {
                 {alert.campaign_id ? <Link to={`/dashboard/campaigns/${alert.campaign_id}`}> · chiến dịch</Link> : null}
                 <br />
                 {alert.message}
+                <button type="button" className="alert-list__details-toggle" onClick={() => setExpandedId(expandedId === alert.id ? null : alert.id)}>
+                  {expandedId === alert.id ? "Ẩn chi tiết" : "Chi tiết (detector, bằng chứng, AI/ML)"}
+                </button>
+                {expandedId === alert.id && <AlertDetails alert={alert} />}
                 <div className="alert-list__feedback">
                   {alert.status === "open" ? (
                     <>

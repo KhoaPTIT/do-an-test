@@ -551,6 +551,7 @@ def _run_detection_pipeline_sync(
                     "priority_score": alert_obj.priority_score,
                     "occurrence_count": alert_obj.occurrence_count,
                     "campaign_id": alert_obj.campaign_id,  # MR14 — None nếu chưa thuộc chiến dịch nào
+                    "explanation": alert_obj.explanation,  # Phase 4.1: detector chính, tín hiệu phụ, bằng chứng luật, khối "ml" — cho dashboard
                     "created_at": alert_obj.created_at.isoformat() if alert_obj.created_at else timestamp.isoformat(),
                     **extra,
                 }

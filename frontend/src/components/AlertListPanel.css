@@ -103,3 +103,67 @@
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* Phase 4.1 — chi tiết cảnh báo + khối AI/ML */
+.alert-list__details-toggle {
+  display: block;
+  margin-top: 0.35rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary, #2563eb);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.alert-details {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  background: var(--color-surface-muted, rgba(127, 127, 127, 0.08));
+  font-size: 0.85rem;
+}
+.alert-details h4 {
+  margin: 0.6rem 0 0.25rem;
+  font-size: 0.85rem;
+}
+.alert-details__grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.15rem 0.75rem;
+  margin: 0;
+}
+.alert-details__grid dt {
+  font-weight: 600;
+}
+.alert-details__grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.alert-details__row {
+  display: contents;
+}
+.alert-details__muted {
+  opacity: 0.7;
+  margin: 0;
+}
+.alert-details__chip {
+  display: inline-block;
+  margin: 0 0.3rem 0.2rem 0;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: rgba(127, 127, 127, 0.15);
+}
+.ml-badge {
+  display: inline-block;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.ml-badge--anomaly {
+  background: #fde2e1;
+  color: #9b1c1c;
+}
+.ml-badge--normal {
+  background: #dcfce7;
+  color: #166534;
+}

@@ -73,6 +73,15 @@ def test_ml_only_anomaly_creates_an_ml_alert_that_does_not_step_up_or_lock(env_n
     assert event.hybrid_action == "alert" and event.ml_is_anomaly is True
 
 
+def test_realtime_alert_payload_carries_the_explanation_with_ml(env_no_ml, monkeypatch):
+    """Dashboard nhận cảnh báo qua WebSocket: payload phải mang `explanation` (detector, bằng chứng, khối ml) như GET /alerts."""
+    seed_user(env_no_ml, "alice", days=20)
+    _force_ml(monkeypatch, env_no_ml)
+    result = env_no_ml.login("alice", success=True, ip=HOME_IP, ts=T0, user_agent=CHROME_UA)
+    (payload,) = [p for p in result.alert_payloads if p["explanation"]]
+    assert payload["explanation"]["primary_detector"] == ML_ONLY_DETECTOR and payload["explanation"]["ml"]["anomaly_score"] == 0.9
+
+
 def test_ml_agreeing_with_a_rule_is_a_secondary_signal(env_no_ml, monkeypatch):
     seed_user(env_no_ml, "alice", days=20)
     _force_ml(monkeypatch, env_no_ml)
