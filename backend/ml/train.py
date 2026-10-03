@@ -1,133 +1,101 @@
-"""Huấn luyện 3 mô hình ML tầng 3 (nhiệm vụ 7.1): Isolation Forest, Local
-Outlier Factor (novelty detection), Autoencoder (MLP bottleneck qua
-scikit-learn — không cần cài TensorFlow/PyTorch).
+"""Huấn luyện model bất thường runtime (Phase 4.1 — ML3): Isolation Forest.
 
-Train/test split THEO THỜI GIAN, RIÊNG CHO TỪNG USER (70% đầu → train, 30%
-cuối → test, theo `created_at` của chính user đó) — mô phỏng đúng bài toán
-thật: dự đoán các lần đăng nhập TƯƠNG LAI từ lịch sử, KHÔNG xáo trộn ngẫu
-nhiên như train_test_split() mặc định (sẽ làm lẫn tương lai vào tập train).
+    python -m ml.train      # ml/data/v3/splits -> ml/artifacts/anomaly_iforest/{model.joblib,metadata.json}
 
-Isolation Forest học trên TOÀN BỘ tập train (kể cả vài ca bất thường lẫn
-vào — đúng bản chất "unsupervised outlier detection", nhãn chỉ dùng để
-ĐÁNH GIÁ ở ml/evaluate.py, không dùng khi train). LOF và Autoencoder theo
-trường phái "novelty detection" — chỉ học trên phần được xác nhận BÌNH
-THƯỜNG của tập train, sau đó đo mức độ "lạ" của dữ liệu mới so với đó.
+  - TRAIN: fit Isolation Forest trên MỌI dòng của tập train, KHÔNG dùng nhãn (`contamination="auto"` — không ước lượng từ
+    tỉ lệ nhãn như bản Tuần 7).
+  - VALIDATION: chọn ngưỡng = phân vị (1 − `TARGET_FPR`) điểm bất thường của các dòng BÌNH THƯỜNG trong validation (mục
+    tiêu tỉ lệ báo nhầm 1%). Đây là chỗ DUY NHẤT nhãn tham gia trước khi đánh giá.
+  - TEST: không đọc ở đây — chỉ `ml/evaluate.py` đọc, một lần.
 
-Chạy (sau khi đã chạy ml/generate_dataset.py và ml/extract_features.py):
-    cd backend
-    venv\\Scripts\\python.exe -m ml.train
-"""
+Cấu hình chốt TRƯỚC khi train lần đầu; không chỉnh sau khi xem kết quả test."""
 
 from __future__ import annotations
 
+import argparse
+import hashlib
 import json
-import os
+from datetime import datetime, timezone
+from pathlib import Path
 
-import joblib
 import numpy as np
-import pandas as pd
 from sklearn.ensemble import IsolationForest
-from sklearn.neighbors import LocalOutlierFactor
-from sklearn.neural_network import MLPRegressor
-from sklearn.preprocessing import StandardScaler
 
-from ml.features import FEATURE_NAMES
+from ml.anomaly_model import ARTIFACT_DIR, METADATA_FILE, MODEL_FILE
+from ml.build_features import read_split
+from ml.dataset import DATA_DIR, read_labels
+from ml.features import FEATURE_NAMES, FEATURE_VERSION, feature_signature
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "features.csv")
-ARTIFACTS_DIR = os.path.join(os.path.dirname(__file__), "artifacts")
-TRAIN_RATIO = 0.7
-RANDOM_STATE = 42
-
-
-def time_based_split_per_user(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """70% đầu / 30% cuối THEO THỜI GIAN, tính riêng cho từng user — không
-    dùng sklearn.train_test_split() vì nó xáo trộn ngẫu nhiên."""
-    train_parts, test_parts = [], []
-    for _, group in df.groupby("username"):
-        group = group.sort_values("created_at")
-        split_idx = max(1, int(len(group) * TRAIN_RATIO))
-        train_parts.append(group.iloc[:split_idx])
-        test_parts.append(group.iloc[split_idx:])
-    return pd.concat(train_parts).reset_index(drop=True), pd.concat(test_parts).reset_index(drop=True)
+MODEL_NAME = "isolation_forest"
+TRAINING_SEED = 42
+TARGET_FPR = 0.01
+PARAMS = {"n_estimators": 300, "max_samples": 256, "contamination": "auto", "max_features": 1.0, "bootstrap": False}
 
 
-def main() -> None:
-    df = pd.read_csv(DATA_PATH)
-    train_df, test_df = time_based_split_per_user(df)
+def _sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
-    print(f"Train: {len(train_df)} dòng ({int(train_df['is_anomaly'].sum())} bất thường)")
-    print(f"Test:  {len(test_df)} dòng ({int(test_df['is_anomaly'].sum())} bất thường)")
 
-    X_train = train_df[FEATURE_NAMES].values
-    X_test = test_df[FEATURE_NAMES].values
+def train(data_dir: Path = DATA_DIR, out_dir: Path = ARTIFACT_DIR) -> dict:
+    import joblib
 
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    _ = scaler.transform(X_test)  # chỉ để xác nhận không lỗi shape — dùng thật ở evaluate.py
+    _, x_train = read_split(data_dir / "splits" / "train.csv")
+    val_ids, x_val = read_split(data_dir / "splits" / "validation.csv")
+    labels = read_labels(data_dir / "labels.csv")
 
-    normal_mask = train_df["is_anomaly"].values == 0
-    X_train_normal_scaled = X_train_scaled[normal_mask]
+    model = IsolationForest(random_state=TRAINING_SEED, **PARAMS)
+    model.fit(np.asarray(x_train, dtype=float))  # không nhãn
 
-    contamination = max(0.01, min(0.5, float(train_df["is_anomaly"].mean())))
+    val_scores = -model.score_samples(np.asarray(x_val, dtype=float))
+    val_normal = np.array([s for s, i in zip(val_scores, val_ids) if labels[i] is None])
+    threshold = float(np.quantile(val_normal, 1 - TARGET_FPR, method="higher"))
+    val_anomaly = np.array([s for s, i in zip(val_scores, val_ids) if labels[i] is not None])
 
-    models = {}
-
-    # --- 1. Isolation Forest — học trên TOÀN BỘ train (kể cả lẫn anomaly) ---
-    iso_forest = IsolationForest(n_estimators=200, contamination=contamination, random_state=RANDOM_STATE)
-    iso_forest.fit(X_train_scaled)
-    models["isolation_forest"] = iso_forest
-
-    # --- 2. Local Outlier Factor (novelty=True) — chỉ học trên phần "sạch" ---
-    lof = LocalOutlierFactor(n_neighbors=20, novelty=True, contamination=contamination)
-    lof.fit(X_train_normal_scaled)
-    models["local_outlier_factor"] = lof
-
-    # --- 3. Autoencoder (MLP bottleneck) — chỉ học tái tạo dữ liệu "sạch" ---
-    n_features = X_train_scaled.shape[1]
-    bottleneck = max(2, n_features // 3)
-    autoencoder = MLPRegressor(
-        hidden_layer_sizes=(6, bottleneck, 6),
-        activation="relu",
-        max_iter=2000,
-        random_state=RANDOM_STATE,
-        early_stopping=True,
-    )
-    autoencoder.fit(X_train_normal_scaled, X_train_normal_scaled)
-    models["autoencoder"] = autoencoder
-
-    train_normal_recon = autoencoder.predict(X_train_normal_scaled)
-    train_normal_mse = np.mean((X_train_normal_scaled - train_normal_recon) ** 2, axis=1)
-    autoencoder_threshold = float(np.percentile(train_normal_mse, 100 * (1 - contamination)))
-
-    os.makedirs(ARTIFACTS_DIR, exist_ok=True)
-    joblib.dump(scaler, os.path.join(ARTIFACTS_DIR, "scaler.joblib"))
-    for name, model in models.items():
-        joblib.dump(model, os.path.join(ARTIFACTS_DIR, f"{name}.joblib"))
-
-    meta = {
+    train_matrix = np.asarray(x_train, dtype=float)
+    train_hash = _sha(data_dir / "splits" / "train.csv")
+    metadata = {
+        "model_name": MODEL_NAME,
+        "model_version": f"{FEATURE_VERSION}-{feature_signature()}-{train_hash[:8]}-s{TRAINING_SEED}",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "algorithm": "sklearn.ensemble.IsolationForest",
+        "algorithm_parameters": {**PARAMS, "random_state": TRAINING_SEED},
         "feature_names": FEATURE_NAMES,
-        "contamination": contamination,
-        "autoencoder_threshold": autoencoder_threshold,
-        "train_rows": len(train_df),
-        "test_rows": len(test_df),
-        "train_anomaly_rows": int(train_df["is_anomaly"].sum()),
-        "test_anomaly_rows": int(test_df["is_anomaly"].sum()),
-        # Thống kê THÔ (chưa scale) của tập train — dùng để GIẢI THÍCH lúc
-        # suy luận real-time (app/detection/ml_model.py): so đặc trưng của
-        # 1 lần đăng nhập với phân phối "bình thường" đã học, chỉ ra đặc
-        # trưng nào lệch nhiều nhất thay vì chỉ đưa 1 con số điểm bất thường.
-        "feature_mean": X_train.mean(axis=0).tolist(),
-        "feature_std": X_train.std(axis=0).tolist(),
+        "feature_version": FEATURE_VERSION,
+        "feature_signature": feature_signature(),
+        "training_seed": TRAINING_SEED,
+        "train_size": len(x_train),
+        "validation_size": len(x_val),
+        "test_size": len(read_split(data_dir / "splits" / "test.csv")[0]),
+        "threshold": threshold,
+        "threshold_rule": f"phân vị {1 - TARGET_FPR:.2f} điểm bất thường của dòng BÌNH THƯỜNG trong validation (FPR mục tiêu {TARGET_FPR:.0%})",
+        "validation": {
+            "normal_rows": int(len(val_normal)), "anomaly_rows": int(len(val_anomaly)),
+            "fpr_at_threshold": float(np.mean(val_normal >= threshold)),
+            "recall_at_threshold": float(np.mean(val_anomaly >= threshold)) if len(val_anomaly) else None,
+        },
+        "train_feature_mean": train_matrix.mean(axis=0).tolist(),
+        "train_feature_std": train_matrix.std(axis=0).tolist(),
+        "score_semantics": "anomaly_score = -score_samples (càng cao càng lạ); is_anomaly <=> anomaly_score >= threshold",
+        "data_files_sha256": {name: _sha(data_dir / name) for name in ("events.csv", "labels.csv", "features.csv")},
+        "dataset": "TỔNG HỢP (ml/dataset.py) — không phải dữ liệu người dùng/tấn công thật",
     }
-    with open(os.path.join(ARTIFACTS_DIR, "meta.json"), "w", encoding="utf-8") as f:
-        json.dump(meta, f, ensure_ascii=False, indent=2)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model, out_dir / MODEL_FILE)
+    (out_dir / METADATA_FILE).write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
+    return metadata
 
-    test_df.to_csv(os.path.join(ARTIFACTS_DIR, "test_set.csv"), index=False)
 
-    print(f"Đã lưu 3 mô hình + scaler + meta vào {os.path.abspath(ARTIFACTS_DIR)}")
-    print(f"contamination ước tính từ train set: {contamination:.3f}")
-    print(f"Ngưỡng reconstruction error (autoencoder): {autoencoder_threshold:.4f}")
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--data-dir", default=str(DATA_DIR))
+    parser.add_argument("--out-dir", default=str(ARTIFACT_DIR))
+    args = parser.parse_args(argv)
+    meta = train(Path(args.data_dir), Path(args.out_dir))
+    print(f"{meta['model_name']} {meta['model_version']}: train {meta['train_size']}, validation {meta['validation_size']}, ngưỡng {meta['threshold']:.4f}")
+    print(f"validation @ngưỡng: FPR {meta['validation']['fpr_at_threshold']:.3%}, recall {meta['validation']['recall_at_threshold']:.3%}")
+    print(f"-> {Path(args.out_dir).resolve()}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

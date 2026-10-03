@@ -1,0 +1,24 @@
+{
+  "model_name": "isolation_forest",
+  "model_version": "v3-870bee225d73-03b95613-s42",
+  "threshold": 0.5905492927428302,
+  "threshold_selected_on": "validation (FPR mục tiêu 1% trên dòng bình thường) — KHÔNG chọn trên test",
+  "test_rows": 3292,
+  "test_anomalies": 143,
+  "test_prevalence": 0.0434,
+  "at_threshold": {
+    "tp": 87,
+    "fp": 33,
+    "tn": 3116,
+    "fn": 56,
+    "precision": 0.725,
+    "recall": 0.6084,
+    "f1": 0.6616,
+    "fpr": 0.0105
+  },
+  "roc_auc": 0.9706,
+  "pr_auc_average_precision": 0.7803,
+  "pr_auc_random_baseline": 0.0434,
+  "accuracy_note": "không dùng accuracy làm metric chính: đoán 'bình thường' cho mọi dòng đã đạt accuracy = 1 − prevalence",
+  "dataset_note": "dataset TỔNG HỢP (ml/dataset.py) — không phải hiệu năng trên người dùng/tấn công thật"
+}

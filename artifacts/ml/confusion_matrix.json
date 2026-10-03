@@ -1,0 +1,18 @@
+{
+  "labels": [
+    "normal",
+    "anomaly"
+  ],
+  "matrix": [
+    [
+      3116,
+      33
+    ],
+    [
+      56,
+      87
+    ]
+  ],
+  "rows": "thực tế",
+  "columns": "dự đoán"
+}
