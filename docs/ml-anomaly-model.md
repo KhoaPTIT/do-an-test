@@ -1,6 +1,8 @@
 # Mô hình bất thường chạy thật (Phase 4.1)
 
-> Tài liệu được hoàn thiện dần theo các milestone ML0–ML7. Mục 1 ghi quyết định kiến trúc (ML0), ghi TRƯỚC khi sửa mã.
+> Tài liệu chính của phần AI/ML đang chạy. Mục 1 ghi quyết định kiến trúc (ML0) TRƯỚC khi sửa mã; mọi con số ở mục 3–7 đọc từ
+> bằng chứng do máy sinh trong [`artifacts/ml/`](../artifacts/ml/) — không gõ tay. **Dataset là TỔNG HỢP**, không phải log người dùng
+> hay tấn công thật.
 
 ## 1. Quyết định kiến trúc (ML0)
 
@@ -55,3 +57,116 @@ Lỗi lệch train/serve đã sửa (audit Phase 4.0) và test chứng minh:
 | thiết bị = băm toàn bộ User-Agent (Chrome 120 ≠ Chrome 121) | họ thiết bị chuẩn hoá dùng chung với luật hành vi | `test_browser_version_update_is_the_same_device_but_another_browser_is_new` |
 | giờ trung bình cộng (sai quanh nửa đêm) | trung bình vòng tròn | `test_hour_deviation_is_circular` |
 | hai bản cài đặt đặc trưng offline/runtime khác nhau | một hàm duy nhất + test parity bắt buộc | `tests/test_ml_feature_parity.py` |
+
+## 3. Dataset (ML2)
+
+Mã: [`backend/ml/dataset.py`](../backend/ml/dataset.py) · [`backend/ml/build_features.py`](../backend/ml/build_features.py) · bằng chứng:
+[`artifacts/ml/dataset_summary.json`](../artifacts/ml/dataset_summary.json).
+
+- **Bình thường:** bộ sinh lưu lượng bình thường v3 (`verification/normal_traffic.py`), seed **41001**, 320 người dùng × 30 ngày
+  — seed harness Phase 3 (20260302) bị loại trừ tường minh nên dữ liệu train không trùng lưu lượng dùng để đo 20 luật.
+- **Bất thường chèn vào** (nhãn chỉ ghi ở `labels.csv`, KHÔNG BAO GIỜ là đầu vào model): `unusual_hour` 120, `unusual_location`
+  120, `unusual_device` 120, `new_device_and_location` 100, `impossible_travel` 100, `login_burst` 30 đợt (292 lần thử).
+- **Quy mô:** 27.573 lần thử (24.165 thành công) → **19.877 dòng đặc trưng** (chỉ lần thành công của hồ sơ trưởng thành).
+- **Chia theo thời gian** (không xáo trộn, không rò rỉ tương lai): train < ngày 18 ≤ validation < ngày 24 ≤ test.
+
+| Tập | Dòng | Bất thường | Dùng để |
+|---|---:|---:|---|
+| train | 13.236 | 507 | fit model (không dùng nhãn) |
+| validation | 3.349 | 187 | CHỌN NGƯỠNG (chỉ dòng bình thường) |
+| test | 3.292 | 143 | đánh giá CUỐI, chạy đúng một lần sau khi đã chốt ngưỡng |
+
+Tất định: cùng seed ⇒ cùng file từng byte (sha256 ghi trong `dataset_summary.json`; test `tests/test_ml_dataset.py`).
+
+## 4. Huấn luyện và chọn ngưỡng (ML3)
+
+Mã: [`backend/ml/train.py`](../backend/ml/train.py) · bằng chứng: [`artifacts/ml/training_summary.json`](../artifacts/ml/training_summary.json).
+
+- `sklearn.ensemble.IsolationForest(n_estimators=300, max_samples=256, contamination="auto", random_state=42)`, fit trên
+  toàn bộ dòng train **không dùng nhãn** (học không giám sát).
+- `anomaly_score = −score_samples(x)` (càng cao càng lạ).
+- **Ngưỡng = phân vị 0,99 điểm của dòng BÌNH THƯỜNG trong validation** (FPR mục tiêu 1%) → **0,5905**. Chốt trước khi chạy test;
+  không chỉnh sau khi xem kết quả test.
+- Artifact: `backend/ml/artifacts/anomaly_iforest/{model.joblib, metadata.json}` (không commit; ~2,4 MB). `metadata.json` ghi
+  tên/phiên bản (`v3-870bee225d73-03b95613-s42` = phiên bản đặc trưng + chữ ký đặc trưng + băm tập train + seed), tham số, danh
+  sách và chữ ký đặc trưng, seed, kích thước các tập, ngưỡng, thống kê validation, trung bình/độ lệch chuẩn đặc trưng train
+  (dùng để giải thích), sha256 dữ liệu.
+
+## 5. Kết quả trên tập test (ML3)
+
+Bằng chứng: [`evaluation.json`](../artifacts/ml/evaluation.json) · [`per_anomaly_metrics.json`](../artifacts/ml/per_anomaly_metrics.json) ·
+[`confusion_matrix.json`](../artifacts/ml/confusion_matrix.json) / [`.png`](../artifacts/ml/confusion_matrix.png). Tỉ lệ bất thường trong test 4,34%
+— vì vậy KHÔNG dùng accuracy (đoán "bình thường" cho mọi dòng đã đạt 95,7%).
+
+| TP | FP | TN | FN | Precision | Recall | F1 | FPR | ROC-AUC | PR-AUC (AP) |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 87 | 33 | 3.116 | 56 | 0,725 | 0,608 | 0,662 | 1,05% | 0,971 | 0,780 (ngẫu nhiên: 0,043) |
+
+| Kiểu bất thường (test) | Mẫu | Phát hiện | Recall |
+|---|---:|---:|---:|
+| impossible_travel | 24 | 24 | 1,00 |
+| new_device_and_location | 24 | 24 | 1,00 |
+| unusual_location | 24 | 24 | 1,00 |
+| unusual_device | 20 | 8 | 0,40 |
+| unusual_hour | 27 | 7 | 0,26 |
+| login_burst | 24 | 0 | 0,00 |
+
+Đọc kết quả: model mạnh với bất thường VỊ TRÍ/di chuyển; yếu với giờ lạ và thiết bị lạ đơn lẻ; **không bắt được đợt đăng nhập
+dồn dập** — trong lưu lượng bình thường v3 người dùng đã đăng nhập dày (trung vị 17,6 lần/24 giờ), nên `logins_last_24h` của một
+đợt dồn dập không nổi bật. Đây là số trên dữ liệu tổng hợp; FPR 1,05% trên test ≈ mục tiêu 1% đặt ở validation.
+
+## 6. Luật vs ML trên harness Phase 3 (ML4)
+
+_(Đang chạy thí nghiệm — mục này điền từ `artifacts/ml/rule_ml_overlap.json` khi có kết quả.)_
+
+## 7. Tích hợp runtime (ML5)
+
+```
+POST /login ─► pipeline (app/detection/pipeline.py)
+                ├─ tầng 1-2 cũ (giữ nguyên)
+                ├─ rule engine v2: 20 detector VERIFIED (+ unusual_hour experimental, datacenter/vpn shadow)
+                ├─ ml_runtime.predict(db, event)  ── Isolation Forest, chỉ lần THÀNH CÔNG của hồ sơ trưởng thành
+                ├─ hybrid_runtime.evaluate(ml_prediction, hits) ── noisy-OR: ML bất thường = xác suất 0,45
+                │     └─ chốt chặn: ML không bao giờ đưa hành động tới "lock" (hạ về step_up, ml_lock_suppressed)
+                ├─ attribution.build_verdict ── luật = detector chính; ML = tín hiệu phụ "ml_anomaly"
+                │     hoặc detector "hybrid_ml" nếu không luật nào khớp mà điểm vẫn vượt ngưỡng cảnh báo
+                └─ lưu login_events.ml_* + alert.explanation["ml"] ─► GET /login-events, GET /alerts, WebSocket ─► dashboard
+```
+
+| Câu hỏi | Ở đâu |
+|---|---|
+| Backend nạp model | `app/main.py::_startup_mr12` → `app/detection/ml_runtime.py::load_at_startup` → `ml/anomaly_model.py::AnomalyModel.load` (từ `ML_MODEL_DIR` hoặc `backend/ml/artifacts/anomaly_iforest`; từ chối artifact lệch chữ ký đặc trưng); ghi `model_registry` (`app/detection/model_registry.py`) |
+| Login gọi inference | `app/detection/pipeline.py` (sau rule engine, trước risk engine) → `ml_runtime.get_runtime().predict(db, event)` → `runtime_features` → `ml/features.py::compute_features` (cùng hàm với offline) |
+| Gộp điểm | `app/detection/hybrid_runtime.py::HybridEngine.evaluate` + `ml_lock_suppressed` |
+| API | `GET /login-events`: `ml_anomaly_score`, `ml_is_anomaly`, `ml_threshold`, `ml_model_version`, `ml_details` · `GET /alerts` và WebSocket: `explanation.ml` = `{model, version, available, in_scope, anomaly_score, threshold, is_anomaly, top_features, reason}`, `explanation.ml_lock_suppressed` · `GET /ml/status` (admin): `ml_available`, `model_name`, `model_version`, `threshold`, `trained_at`, `feature_signature`, `code_feature_signature`, `artifact_dir`, `artifact_files`, `loaded_at`, `last_load_error`, `risk_weight_when_anomalous`, `scope`, `can_lock=false` |
+| Dashboard | Danh sách cảnh báo → nút "Chi tiết (detector, bằng chứng, AI/ML)" (`frontend/src/components/AlertDetails.jsx`): Primary detector, Secondary signals, Risk score, Rule evidence, Model / Anomaly score / Threshold / Result; bảng log cột "AI/ML" (`LogTablePanel.jsx`); trang "Sức khoẻ mô hình" khối "Model AI đang chạy" (`ModelHealthPage.jsx`, đọc `GET /ml/status`). Không có model: "AI model: Not loaded". Ảnh: [`artifacts/ml/screenshots/`](../artifacts/ml/screenshots/) |
+
+An toàn (Phase 4.1H): ML một mình chỉ đạt 45 điểm = "alert" (không OTP, không khoá); thiếu/lỗi artifact → `ml_available=false`, 20
+detector luật chạy như trước; lỗi lúc chấm → bỏ qua tín hiệu ML (`reason="error"`), không chặn đăng nhập. Test:
+`tests/test_ml_runtime_integration.py`, `tests/test_hybrid_runtime.py`.
+
+## 8. Demo bảo vệ (ML7)
+
+```bash
+cd backend
+python -m ml.pipeline                  # 1. train (nếu chưa có artifact)
+python -m scripts.ml_demo --evidence   # 2-5. app thật nạp model -> POST /login -> inference -> API; ghi runtime_integration.json
+python -m scripts.ml_demo --serve 8000 # + giữ backend chạy; terminal khác: cd frontend && npm run dev
+                                       #   đăng nhập dashboard: demo_admin / DemoAdmin123!
+```
+
+_(Kết quả demo điền từ `artifacts/ml/runtime_integration.json`.)_
+
+## 9. Train lại từ đầu
+
+```bash
+docker compose up -d                   # Postgres + Redis (cho web app; train/demo/test không cần)
+cd backend
+python -m ml.pipeline                  # dataset -> đặc trưng -> train -> đánh giá -> artifacts/ml/*.json
+uvicorn app.main:app --port 8000       # khởi động (lại) backend: tự nạp artifact vừa train
+python -m verification.rule_ml_experiment   # (tuỳ chọn) chạy lại thí nghiệm luật vs ML
+```
+
+## 10. Hạn chế (phải nói khi bảo vệ)
+
+_(Điền cùng kết quả thí nghiệm luật vs ML.)_
