@@ -50,18 +50,17 @@ sinh dữ liệu tạo — xem Bước 5):
 - Username: `user001` đến `user030` (dữ liệu demo dashboard, Tuần 2-3)
 - Password: `Demo@12345` (giống nhau cho tất cả)
 
-> Riêng `user101`-`user140` là dữ liệu HUẤN LUYỆN ML (Tuần 7, xem Bước 5b)
-> — không dùng để demo web app mẫu, chỉ tồn tại trong DB để chấm điểm mô hình.
+> Dữ liệu huấn luyện model AI (Phase 4.1) KHÔNG nằm trong DB — sinh ra file CSV riêng ở Bước 5b.
 
 Đăng nhập đúng sẽ chuyển sang `/dashboard` của **web app mẫu** — trang này
 không phải dashboard giám sát.
 
 ## Bước 4b — Vào Dashboard giám sát (cần tài khoản admin riêng)
 
-`/dashboard` (giám sát, real-time) **khác** `/login` ở Bước 4 — đây là khu
-vực quản trị, yêu cầu đăng nhập admin riêng ở `http://localhost:5173/admin/login`
-(Tuần 5, tách biệt hoàn toàn khỏi tài khoản web app mẫu). Nếu chưa có tài
-khoản admin, tạo bằng:
+`/dashboard` (giám sát, real-time) là khu vực quản trị, yêu cầu đăng nhập bằng
+tài khoản admin. Chỉ có MỘT trang đăng nhập chung `http://localhost:5173/login`
+— hệ thống tự phân quyền theo tài khoản (user web app mẫu hay admin). Nếu chưa
+có tài khoản admin, tạo bằng:
 
 ```bash
 cd D:\github\phat-hien-dang-nhap-bat-thuong\backend
@@ -69,7 +68,7 @@ venv\Scripts\activate
 python -m scripts.create_admin --username admin --password "MatKhauManh123!"
 ```
 
-Đăng nhập ở `/admin/login` bằng tài khoản vừa tạo, hệ thống tự chuyển sang
+Đăng nhập ở `/login` bằng tài khoản vừa tạo, hệ thống tự chuyển sang
 `/dashboard` — góc trên bên phải tiêu đề hiện `● real-time` nghĩa là
 WebSocket đã kết nối, cảnh báo mới sẽ hiện popup + cập nhật bảng/biểu đồ
 ngay lập tức, không cần reload trang.
@@ -93,40 +92,29 @@ set PYTHONIOENCODING=utf-8
 python -m scripts.generate_labeled_anomalies --reset
 ```
 
-## Bước 5b — (Tuỳ chọn) Chạy lại pipeline ML tầng 3
+## Bước 5b — Train model AI (Isolation Forest, Phase 4.1)
 
-Model đã train sẵn (`backend/ml/artifacts/`, không commit lên git — máy
-mới cần chạy lại 3 lệnh dưới trước khi tầng 3 hoạt động; nếu thiếu, hệ
-thống tự tắt tầng 3 một cách an toàn, không lỗi):
-
-```bash
-cd D:\github\phat-hien-dang-nhap-bat-thuong\backend
-venv\Scripts\activate
-set PYTHONIOENCODING=utf-8
-python -m ml.generate_dataset --reset    # 40 user + 5 kiểu bất thường (nếu chưa có)
-python -m ml.extract_features             # trích đặc trưng
-python -m ml.train                        # huấn luyện 3 mô hình -> backend/ml/artifacts/
-python -m ml.evaluate                     # (tuỳ chọn) xuất lại biểu đồ so sánh
-```
-
-## Bước 5c — (Tuỳ chọn) Nạp mô hình ML hybrid (`hybrid_cp2`, giai đoạn mở rộng AI)
-
-Từ MR12, `/login` chấm điểm rủi ro bằng mô hình `hybrid_cp2` (huấn luyện trên bộ dữ liệu học thuật RBA — xem
-[`docs/model-card-rba.md`](model-card-rba.md)) **nếu artifact đã có trên đĩa**. Máy đã setup sẵn thì không cần làm gì
-thêm. Trên máy mới (hoặc nếu log backend báo `chưa có artifact ... hybrid risk engine tạm tắt thành phần ML`):
+Artifact không commit lên git (`backend/ml/artifacts/anomaly_iforest/`). Máy mới chạy MỘT lệnh (~1 phút, không tải gì
+từ ngoài — dataset TỔNG HỢP sinh tất định từ mã trong repo):
 
 ```bash
 cd D:\github\phat-hien-dang-nhap-bat-thuong\backend
 venv\Scripts\activate
 set PYTHONIOENCODING=utf-8
-python -m ml.check_env                # kiểm tra tìm thấy rba-dataset.zip chưa (xem docs/rba-data-card.md mục 7)
-python -m ml.rba.selection all        # ~15-20 phút — chọn đặc trưng + huấn luyện hybrid_cp2 -> ml/artifacts/rba_cp2/
+python -m ml.pipeline      # dataset -> đặc trưng -> train -> đánh giá trên test -> artifacts/ml/*.json
 ```
 
-⚠️ **Nếu thiếu artifact, hệ thống KHÔNG lỗi** — `hybrid_runtime.py` tự rơi về hồ sơ dự phòng (chỉ luật + danh tiếng,
-không có thành phần ML) để không tắt hẳn detection, nhưng recall sẽ thấp hơn số đã công bố ở
-[`docs/ml-evaluation-v2.md`](ml-evaluation-v2.md). Không có script nạp riêng — mô hình tự đăng ký vào bảng
-`model_registry` ở lần khởi động backend kế tiếp sau khi artifact xuất hiện.
+Rồi khởi động (lại) backend — lúc khởi động nó tự nạp artifact (log: `đã nạp model bất thường isolation_forest ...`).
+Kiểm tra trên trang **Sức khoẻ mô hình** của dashboard hoặc `GET /ml/status`.
+
+⚠️ **Nếu thiếu artifact, hệ thống KHÔNG lỗi** — `ml_available=false`, 20 detector luật vẫn chạy, dashboard ghi
+"AI model: Not loaded". ML chỉ là tín hiệu bổ sung cho risk engine và không bao giờ tự khoá tài khoản. Chi tiết:
+[`ml-anomaly-model.md`](ml-anomaly-model.md).
+
+## Bước 5c — (Tuỳ chọn) Nghiên cứu RBA / `hybrid_cp2` (offline)
+
+Từ Phase 4.1, `hybrid_cp2` KHÔNG còn chạy trong `/login`. Mã nghiên cứu `ml/rba/` giữ nguyên để tái lập số liệu MR1-8
+(cần `rba-dataset.zip` 9GB): [`reproduction-guide.md`](reproduction-guide.md) Giai đoạn 1-4.
 
 ## Bước 6 — Thử kịch bản tấn công (attack-sim)
 

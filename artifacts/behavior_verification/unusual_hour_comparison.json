@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
+  "git": {
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "dataset": "CÙNG bộ đánh giá cho cả hai: 20 kịch bản dương tính + 20 âm tính của unusual_hour (seed cố định) và lưu lượng bình thường v3 (63 người dùng × 30 ngày); cả hai chạy ở trạng thái ứng viên (enforce + verified) chỉ trong tiến trình đo",
+  "old_detector": "3σ vòng tròn quanh giờ trung tâm (Milestone C, a58bc12) — verification.unusual_hour_study.legacy_sigma_unusual_hour",
+  "new_detector": "histogram 24 giờ làm mượt vòng tròn (app/detection/engine/rules_behavior.py::unusual_hour)",
+  "table": {
+    "TP": {
+      "OLD": 20,
+      "NEW": 20
+    },
+    "FN": {
+      "OLD": 0,
+      "NEW": 0
+    },
+    "Recall": {
+      "OLD": 1.0,
+      "NEW": 1.0
+    },
+    "Scenario FP": {
+      "OLD": 0,
+      "NEW": 0
+    },
+    "Normal Traffic FP": {
+      "OLD": 32,
+      "NEW": 4
+    },
+    "Attribution": {
+      "OLD": 1.0,
+      "NEW": 1.0
+    },
+    "Status": {
+      "OLD": "FAILED_CRITERIA",
+      "NEW": "FAILED_CRITERIA"
+    },
+    "Failed criteria": {
+      "OLD": [
+        "32 báo nhầm trên lưu lượng bình thường"
+      ],
+      "NEW": [
+        "4 báo nhầm trên lưu lượng bình thường"
+      ]
+    }
+  },
+  "normal_traffic_false_positive_groups": {
+    "OLD": {
+      "TAIL_EXTENSION": 12,
+      "MULTI_MODAL_SCHEDULE": 2,
+      "MIDNIGHT_WRAP": 1,
+      "OTHER": 1,
+      "WIDE_NORMAL_WINDOW": 16
+    },
+    "NEW": {
+      "TAIL_EXTENSION": 4
+    }
+  },
+  "studies_git": {
+    "legacy_sigma": {
+      "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+      "dirty": false
+    },
+    "current": {
+      "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+      "dirty": false
+    }
+  }
+}

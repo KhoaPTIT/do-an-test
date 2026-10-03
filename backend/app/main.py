@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.database import SessionLocal
-from app.routers import admin, alerts, auth, blocklist, campaigns, events, model_health, rules, users, ws
+from app.routers import admin, alerts, auth, blocklist, campaigns, events, ml, model_health, rules, users, ws
 
 settings = get_settings()
 logger = logging.getLogger("main")
@@ -29,25 +29,26 @@ app.include_router(campaigns.router)
 app.include_router(blocklist.router)
 app.include_router(rules.router)
 app.include_router(model_health.router)
+app.include_router(ml.router)
 app.include_router(users.router)
 app.include_router(ws.router)
 
 
 @app.on_event("startup")
 def _startup_mr12() -> None:
-    """MR12: nạp threat intel + phiên bản mô hình hybrid MỘT LẦN khi tiến trình khởi động (không phải mỗi lần đăng nhập).
-    Lỗi ở đây KHÔNG được chặn ứng dụng khởi động — `load_threat_intel_at_startup`/`ensure_registered` tự nuốt lỗi và ghi
-    log, hybrid risk engine khi đó chạy ở hồ sơ dự phòng (chỉ luật, không có ML) cho tới khi khắc phục và khởi động lại."""
-    from app.detection import hybrid_runtime, model_registry
+    """Nạp threat intel + model bất thường (Phase 4.1, `app/detection/ml_runtime.py`) MỘT LẦN khi tiến trình khởi động.
+    Lỗi ở đây KHÔNG được chặn ứng dụng khởi động: thiếu/lỗi artifact thì `ml_available=False` (log cảnh báo, xem
+    GET /ml/status) và risk engine chạy bằng 20 detector luật cho tới khi train (`python -m ml.pipeline`) rồi khởi động lại."""
+    from app.detection import ml_runtime, model_registry
     from app.detection.rule_engine_runtime import load_threat_intel_at_startup
 
     load_threat_intel_at_startup()
+    runtime = ml_runtime.load_at_startup()
     db = SessionLocal()
     try:
-        model_registry.ensure_registered(db)
-        hybrid_runtime.load_at_startup(db)
+        model_registry.ensure_registered(db, runtime)
     except Exception:  # noqa: BLE001 — không được chặn khởi động ứng dụng
-        logger.exception("lỗi khi khởi tạo MR12 (threat intel / hybrid risk engine)")
+        logger.exception("lỗi khi ghi model_registry lúc khởi động")
     finally:
         db.close()
 

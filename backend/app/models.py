@@ -82,9 +82,14 @@ class LoginEvent(Base):
 
     # Điền bởi detection engine (Tuần 4)
     risk_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    # Điểm bất thường từ ML tầng 3 (Tuần 7) — CHẠY SONG SONG risk_score, không
-    # thay thế. Càng cao càng bất thường theo Isolation Forest, thang không cố định.
+    # Model bất thường (Phase 4.1, app/detection/ml_runtime.py): điểm Isolation Forest (càng cao càng lạ, thang không cố định),
+    # ngưỡng đang dùng, kết luận, phiên bản model, chi tiết (đặc trưng lệch nhất / lý do không chấm). NULL = không có điểm
+    # (model chưa nạp hoặc lần thử ngoài phạm vi chấm — xem ml_details.reason).
     ml_anomaly_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ml_is_anomaly: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    ml_threshold: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ml_model_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    ml_details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     # --- MR12: parse UA + tra ASN trong pipeline nền, cùng schema với RBA (ml/rba/features.py) để đặc trưng
     # tính từ luồng thật và đặc trưng huấn luyện trên RBA có cùng ý nghĩa. NULL khi tra/parse thất bại, không raise.

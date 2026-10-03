@@ -240,7 +240,8 @@ def test_the_profile_merges_scopes_disables_unselected_ones_and_validates_as_a_r
     rules = profile["rules"]
     assert rules["brute_force"] == {"params": {"threshold": 8}}
     assert rules["credential_stuffing"]["params"] == {"asn_min_fails": 40, "asn_min_users": 20, "min_fails": 100_000, "min_users": 100_000}  # phạm vi IP bị tắt
-    assert rules["rare_network_login"] == {"params": {"max_share": 5e-6}, "mode": "shadow"}  # giữ chế độ mặc định (shadow)
+    # giữ chế độ mặc định của luật: enforce từ Milestone C+ (trước đó shadow nên hồ sơ ghi "mode": "shadow")
+    assert rules["rare_network_login"] == {"params": {"max_share": 5e-6}}
     assert rules["password_spray_slow"] == {"mode": "shadow"} and rules["ua_rotation"] == {"mode": "shadow"}  # không chọn được -> shadow
     config = RuleConfig.from_dict(profile)  # phải nạp được
     assert config.mode_of(REGISTRY["ua_rotation"]) == "shadow" and config.resolved_params(REGISTRY["brute_force"]).threshold == 8

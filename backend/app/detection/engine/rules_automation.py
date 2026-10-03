@@ -17,7 +17,7 @@ CATEGORY = "Tự động hoá"
 
 # Dấu hiệu (chữ thường) của HTTP client/công cụ dò quét/trình duyệt không đầu hay gặp trong tấn công. `okhttp` cố ý KHÔNG có: là thư viện của ứng dụng Android thật.
 SCRIPT_MARKERS = (
-    "curl/", "wget/", "python-requests", "python-urllib", "python-httpx", "aiohttp", "go-http-client", "libwww-perl", "java/", "apache-httpclient",
+    "curl/", "wget/", "httpie/", "python-requests", "python-urllib", "python-httpx", "aiohttp", "go-http-client", "libwww-perl", "java/", "apache-httpclient",
     "postmanruntime", "insomnia", "axios/", "node-fetch", "undici", "scrapy", "hydra", "sqlmap", "nikto", "nmap", "masscan",
     "headlesschrome", "phantomjs", "selenium", "playwright", "puppeteer",
 )
@@ -25,6 +25,7 @@ SCRIPT_MARKERS = (
 
 @rule(
     id="bot_user_agent",
+    verification="verified",  # Milestone B — artifacts/behavior_verification/bot_user_agent.json
     title="User-Agent là bot",
     category=CATEGORY,
     severity="low",
@@ -41,16 +42,21 @@ def bot_user_agent(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="scripted_client",
+    verification="verified",  # Milestone B — artifacts/behavior_verification/scripted_client.json
     title="Client kịch bản / công cụ",
     category=CATEGORY,
-    severity="medium",
+    severity="low",  # Milestone B: medium -> low — tín hiệu tự động hoá YẾU (UA tự khai, giả mạo được hai chiều)
     techniques=("T1110",),
-    description="User-Agent thuộc công cụ HTTP/dò quét (curl, python-requests, Hydra, trình duyệt không đầu...) hoặc thiếu hẳn — trình duyệt thật luôn gửi User-Agent.",
+    description="User-Agent thuộc một công cụ HTTP/dò quét ĐÃ BIẾT (curl, python-requests, HTTPie, Hydra, trình duyệt không đầu...).",
     params=(
         Param("markers", SCRIPT_MARKERS, "chuỗi con (chữ thường) của User-Agent coi là client kịch bản"),
-        Param("flag_empty_ua", True, "coi User-Agent trống là client kịch bản"),
+        Param("flag_empty_ua", False, "coi User-Agent trống là client kịch bản (mặc định KHÔNG: thiếu UA chỉ là thiếu telemetry)"),
     ),
-    notes="Các script demo trong attack-sim/ dùng httpx nên khớp luật này.",
+    notes=(
+        "Milestone B (B0.2): User-Agent TRỐNG không còn được coi là client kịch bản — đó là THIẾU telemetry (proxy/SDK có thể bỏ header), "
+        "không phải bằng chứng tự động hoá; pipeline ghi `telemetry_gaps=[\"missing_user_agent\"]` trong giải thích cảnh báo thay vào đó. "
+        "`okhttp` cố ý không nằm trong danh sách (thư viện của ứng dụng Android thật). Các script demo trong attack-sim/ dùng httpx nên khớp luật này."
+    ),
 )
 def scripted_client(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p
@@ -68,18 +74,28 @@ def scripted_client(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="ua_rotation",
+    verification="verified",  # Milestone B — artifacts/behavior_verification/ua_rotation.json
     title="Xoay User-Agent",
     category=CATEGORY,
     severity="medium",
     techniques=("T1110.004",),
-    description="Cùng một IP thất bại đăng nhập với NHIỀU User-Agent khác nhau trong thời gian ngắn — công cụ nhồi thông tin đổi UA để né nhận diện.",
+    description=(
+        "Cùng một IP thất bại đăng nhập nhiều lần với NHIỀU họ User-Agent khác nhau trong thời gian ngắn, gần như không có lần thành công — "
+        "công cụ tấn công đổi UA để né nhận diện. Đếm HỌ đã chuẩn hoá (loại thiết bị | HĐH | trình duyệt, bỏ phiên bản)."
+    ),
     params=(
         Param("window_s", 600, "độ dài cửa sổ", "giây", 10, 86_400),
-        Param("min_distinct_ua", 5, "số User-Agent khác nhau tối thiểu", "UA", 2, 1000),
+        Param("min_distinct_ua", 5, "số User-Agent (họ chuẩn hoá nếu `canonical_agents`) khác nhau tối thiểu", "UA", 2, 1000),
         Param("min_fails", 8, "số lần sai tối thiểu của IP", "lần", 2, 100_000),
+        Param("canonical_agents", True, "đếm HỌ User-Agent chuẩn hoá thay vì chuỗi thô (Chrome 120/121 là một)"),
+        Param("max_success_ratio", 0.2, "quá tỉ lệ đăng nhập thành công này của IP trong cửa sổ thì coi là lưu lượng người dùng thật (NAT dùng chung)", "", 0.0, 1.0),
     ),
     needs=("user_agent",),
-    notes="Nhiều người dùng thật sau cùng một NAT có UA khác nhau nhưng hiếm khi cùng thất bại nhiều lần; ngưỡng `min_fails` tách hai trường hợp.",
+    notes=(
+        "Milestone B: (1) đếm họ UA chuẩn hoá — cập nhật phiên bản trình duyệt không còn bị tính là UA khác; (2) bỏ qua khi tỉ lệ thành công của IP "
+        "> `max_success_ratio`: NAT dùng chung có nhiều người gõ sai nhưng phần lớn là đăng nhập thành công, công cụ xoay UA thì gần như chỉ thất bại. "
+        "Là tín hiệu ĐÁNH DẤU (tự động hoá): khi nhồi thông tin/brute force cũng khớp, hành vi đó làm detector chính, ua_rotation là tín hiệu phụ."
+    ),
 )
 def ua_rotation(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p
@@ -89,17 +105,22 @@ def ua_rotation(ctx: RuleContext) -> Finding | None:
     fails = ctx.store.log_count(K.fail_ip(a.ip), since)
     if fails < p.min_fails:
         return None
-    agents = ctx.store.set_count(K.fail_agents_of_ip(a.ip), since, K.CAP)
+    key = K.fail_agent_families_of_ip(a.ip) if p.canonical_agents else K.fail_agents_of_ip(a.ip)
+    agents = ctx.store.set_count(key, since, K.CAP)
     if agents < p.min_distinct_ua:
         return None
+    oks = ctx.store.log_count(K.ok_ip(a.ip), since)
+    if oks > p.max_success_ratio * (oks + fails):
+        return None
     return Finding(
-        f"IP {a.ip} đổi {agents} User-Agent khác nhau trong {fails} lần sai/{window_text(p.window_s)} (xoay UA để né nhận diện).",
-        {"ip": a.ip, "distinct_user_agents": agents, "fails": fails, "window_s": p.window_s},
+        f"IP {a.ip} đổi {agents} {'họ ' if p.canonical_agents else ''}User-Agent khác nhau trong {fails} lần sai/{window_text(p.window_s)} (xoay UA để né nhận diện).",
+        {"ip": a.ip, "distinct_user_agents": agents, "canonical": p.canonical_agents, "fails": fails, "successes": oks, "window_s": p.window_s},
     )
 
 
 @rule(
     id="regular_rhythm",
+    verification="verified",  # Milestone C+ — artifacts/behavior_verification/regular_rhythm.json
     title="Nhịp thử đều như máy",
     category=CATEGORY,
     severity="medium",
@@ -110,8 +131,12 @@ def ua_rotation(ctx: RuleContext) -> Finding | None:
         Param("max_mean_interval_s", 30.0, "khoảng cách trung bình tối đa giữa hai lần (chậm hơn thì không tính là dồn dập)", "giây", 0.0, 3600.0),
         Param("max_cv", 0.15, "hệ số biến thiên tối đa (độ lệch chuẩn / trung bình) của khoảng cách", "", 0.0, 1.0),
     ),
-    default_mode="shadow",
-    notes="Chưa kiểm chứng trên log thật (chỉ dựa vào giả thuyết nhịp), nên mặc định ở chế độ shadow; máy có jitter ngẫu nhiên lớn sẽ né được.",
+    default_mode="enforce",  # Milestone C+: shadow -> enforce sau khi qua kiểm chứng (chỉ tạo cảnh báo, không tự step_up/lock)
+    notes=(
+        "Milestone C+: kiểm chứng trên kịch bản tổng hợp (20 dương tính / 20 âm tính sát ngưỡng / lưu lượng bình thường v3) — chưa kiểm chứng "
+        "trên log thật. Là tín hiệu ĐÁNH DẤU: khi brute force/nhồi thông tin/Tor cùng khớp thì chúng làm detector chính. Máy có jitter "
+        "ngẫu nhiên lớn (CV > 0,15) hoặc chậm hơn 30s/lần sẽ né được; dịch vụ cấu hình sai mật khẩu thử lại đều đặn sẽ khớp."
+    ),
 )
 def regular_rhythm(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p

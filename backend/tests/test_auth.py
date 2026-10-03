@@ -27,6 +27,7 @@ def test_login_success_returns_200_and_logs_event(client, db_session):
     assert response.json() == {
         "success": True, "message": "Login successful",
         "step_up_required": False, "challenge_id": None, "demo_otp_code": None, "locked": False,
+        "role": "user", "access_token": None,
     }
 
     events = db_session.query(LoginEvent).all()

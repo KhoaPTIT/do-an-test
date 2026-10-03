@@ -1,5 +1,7 @@
 # Chốt mô hình ở CP2 (MR8b)
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Nghiên cứu OFFLINE trên bộ RBA (cần file 9GB ngoài repo). Từ Phase 4.1 `hybrid_cp2` KHÔNG còn chạy trong `/login`; số liệu dưới đây không phải hiệu năng của hệ thống đang chạy. Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 Mã: [`selection.py`](../backend/ml/rba/selection.py) · kiểm thử: `tests/test_rba_selection.py` (12). Đây là phần **đổi mô hình** sau khi chủ dự án duyệt D1, D2 và D3 ở CP2 ([`checklist.md`](checklist.md)); MR8 chỉ giải thích mô hình, không đổi. Số liệu chạy trên bộ RBA **tổng hợp** ([`rba-data-card.md`](rba-data-card.md)), giai đoạn test, trọng số dân số, trừ khi ghi khác. Bản MR6 giữ nguyên dưới tên cũ (`hybrid`, `gbm_attacker_sim`, `isolation_forest`) để so trước/sau; bản chốt có hậu tố `_cp2`.
 
 ## Tóm tắt

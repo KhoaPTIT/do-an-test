@@ -10,6 +10,13 @@ Ba chế độ (`MODES`):
   - `shadow` : luật vẫn chạy và ghi nhận kết quả (để đo tỉ lệ khớp, báo nhầm trên log thật) nhưng KHÔNG tạo cảnh báo — dùng cho luật chưa được kiểm chứng;
   - `off`    : không chạy.
 
+Trạng thái kiểm chứng (`VERIFICATION_STATES`, Phase 3 — Milestone B, B0.1), KHAI BÁO TRÊN TỪNG LUẬT ở đây (không hardcode ở pipeline):
+  - `verified`    : đã qua bộ kiểm chứng hành vi (`scripts/behavior_verification.py`, bằng chứng ở `artifacts/behavior_verification/`) —
+                    ở chế độ `enforce` thì được TỰ TẠO cảnh báo (vẫn KHÔNG tự step_up/lock: hành động do điểm hybrid quyết định);
+  - `experimental`: CHƯA kiểm chứng — vẫn được chấm, ghi vào `matched_rules`/bằng chứng và góp điểm hybrid như mọi luật, nhưng KHÔNG tự tạo
+                    cảnh báo dù chế độ là `enforce` (chỉ xuất hiện trong cảnh báo khi điểm hybrid tự vượt ngưỡng, như trước Phase 3).
+  Chuyển `experimental` → `verified` CHỈ khi luật đạt đủ tiêu chí kiểm chứng.
+
 ⚠️ Ánh xạ MITRE ATT&CK là gần đúng: ATT&CK mô tả kỹ thuật của kẻ tấn công, còn luật ở đây nhận diện DẤU HIỆU của chúng trong log đăng nhập.
 """
 
@@ -53,7 +60,8 @@ NEEDS: dict[str, str] = {
     "global_stats": "thống kê đăng nhập thành công theo ASN toàn hệ thống",
 }
 
-CATEGORIES = ("Đoán và dò mật khẩu", "Tự động hoá", "Danh tiếng hạ tầng", "Ngữ cảnh tài khoản")
+CATEGORIES = ("Đoán và dò mật khẩu", "Tự động hoá", "Danh tiếng hạ tầng", "Ngữ cảnh tài khoản", "Hồ sơ hành vi")
+VERIFICATION_STATES = ("verified", "experimental")
 
 
 class ConfigError(ValueError):
@@ -139,6 +147,11 @@ class RuleSpec:
     default_mode: str
     evaluate: Callable[[RuleContext], Finding | None]
     notes: str = ""
+    verification: str = "experimental"  # xem VERIFICATION_STATES ở docstring module
+
+    @property
+    def is_verified(self) -> bool:
+        return self.verification == "verified"
 
     def defaults(self) -> dict[str, Any]:
         return {p.name: p.default for p in self.params}
@@ -159,6 +172,7 @@ def rule(
     needs: tuple[str, ...] = (),
     default_mode: str = "enforce",
     notes: str = "",
+    verification: str = "experimental",
     registry: dict[str, RuleSpec] | None = None,
 ):
     """Đăng ký một luật. Kiểm tra siêu dữ liệu ngay lúc nạp module để lỗi khai báo lộ ra sớm (test nạp toàn bộ sổ)."""
@@ -171,6 +185,8 @@ def rule(
             raise ValueError(f"{id}: mức nghiêm trọng '{severity}' không hợp lệ (có: {SEVERITIES})")
         if default_mode not in MODES:
             raise ValueError(f"{id}: chế độ '{default_mode}' không hợp lệ (có: {MODES})")
+        if verification not in VERIFICATION_STATES:
+            raise ValueError(f"{id}: trạng thái kiểm chứng '{verification}' không hợp lệ (có: {VERIFICATION_STATES})")
         if category not in CATEGORIES:
             raise ValueError(f"{id}: nhóm '{category}' không nằm trong {CATEGORIES}")
         unknown = [t for t in techniques if t not in TECHNIQUES]
@@ -183,7 +199,7 @@ def rule(
             raise ValueError(f"{id}: tên tham số bị trùng")
         for p in params:  # giá trị mặc định phải hợp lệ với chính khai báo của nó
             p.coerce(p.default)
-        target[id] = RuleSpec(id, title, category, severity, techniques, description, params, needs, default_mode, fn, notes)
+        target[id] = RuleSpec(id, title, category, severity, techniques, description, params, needs, default_mode, fn, notes, verification)
         return fn
 
     return wrap

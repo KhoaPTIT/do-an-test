@@ -45,8 +45,12 @@ def test_brute_force_ignores_slow_scattered_or_successful_attempts():
     assert fired(run(RuleEngine(), [make(i * 90) for i in range(5)]), "brute_force") == []  # 5 lần nhưng trải 6 phút: cửa sổ 5 phút chỉ còn 4
     assert fired(run(RuleEngine(), [make(t) for t in (0, 75, 150, 225, 300)]), "brute_force") == []  # lần đầu cách đúng 300 giây: KHÔNG tính (cửa sổ mở)
     assert fired(run(RuleEngine(), [make(i, username="alice") for i in range(3)] + [make(i + 3, username="bob") for i in range(3)]), "brute_force") == []
-    mixed = [make(i, success=(i % 2 == 0)) for i in range(10)]  # 5 sai xen 5 đúng
-    assert fired(run(RuleEngine(), mixed), "brute_force") == [9]  # chỉ đủ 5 lần SAI ở lần thứ 10; nếu đếm cả thành công thì đã báo từ lần thứ 5
+    mixed = [make(i, success=(i == 2)) for i in range(6)]  # 5 sai + 1 đúng (thất bại áp đảo)
+    assert fired(run(RuleEngine(), mixed), "brute_force") == [5]  # chỉ đủ 5 lần SAI ở lần thứ 6; nếu đếm cả thành công thì đã báo từ lần thứ 5
+    # Milestone C (thay expectation cũ "5 sai xen 5 đúng thì báo ở lần thứ 10"): gõ sai LẪN TRONG nhiều lần đúng (tài khoản
+    # dùng chung) không phải dò mật khẩu — lộ ra từ lưu lượng bình thường v3.
+    interleaved = [make(i, success=(i % 2 == 0)) for i in range(10)]
+    assert fired(run(RuleEngine(), interleaved), "brute_force") == []
     assert fired(run(RuleEngine(), [make(i, success=True) for i in range(20)]), "brute_force") == []
 
 
@@ -227,12 +231,13 @@ def test_scripted_client_ignores_real_browsers_and_android_apps():
     assert all(fired(run(RuleEngine(), [make(0, user_agent=agent)]), "scripted_client") == [] for agent in real)
 
 
-def test_scripted_client_treats_a_missing_user_agent_as_suspicious_unless_configured_otherwise():
+def test_scripted_client_does_not_treat_a_missing_user_agent_as_scripted_unless_configured():
+    # Milestone B (B0.2), thay expectation cũ: UA trống là THIẾU telemetry, không phải bằng chứng client kịch bản.
     for empty in (None, "", "   "):
-        results = run(RuleEngine(), [make(0, user_agent=empty)])
-        assert fired(results, "scripted_client") == [0] and hit(results[0], "scripted_client").evidence["marker"] == "(trống)"
-    relaxed = RuleEngine(RuleConfig.from_dict({"rules": {"scripted_client": {"params": {"flag_empty_ua": False}}}}))
-    assert fired(run(relaxed, [make(0, user_agent=None)]), "scripted_client") == []
+        assert fired(run(RuleEngine(), [make(0, user_agent=empty)]), "scripted_client") == []
+    strict = RuleEngine(RuleConfig.from_dict({"rules": {"scripted_client": {"params": {"flag_empty_ua": True}}}}))  # hành vi cũ vẫn bật được qua cấu hình
+    results = run(strict, [make(0, user_agent=None)])
+    assert fired(results, "scripted_client") == [0] and hit(results[0], "scripted_client").evidence["marker"] == "(trống)"
 
 
 def test_the_attack_simulation_scripts_are_recognised_by_their_default_user_agent():
@@ -260,12 +265,14 @@ def test_user_agent_rotation_needs_many_agents_and_many_failures():
     assert fired(hidden, "ua_rotation") == [] and "ua_rotation" in hidden[0].skipped  # không có UA thì bỏ qua
 
 
-def test_regular_rhythm_flags_machine_like_timing_but_only_in_shadow_mode():
+def test_regular_rhythm_flags_machine_like_timing_in_enforce_mode():
+    """Milestone C+: shadow -> enforce SAU khi qua kiểm chứng hành vi (artifacts/behavior_verification/regular_rhythm.json) —
+    thay đổi thiết kế có chủ ý; trước đó test này kiểm luật chỉ chạy shadow."""
     results = run(RuleEngine(), [make(i * 2.0, username=f"user{i}", ip="1.8.8.8") for i in range(12)])  # đúng 2 giây một lần
     assert fired(results, "regular_rhythm") == [9, 10, 11]  # từ khi đủ 10 mẫu
     found = hit(results[9], "regular_rhythm")
-    assert found.mode == "shadow" and found.evidence["mean_interval_s"] == 2.0 and found.evidence["cv"] == 0.0
-    assert all(h.rule_id != "regular_rhythm" for h in results[9].enforced)  # shadow: ghi nhận, không tạo cảnh báo
+    assert found.mode == "enforce" and found.evidence["mean_interval_s"] == 2.0 and found.evidence["cv"] == 0.0
+    assert any(h.rule_id == "regular_rhythm" for h in results[9].enforced)
 
 
 def test_regular_rhythm_ignores_human_jitter_slow_cadence_and_short_histories():
@@ -295,7 +302,11 @@ def test_impossible_travel_flags_a_jump_of_thousands_of_km_in_minutes():
     assert found.message.startswith("Cách ") and "km chỉ sau 10.0 phút" in found.message and found.message.endswith("ngưỡng 900).")
     assert found.evidence["previous_latitude"] == HANOI[0] and found.evidence["previous_longitude"] == HANOI[1] and found.evidence["speed_kmh"] > 900
     assert found.techniques == ("T1078",) and found.severity == "high"
-    assert fired(travel_pair(600, NEW_YORK, first_success=False, second_success=False), "impossible_travel") == [1]  # luật gốc so với lần thử trước bất kể kết quả
+    # Phase 3 (quyết định thiết kế có chủ ý, thay expectation cũ "so với lần thử trước bất kể kết quả"): chỉ tính
+    # THÀNH CÔNG → THÀNH CÔNG — lần thử SAI không chứng minh chủ tài khoản đã ở nơi đó.
+    assert fired(travel_pair(600, NEW_YORK, first_success=False, second_success=False), "impossible_travel") == []
+    assert fired(travel_pair(600, NEW_YORK, first_success=True, second_success=False), "impossible_travel") == []  # thử SAI từ xa sau lần thành công
+    assert fired(travel_pair(600, NEW_YORK, first_success=False, second_success=True), "impossible_travel") == []  # chưa có lần thành công trước đó để so
 
 
 def test_impossible_travel_accepts_plausible_trips_and_missing_data():
@@ -311,7 +322,7 @@ def test_impossible_travel_accepts_plausible_trips_and_missing_data():
 
 def test_impossible_travel_speed_limit_is_configurable():
     strict = RuleEngine(RuleConfig.from_dict({"rules": {"impossible_travel": {"params": {"max_speed_kmh": 5000.0}}}}))
-    trip = [make(0, latitude=HANOI[0], longitude=HANOI[1]), make(3600, latitude=NEW_YORK[0], longitude=NEW_YORK[1])]  # ~13.000 km trong 1 giờ ≈ 13.000 km/h
+    trip = [make(0, success=True, latitude=HANOI[0], longitude=HANOI[1]), make(3600, success=True, latitude=NEW_YORK[0], longitude=NEW_YORK[1])]  # ~13.000 km trong 1 giờ ≈ 13.000 km/h
     assert fired(run(strict, trip), "impossible_travel") == [1]
     loose = RuleEngine(RuleConfig.from_dict({"rules": {"impossible_travel": {"params": {"max_speed_kmh": 20_000.0}}}}))
     assert fired(run(loose, trip), "impossible_travel") == []
@@ -342,14 +353,25 @@ def test_multi_context_needs_two_countries_inside_the_window_and_successful_logi
     assert fired(other_user, "multi_context_simultaneous") == []
 
 
-def test_country_hop_counts_countries_touching_one_username_in_a_day_and_starts_in_shadow():
+def test_country_hop_counts_countries_touching_one_username_in_a_day():
     attempts = [make(0, country="VN"), make(3600, country="US"), make(7200, country="DE")]
     results = run(RuleEngine(), attempts)
-    assert fired(results, "country_hop") == [2] and hit(results[2], "country_hop").mode == "shadow"
+    # Milestone B: enforce sau khi qua kiểm chứng (trước đó mặc định shadow)
+    assert fired(results, "country_hop") == [2] and hit(results[2], "country_hop").mode == "enforce"
     assert fired(run(RuleEngine(), attempts[:2]), "country_hop") == []  # mới 2 nước
     slow = [make(0, country="VN"), make(3600, country="US"), make(25 * 3600, country="DE")]  # nước thứ ba sau 25 giờ: nước đầu đã ra khỏi cửa sổ
     assert fired(run(RuleEngine(), slow), "country_hop") == []
     assert fired(run(RuleEngine(), [make(i * 60, country="VN") for i in range(10)]), "country_hop") == []
+
+
+def test_country_hop_ignores_successful_logins_by_default():
+    # Milestone B: khách du lịch đăng nhập ĐÚNG ở 3 nước trong một ngày không phải "bị thử từ nhiều nước".
+    travel = [make(0, success=True, country="VN"), make(7 * 3600, success=True, country="JP"), make(20 * 3600, success=True, country="FR")]
+    assert fired(run(RuleEngine(), travel), "country_hop") == []
+    mixed = [make(0, success=True, country="VN"), make(3600, country="US"), make(7200, country="DE")]  # chỉ 2 nước có lần SAI
+    assert fired(run(RuleEngine(), mixed), "country_hop") == []
+    legacy = RuleEngine(RuleConfig.from_dict({"rules": {"country_hop": {"params": {"failures_only": False}}}}))
+    assert fired(run(legacy, mixed), "country_hop") == [2]  # hành vi cũ (mọi lần thử) vẫn bật được qua cấu hình
 
 
 # ------------------------------------------------------------------------------------------------ dormant_account_login
@@ -403,25 +425,44 @@ def engine_with_stats(total, per_asn, config=None):
     return RuleEngine(config, stats=stats)
 
 
-def test_login_from_a_network_nobody_else_uses_is_flagged_in_shadow_mode():
+def test_login_from_a_network_nobody_else_uses_is_flagged_in_mature_state():
+    # Milestone C+: shadow -> enforce sau kiểm chứng (thay đổi thiết kế có chủ ý; trước đó test kiểm found.mode == "shadow")
     engine = engine_with_stats(30_000, {100: 29_990, 200: 10})
     never_seen = engine.evaluate(make(1, success=True, asn=300))
     assert fired([never_seen], "rare_network_login") == [0]
     found = hit(never_seen, "rare_network_login")
-    assert found.mode == "shadow" and found.evidence["never_seen"] is True and found.evidence["asn_successes"] == 0 and "AS300" in found.message
+    assert found.mode == "enforce" and found.evidence["data_state"] == "MATURE" and found.evidence["never_seen"] is True and found.evidence["asn_successes"] == 0 and "AS300" in found.message
     assert fired([engine.evaluate(make(2, success=True, asn=200))], "rare_network_login") == []  # 10/30.000 = 0,033% > ngưỡng 0,002%
     assert fired([engine.evaluate(make(3, success=True, asn=100))], "rare_network_login") == []
 
 
 def test_rare_network_needs_enough_global_data_a_success_and_an_asn():
-    small = engine_with_stats(5_000, {100: 5_000})  # dưới min_total: ASN nào cũng "hiếm" nên luật chưa có hiệu lực
+    small = engine_with_stats(5_000, {100: 5_000})  # dưới min_total (MATURE): WARM chỉ chấm tài khoản có hồ sơ trưởng thành — ở đây không có
     assert fired([small.evaluate(make(1, success=True, asn=999))], "rare_network_login") == []
+    cold = engine_with_stats(400, {100: 400})  # COLD_START (< 500): không chấm kể cả tài khoản trưởng thành
+    for d in range(12):
+        cold.evaluate(make(d * DAY, success=True, asn=100))
+    assert fired([cold.evaluate(make(13 * DAY, success=True, asn=999))], "rare_network_login") == []
     engine = engine_with_stats(30_000, {100: 30_000})
     assert fired([engine.evaluate(make(1, success=False, asn=999))], "rare_network_login") == []  # thất bại: chưa vào được tài khoản
     no_asn = engine.evaluate(make(2, success=True))
     assert fired([no_asn], "rare_network_login") == [] and "rare_network_login" in no_asn.skipped
     unknown_user = engine.evaluate(make(3, success=True, asn=999, exists=False))
     assert fired([unknown_user], "rare_network_login") == []
+
+
+def test_rare_network_warm_state_needs_a_new_asn_for_a_mature_account_and_a_small_global_share():
+    """Milestone C+ (C7): 500 ≤ tổng < 20.000 ⇒ WARM — ASN chưa có trong lịch sử thành công của CHÍNH tài khoản và ≤ 1% toàn hệ thống."""
+    engine = engine_with_stats(2_000, {100: 1_900, 200: 100})
+    for d in range(12):  # hồ sơ trưởng thành: 12 lần thành công trong 11 ngày, nhà mạng 100
+        engine.evaluate(make(d * DAY, success=True, asn=100))
+    rare = engine.evaluate(make(12 * DAY, success=True, asn=999))
+    assert fired([rare], "rare_network_login") == [0]
+    found = hit(rare, "rare_network_login")
+    assert found.evidence["data_state"] == "WARM" and found.evidence["known_asns"] == [100] and found.evidence["share"] == 0.0
+    assert fired([engine.evaluate(make(12 * DAY + 60, success=True, asn=200))], "rare_network_login") == []  # 100/2.012 ≈ 5% > 1%
+    assert fired([engine.evaluate(make(12 * DAY + 120, success=True, asn=100))], "rare_network_login") == []  # nhà mạng quen
+    assert fired([engine.evaluate(make(12 * DAY + 180, success=True, asn=999))], "rare_network_login") == []  # 999 nay đã quen (lần thành công trước)
 
 
 def test_rare_network_threshold_is_configurable():
@@ -485,3 +526,26 @@ def test_blocklist_hit_covers_ip_network_asn_and_username_and_respects_expiry():
     blocked = engine.evaluate(make(10, ip="6.6.6.6"))
     found = hit(blocked, "blocklist_hit")
     assert found.severity == "high" and found.mode == "enforce" and found.techniques == () and "IP đã dò mật khẩu" in found.message
+
+
+def test_user_agent_rotation_counts_canonical_families_not_version_strings():
+    # Milestone B: Chrome tự cập nhật phiên bản không phải "đổi User-Agent".
+    from app.utils.device import parse_user_agent
+
+    def chrome(v):
+        ua = f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{v}.0.0.0 Safari/537.36"
+        p = parse_user_agent(ua)
+        return dict(user_agent=ua, browser=p.browser, os=p.os, device_type=p.device_type)
+
+    versions = [make(i * 20, username=f"u{i % 2}", ip="1.9.9.5", **chrome(118 + i)) for i in range(10)]  # 10 lần sai, 10 chuỗi UA, MỘT họ
+    assert fired(run(RuleEngine(), versions), "ua_rotation") == []
+    raw = RuleEngine(RuleConfig.from_dict({"rules": {"ua_rotation": {"params": {"canonical_agents": False}}}}))
+    assert fired(run(raw, versions), "ua_rotation") != []  # đếm chuỗi thô (hành vi trước Milestone B) thì khớp
+
+
+def test_user_agent_rotation_ignores_shared_ip_dominated_by_successful_logins():
+    # NAT dùng chung: 9 người, trình duyệt khác nhau, mỗi người gõ sai 1 lần rồi đăng nhập đúng.
+    attempts = []
+    for i in range(9):
+        attempts += [make(i * 30, username=f"nv{i}", ip="1.9.9.4", user_agent=f"Agent-{i}"), make(i * 30 + 5, success=True, username=f"nv{i}", ip="1.9.9.4", user_agent=f"Agent-{i}")]
+    assert fired(run(RuleEngine(), attempts), "ua_rotation") == []

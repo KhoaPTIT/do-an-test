@@ -1,0 +1,262 @@
+"""Nghiên cứu unusual_hour (Phase 3 — Milestone C.1): phân tích báo nhầm và so sánh detector CŨ (3σ vòng tròn, Milestone
+C) với detector hiện tại trên CÙNG bộ đánh giá (20+20 kịch bản, lưu lượng bình thường v3 — không sửa).
+
+    python -m verification.unusual_hour_study --detector legacy_sigma --out <thư mục>
+    python -m verification.unusual_hour_study --detector current --out <thư mục>
+
+Mỗi lần gọi chạy trong MỘT tiến trình riêng: detector được chọn và bật ở trạng thái ứng viên (enforce + verified) TRƯỚC
+khi bất kỳ pipeline nào được dựng, rồi chạy lưu lượng bình thường + 20+20 kịch bản của unusual_hour qua pipeline thật.
+Ghi `<out>/<detector>.json`: chỉ số + phân tích từng báo nhầm trên lưu lượng bình thường (giờ hiện tại, các giờ đăng nhập
+THÀNH CÔNG trước đó của chính tài khoản, tham số hồ sơ, lý do detector khớp, nhóm nguyên nhân).
+
+`legacy_sigma_unusual_hour` dưới đây là bản sao NGUYÊN VẸN của detector Milestone C (commit a58bc12) — chỉ dùng để so sánh,
+không đăng ký vào sổ luật."""
+
+from __future__ import annotations
+
+import argparse
+import dataclasses
+import json
+import logging
+import math
+from collections import Counter
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+from app.detection.engine.profile import circular_hour_distance, hour_of_day, hour_profile, maturity
+from app.detection.engine.registry import Param, RuleContext
+from app.detection.engine.types import Finding
+
+RULE = "unusual_hour"
+
+# ------------------------------------------------------------------------------------------------ detector cũ (3σ)
+
+LEGACY_SIGMA_PARAMS = (
+    Param("min_successes", 10, "", "lần", 1, 10_000),
+    Param("min_profile_days", 7, "", "ngày", 0, 3650),
+    Param("deviation_sigmas", 3.0, "", "σ", 0.5, 10.0),
+    Param("min_deviation_hours", 4.0, "", "giờ", 0.5, 12.0),
+    Param("min_concentration", 0.5, "", "", 0.0, 1.0),
+)
+
+
+def legacy_sigma_unusual_hour(ctx: RuleContext) -> Finding | None:
+    a, h, p = ctx.attempt, ctx.history, ctx.p
+    if not a.success:
+        return None
+    m = maturity(h, a.ts, min_successes=p.min_successes, min_profile_days=p.min_profile_days)
+    if not m.mature:
+        return None
+    hp = hour_profile(h)
+    if hp is None or hp.concentration < p.min_concentration:
+        return None
+    current = hour_of_day(a.ts)
+    deviation = circular_hour_distance(current, hp.center)
+    threshold = max(p.deviation_sigmas * hp.spread_hours, p.min_deviation_hours)
+    if deviation <= threshold:
+        return None
+    return Finding(
+        f"Tài khoản '{a.username}' đăng nhập lúc {current:.1f}h UTC, lệch {deviation:.1f}h so với giờ quen {hp.center:.1f}h "
+        f"(ngưỡng {threshold:.1f}h, {hp.sample_count} lần thành công).",
+        {
+            "current_hour": round(current, 2),
+            "usual_hour_center": round(hp.center, 2),
+            "hour_deviation": round(deviation, 2),
+            "threshold_hours": round(threshold, 2),
+            "spread_hours": round(hp.spread_hours, 2),
+            "concentration": round(hp.concentration, 3),
+            "sample_count": hp.sample_count,
+            "profile_age_days": round(m.profile_age_days, 1),
+            "timezone": "UTC",
+        },
+    )
+
+
+DETECTORS = ("legacy_sigma", "current")
+
+
+def install(detector: str) -> None:
+    """Chọn detector cho unusual_hour và bật nó ở trạng thái ứng viên — chỉ trong tiến trình này."""
+    from app.detection.engine.registry import REGISTRY
+
+    spec = REGISTRY[RULE]
+    if detector == "legacy_sigma":
+        spec = dataclasses.replace(spec, evaluate=legacy_sigma_unusual_hour, params=LEGACY_SIGMA_PARAMS)
+    REGISTRY[RULE] = dataclasses.replace(spec, verification="verified", default_mode="enforce")
+
+
+# ------------------------------------------------------------------------------------------------ phân tích báo nhầm
+
+def simulated_role(username: str, n_users: int = 50) -> str:
+    """Vai trò mô phỏng của tài khoản trong lưu lượng bình thường v3 (cùng quy ước đánh số với
+    `verification.normal_traffic.generate`) — CHỈ để đọc báo cáo, không dùng để phân nhóm hay trong detector."""
+    u = int(username.removeprefix("user"))
+    if u >= n_users:
+        extra = ("night_shift",) * 3 + ("heavy_daily",) * 3 + ("developer",) + ("service_like",) + ("geo_missing",) * 2 + ("new_account",) * 3
+        return extra[u - n_users]
+    return "office" if u < 12 else "traveller" if u < 16 else "dormant" if u < 19 else "regular"
+
+
+def _hour_histogram(hours: list[float]) -> list[int]:
+    hist = [0] * 24
+    for h in hours:
+        hist[int(h) % 24] += 1
+    return hist
+
+
+def _modes(hist: list[int], min_share: float = 0.1) -> list[int]:
+    """Các đỉnh cục bộ (vòng tròn) của histogram giờ chiếm ≥ `min_share` tổng số mẫu, sau khi làm mượt [1,2,1]."""
+    n = sum(hist) or 1
+    smooth = [hist[(i - 1) % 24] + 2 * hist[i] + hist[(i + 1) % 24] for i in range(24)]
+    peaks = [i for i in range(24) if smooth[i] > 0 and smooth[i] >= smooth[(i - 1) % 24] and smooth[i] > smooth[(i + 1) % 24]]
+    return [i for i in peaks if smooth[i] / (4 * n) >= min_share]
+
+
+def circular_mean_hour(hours: list[float]) -> float:
+    s = sum(math.sin(2 * math.pi * h / 24) for h in hours)
+    c = sum(math.cos(2 * math.pi * h / 24) for h in hours)
+    return (math.degrees(math.atan2(s, c)) % 360) / 15.0
+
+
+def _signed(a: float, b: float) -> float:
+    """Độ lệch có dấu a − b trên đồng hồ 24h, trong (−12, 12]."""
+    return -((b - a + 12) % 24 - 12)
+
+
+GROUPS = ("SPARSE_PROFILE", "MULTI_MODAL_SCHEDULE", "MIDNIGHT_WRAP", "WIDE_NORMAL_WINDOW", "TAIL_EXTENSION", "OTHER")
+
+
+def classify(current: float, prior: list[float], center: float) -> tuple[str, str]:
+    """Nhóm nguyên nhân của MỘT báo nhầm, CHỈ từ hình dạng hồ sơ giờ (không dùng vai trò mô phỏng). Thứ tự kiểm tra cố định:
+
+    - SPARSE_PROFILE: < 20 lần thành công và giờ hiện tại cách mọi lần thành công > 1h (hồ sơ chưa đủ dày để biết hết khung giờ);
+    - giờ hiện tại cách một lần thành công trước đó ≤ 1h (giờ ĐÃ thuộc lịch sử — detector 3σ báo nhầm vì giả định đối xứng):
+        MULTI_MODAL_SCHEDULE nếu hồ sơ có ≥ 2 cụm giờ tách biệt; MIDNIGHT_WRAP nếu lần thành công gần nhất nằm bên kia 00:00
+        UTC; còn lại WIDE_NORMAL_WINDOW (khung giờ rộng / lệch một phía);
+    - TAIL_EXTENSION: cách mọi lần thành công > 1h, ở CÙNG phía với đuôi lệch của hồ sơ (vượt một chút khỏi đuôi đã thấy);
+    - OTHER: còn lại."""
+    nearest_hour = min(prior, key=lambda h: circular_hour_distance(current, h))
+    nearest = circular_hour_distance(current, nearest_hour)
+    hist = _hour_histogram(prior)
+    modes = _modes(hist)
+    mode = max(range(24), key=lambda i: hist[(i - 1) % 24] + 2 * hist[i] + hist[(i + 1) % 24]) + 0.5
+    seen_share = sum(1 for h in prior if circular_hour_distance(current, h) <= 1.0) / len(prior)
+    if len(prior) < 20 and nearest > 1.0:
+        return "SPARSE_PROFILE", f"chỉ {len(prior)} lần thành công; lần gần nhất cách {nearest:.1f}h"
+    if nearest <= 1.0:
+        if len(modes) >= 2:
+            return "MULTI_MODAL_SCHEDULE", f"hồ sơ có {len(modes)} cụm giờ (ô {modes}); giờ hiện tại đã thấy ({seen_share:.0%} lần thành công trong ±1h)"
+        if (current < 12) != (nearest_hour < 12) and nearest < 6:
+            return "MIDNIGHT_WRAP", f"giờ hiện tại {current:.1f}h, lần thành công gần nhất {nearest_hour:.1f}h ở bên kia 00:00 UTC"
+        return "WIDE_NORMAL_WINDOW", (
+            f"giờ hiện tại đã thấy ({seen_share:.0%} lần thành công trong ±1h) nhưng cách giờ trung tâm {circular_hour_distance(current, center):.1f}h: "
+            f"khung giờ rộng/lệch một phía (đỉnh {mode:.1f}h, trung tâm {center:.1f}h) — 3σ đối xứng không mô tả được"
+        )
+    skew = _signed(center, mode)
+    if skew != 0 and (_signed(current, mode) > 0) == (skew > 0):
+        return "TAIL_EXTENSION", f"vượt {nearest:.1f}h khỏi lần thành công xa nhất về phía đuôi lệch của hồ sơ (đỉnh {mode:.1f}h → trung tâm {center:.1f}h)"
+    return "OTHER", f"cách mọi lần thành công {nearest:.1f}h, không thuộc phía đuôi lệch"
+
+
+def analyse_false_positives(env) -> list[dict]:
+    from app.models import LoginEvent
+
+    db = env.session_factory()
+    try:
+        rows = []
+        for alert in env.detector_alerts(RULE):
+            event = db.get(LoginEvent, alert.login_event_id)
+            ts = event.created_at.replace(tzinfo=timezone.utc) if event.created_at.tzinfo is None else event.created_at
+            prior = (
+                db.query(LoginEvent.created_at)
+                .filter(LoginEvent.user_id == event.user_id, LoginEvent.success.is_(True), LoginEvent.id != event.id, LoginEvent.created_at < event.created_at)
+                .order_by(LoginEvent.created_at).all()
+            )
+            prior_ts = [(p.replace(tzinfo=timezone.utc) if p.tzinfo is None else p).timestamp() for (p,) in prior]
+            prior_hours = [round(hour_of_day(t), 2) for t in prior_ts]
+            ev = (alert.explanation or {}).get("evidence", {})
+            current = hour_of_day(ts.timestamp())
+            center = circular_mean_hour(prior_hours)  # tính từ lịch sử (detector mới không có "giờ trung tâm")
+            group, why = classify(current, prior_hours, center)
+            rows.append({
+                "account": event.attempted_username,
+                "simulated_role": simulated_role(event.attempted_username),
+                "timestamp": ts.isoformat(),
+                "current_hour": round(current, 2),
+                "historical_successful_login_hours": prior_hours,
+                "historical_hour_histogram": _hour_histogram(prior_hours),
+                "profile_sample_count": len(prior_hours),
+                "profile_age_days": round((ts.timestamp() - prior_ts[0]) / 86_400, 1) if prior_ts else 0.0,
+                "detector_center": ev.get("usual_hour_center"),
+                "profile_circular_mean_hour": round(center, 2),
+                "dispersion_hours": ev.get("spread_hours"),
+                "concentration": ev.get("concentration"),
+                "threshold_hours": ev.get("threshold_hours"),
+                "deviation_hours": ev.get("hour_deviation"),
+                "nearest_prior_success_hours_away": round(min(circular_hour_distance(current, h) for h in prior_hours), 2),
+                "detector_evidence": ev,
+                "occurrence_count": alert.occurrence_count,
+                "reason_detector_fired": alert.message,
+                "profile_crosses_utc_midnight": any(h >= 22 for h in prior_hours) and any(h < 2 for h in prior_hours),
+                "group": group,
+                "group_reason": why,
+            })
+        return rows
+    finally:
+        db.close()
+
+
+# ------------------------------------------------------------------------------------------------ chạy
+
+def run(detector: str, seed: int) -> dict:
+    install(detector)
+    import scripts.behavior_verification as bv
+    from verification.harness import VerificationEnv
+    from verification.normal_traffic import generate
+
+    traffic = generate(seed)
+    env = VerificationEnv()
+    bv._setup(env, traffic.accounts, traffic.history)
+    for step in traffic.steps:
+        env.login(step.username, success=step.success, ip=step.ip, ts=bv.T0 + timedelta(seconds=step.offset_s), user_agent=step.user_agent)
+    fps = analyse_false_positives(env)
+    firing_attempts = sum(1 for v in env.verdicts if RULE in v.matched_rules)
+    result = bv.evaluate_behavior(RULE, seed, len(fps))
+    return {
+        "detector": detector,
+        "seed": seed,
+        "normal_traffic": {"users": traffic.profile_counts["users"], "total_steps": traffic.profile_counts["total_steps"], "history_logins": traffic.profile_counts["history_logins"]},
+        "metrics": {k: result[k] for k in ("status", "failed_criteria", "tp", "fn", "fp", "tn", "precision", "recall", "f1", "attribution_accuracy", "normal_traffic_false_alerts")},
+        "normal_traffic_firing_attempts": firing_attempts,
+        "false_positive_groups": dict(Counter(r["group"] for r in fps)),
+        "false_positives_by_role": dict(Counter(r["simulated_role"] for r in fps)),
+        "false_positives": fps,
+        "scenarios": result["scenarios"],
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--detector", choices=DETECTORS, required=True)
+    parser.add_argument("--seed", type=int, default=20260302)
+    parser.add_argument("--out", required=True)
+    parser.add_argument("--fp-analysis", default="", help="tên file ghi riêng phần phân tích báo nhầm (ví dụ fp_analysis.json)")
+    args = parser.parse_args(argv)
+    logging.disable(logging.WARNING)
+    import scripts.behavior_verification as bv
+
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    data = {"generated_at": datetime.now(timezone.utc).isoformat(), "git": bv._git_commit(), **run(args.detector, args.seed)}
+    (out / f"{args.detector}.json").write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    if args.fp_analysis:
+        keys = ("generated_at", "git", "detector", "seed", "normal_traffic", "metrics", "normal_traffic_firing_attempts", "false_positive_groups", "false_positives_by_role", "false_positives")
+        (out / args.fp_analysis).write_text(json.dumps({"group_definitions": classify.__doc__, **{k: data[k] for k in keys}}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    m = data["metrics"]
+    print(f"{args.detector}: TP {m['tp']} FN {m['fn']} FP {m['fp']} TN {m['tn']} recall {m['recall']} attr {m['attribution_accuracy']} normal FP {m['normal_traffic_false_alerts']}")
+    print(f"  nhóm báo nhầm: {data['false_positive_groups']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

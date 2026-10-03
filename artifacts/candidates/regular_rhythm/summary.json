@@ -1,0 +1,47 @@
+{
+  "generated_at": "2026-10-02T15:33:21.659781+00:00",
+  "git": {
+    "commit": "3ece93e711c0b41e09a9dff0955229925b2eaa53",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [
+    "regular_rhythm"
+  ],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "behaviors": [
+    {
+      "behavior": "regular_rhythm",
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "tn": 20,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0,
+      "alert_noise_positive_scenarios": {
+        "total_alerts": 20,
+        "detection_alerts": 20,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 42,
+        "superseded_detectors": 2,
+        "campaigns": 20,
+        "alerts_per_attack_campaign": 1.0,
+        "all_alert_rows_per_attack_campaign": 1.0
+      }
+    }
+  ],
+  "verified": 1
+}

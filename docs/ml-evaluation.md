@@ -1,5 +1,7 @@
 # Đánh giá ML tầng 3 (nhiệm vụ 7.1) — điểm nhấn chính của đồ án
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Bộ dữ liệu và mã tầng 3 cũ (`ml/generate_dataset.py`, `ml/extract_features.py`, `app/detection/ml_model.py`, cảnh báo `ml_anomaly` riêng) đã GỠ ở Phase 4.1; số liệu dưới đây KHÔNG tái lập được trên mã hiện tại. Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 > ⚠️ **MR18** đã thêm 2 kiểu bất thường mới (`dormant_reactivation`, `impossible_travel_geo` — "mô hình B" địa lý-thời
 > gian, xem [`docs/model-b-geo-time.md`](model-b-geo-time.md)) vào `ml/generate_dataset.py` rồi huấn luyện/đánh giá
 > LẠI — các con số CỤ THỂ dưới đây (78,3% recall, bảng theo kiểu bất thường mục dưới...) là ảnh chụp của Tuần 7, KHÔNG

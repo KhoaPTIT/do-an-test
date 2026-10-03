@@ -1,74 +1,138 @@
-# Ma trận phủ hành vi (MR19)
+# Ma trận phủ hành vi (cập nhật cuối — Phase 3, kết thúc bổ sung hành vi phát hiện)
 
-Tổng hợp **toàn bộ** hành vi tấn công mà hệ thống có cơ chế nhận diện — từ tầng 1 gốc (Tuần 3), luật tầng 2 (rule
-engine v2, MR9), tới hành vi bất thường tầng 3 (ML, Tuần 7 + MR18) — cùng bằng chứng ĐO ĐƯỢC THẬT (không phải suy
-đoán) cho từng hàng, lấy từ [`rule-catalog.md`](rule-catalog.md), [`hybrid-risk-engine.md`](hybrid-risk-engine.md),
-[`ml-evaluation.md`](ml-evaluation.md), [`attack-scenarios-v2.md`](attack-scenarios-v2.md),
-[`model-b-geo-time.md`](model-b-geo-time.md). Mục tiêu: một bảng DUY NHẤT trả lời "hành vi X có được phát hiện
-không, bằng gì, đo được tới đâu" — không phải liệt kê tính năng, mà là liệt kê **bằng chứng**.
+Bảng DUY NHẤT trả lời "hành vi X có được phát hiện không, bằng detector nào, đo được tới đâu". Bản này thay bản MR19
+(xem lịch sử git của file này): ở MR19 nhiều hành vi chỉ "có luật" hoặc khớp luật nhưng **không tạo cảnh báo đúng luật**;
+Phase 3 đo lại MỌI hành vi qua pipeline `/login` thật theo QUY KẾT, với bằng chứng do máy sinh.
 
-## Chú giải
+**Kết quả cuối: 20 hành vi VERIFIED / 21 hành vi đo được qua pipeline** (1 PARTIAL: `unusual_hour`). Phát triển hành vi
+phát hiện dừng ở đây (Milestone C+ là milestone bổ sung hành vi cuối cùng) — không mở thêm milestone hành vi.
 
-- **✅** enforce/đo được, hoạt động như kỳ vọng · **🌓** `shadow` (chạy, ghi nhận, KHÔNG tự tạo alert riêng — vẫn là
-  bằng chứng cho hybrid risk engine, MR11) hoặc kết quả mơ hồ · **❌** không có cơ chế / đo được là bỏ sót thật ·
-  **—** không áp dụng.
-- "Trọng số hybrid" = trọng số hiệu chỉnh của luật đó trong hybrid risk engine (MR11,
-  [`hybrid-risk-engine.md`](hybrid-risk-engine.md)) — quyết định luật đó tự đủ tạo alert hybrid_risk hay chỉ là bằng
-  chứng phụ. `blocklist_hit` là NGOẠI LỆ: GHI ĐÈ điểm 100 bất kể trọng số.
+Bằng chứng: [`artifacts/behavior_verification/`](../artifacts/behavior_verification/) — sinh bởi
+`cd backend && python -m scripts.behavior_verification` trên worktree sạch tại commit `a465dfb`
+(`summary.json`, một file `<hành vi>.json` cho mỗi hành vi, `cross_behavior_results.json`, `normal_traffic.json`,
+`milestone_cplus_summary.json`). Không số nào trong bảng được sửa tay.
 
-## Bảng
+## Tiêu chí VERIFIED (giữ nguyên suốt Phase 3)
 
-| Hành vi tấn công | Tầng 1 gốc (Tuần 3) | Luật tầng 2 (MR9) | Tầng 3 ML (Tuần 7 / MR18 "mô hình B") | Bằng chứng đo được thật |
-|---|---|---|---|---|
-| Dò mật khẩu 1 tài khoản | ✅ `brute_force` (5 lần/5') | ✅ `brute_force` (enforce, trọng số 10,1%) | — | test tích hợp (MR12) |
-| Nhồi thông tin đăng nhập | ✅ `credential_stuffing` | ✅ `credential_stuffing` (enforce, trọng số **34,6%** — mạnh nhất) | — | ✅ MR18: phát hiện ở bước 10/16 |
-| Rải mật khẩu chậm | ❌ | ✅ `password_spray_slow` (enforce, trọng số 10,2%) | — | ✅ MR18: phát hiện bước 1/18 (qua `ml_anomaly`, xem caveat cold-start ở `attack-scenarios-v2.md`) |
-| Dò mật khẩu phân tán (botnet) | ❌ | ✅ `distributed_bruteforce` (enforce, **trọng số 0,0%** — mẫu val chỉ 2 dòng) | — | ⚠️ MR18: chỉ bắt được "TÌNH CỜ" qua `impossible_travel` (IP chọn cách xa nhau) — botnet cùng khu vực địa lý nhiều khả năng LỌT, chưa kiểm chứng trực tiếp |
-| Dò danh sách tài khoản (enumeration) | ❌ | ✅ `username_enumeration` (enforce, trọng số 0,05 CHƯA hiệu chỉnh, không luật tầng 1 dự phòng) | — | ❌ MR18: **KHÔNG tạo alert nào** dù vượt hẳn ngưỡng riêng — bỏ sót thật |
-| Thành công sau chuỗi sai | — (tầng 2 hành vi cũ dùng risk_score, cơ chế khác) | ✅ `success_after_failures` (enforce, trọng số 0%, mẫu val=40) | — | chưa đo riêng ở MR18 |
-| Bot User-Agent | ❌ | ✅ `bot_user_agent` (enforce, chỉ dựa UA — dễ né bằng cách nói dối UA) | — | — |
-| Client kịch bản (curl, python-requests...) | ❌ | ✅ `scripted_client` (enforce) | — | script demo `attack-sim/` tự khớp luật này (dùng httpx) |
-| Xoay User-Agent | ❌ | ✅ `ua_rotation` (enforce, trọng số 0,05 chưa hiệu chỉnh) | — | ✅ MR18: phát hiện bước 1/9 (qua `brute_force` tầng 1 + `high_risk_score`) |
-| Nhịp thử đều như máy | ❌ | 🌓 `regular_rhythm` (**shadow** — chưa kiểm chứng trên log thật) | — | — |
-| Tor exit node | ❌ | ✅ `tor_exit` (enforce, cần danh sách công khai) | — | — |
-| IP datacenter | ❌ | 🌓 `datacenter_ip` (**shadow** — dễ báo nhầm VPN doanh nghiệp) | — | — |
-| VPN thương mại | ❌ | 🌓 `vpn_ip` (**shadow**) | — | — |
-| Nguồn trong blocklist | ❌ | ✅ `blocklist_hit` (enforce, **GHI ĐÈ** điểm 100 bất kể trọng số) | — | ✅ MR16: khoá tài khoản/IP THẬT (không chỉ đề xuất), admin mở khoá qua `GET/DELETE /blocklist` |
-| Di chuyển bất khả thi | ✅ `impossible_travel` (900km/h) | ✅ `impossible_travel` (enforce) | ✅ `impossible_travel_geo` (MR18, Isolation Forest recall **63,2%**) | ✅ MR18: phát hiện bước 1/2 qua CẢ hai tầng cùng lúc |
-| Đăng nhập cùng lúc nhiều quốc gia | ❌ | ✅ `multi_context_simultaneous` (enforce, trọng số 0%, mẫu val=96) | — | bổ sung cho `impossible_travel` khi thiếu toạ độ |
-| Tài khoản bị thử nhiều quốc gia (proxy xoay) | ❌ | 🌓 `country_hop` (**shadow**, trọng số 0%) | — | — |
-| Tài khoản ngủ đông đăng nhập lại | ❌ | ✅ `dormant_account_login` (enforce, 90 ngày + đổi ngữ cảnh) | ✅ `dormant_reactivation` (MR18, Isolation Forest recall **100%**) | ✅ MR18: phát hiện bước 1/1 |
-| Proxy/IP hiếm CÙNG quốc gia | ❌ | 🌓 `rare_network_login` (**shadow**, trọng số 2,6%) | — | 🌓 MR18: **MỘT MÌNH không đủ vượt ngưỡng alert** — trả lời câu hỏi để ngỏ ở `rule-catalog.md` |
-| Mô phỏng tinh vi (không luật nào khớp rõ) | ❌ | ❌ (không có luật phù hợp) | 🌓 (chỉ tín hiệu ML yếu, không chắc phân biệt được với tài khoản mới) | 🌓 MR18 `targeted_mimic`: bị gắn cờ nhưng KHÔNG đủ tin cậy để khẳng định là phát hiện đúng kiểu — kết quả mơ hồ tự nó là phát hiện trung thực |
-| Giờ đăng nhập lạ | — (risk_score cũ CÓ, cơ chế khác) | ❌ | ✅ `unusual_hour` (recall 58,8%, lần chạy gần nhất — dao động do thiếu random seed cố định) | `ml-evaluation.md`/`model-b-geo-time.md` |
-| Vị trí lạ | — (risk_score cũ CÓ) | ❌ | ✅ `unusual_location` (recall 88,9%) | nt |
-| Thiết bị lạ | ❌ | ❌ | ✅ `unusual_device` (recall 39,1% — điểm yếu đã biết từ Tuần 7) | nt |
-| Đăng nhập dồn dập (rapid fire) | ❌ | ❌ | ✅ `rapid_fire` (**recall 0%** ở lần chạy MR18 — điểm yếu, xem giới hạn thiếu seed) | nt |
-| Chiếm tài khoản thật (ATO, dữ liệu RBA) | — | — | — (mô hình `hybrid_cp2` riêng, không phải tầng 3 demo) | ✅ **36,8%** recall @ FPR 1% (38 ca ATO tương lai thật, `ml-evaluation-v2.md`) — mô hình duy nhất có tín hiệu đáng kể là Isolation Forest không giám sát |
+Một hành vi chỉ VERIFIED khi đạt **cả năm** điều kiện:
 
-## Khoảng trống đã biết (tổng hợp từ toàn bộ MR1-18, không phải mới ở MR19)
+1. ≥ 20 kịch bản dương tính, recall ≥ 90% — "phát hiện" = có cảnh báo với `rule_id` == ĐÚNG detector (cảnh báo của
+   detector khác không được tính);
+2. ≤ 1/20 báo nhầm trên kịch bản âm tính SÁT NGƯỠNG (ngưỡng − 1, ngoài cửa sổ, người dùng thật dễ nhầm...);
+3. **0** cảnh báo của detector đó trên lưu lượng bình thường (63 người dùng × 30 ngày, 5.647 lần đăng nhập, 2.053
+   lần lịch sử — `verification/normal_traffic.py` v3, chốt trước khi đo Milestone C và không sửa sau đó);
+4. quy kết đúng ≥ 90% (mọi lần detector khớp ở chế độ enforce đều có `primary_detector` == detector đó);
+5. cảnh báo thật đi qua pipeline (`run_detection_pipeline` → rule engine → hybrid → attribution → bảng `alerts`), không
+   dùng nhãn kịch bản trong detector.
 
-Liệt kê TRUNG THỰC — đây là những gì hệ thống **chưa** làm tốt, không che giấu để báo cáo đẹp hơn:
+Luật `experimental` (chưa VERIFIED) không tự tạo cảnh báo; tạo cảnh báo không bao giờ đổi hành động `step_up`/`lock`
+(do điểm hybrid quyết định, điểm dùng mọi luật khớp kể cả `shadow`).
 
-1. **`username_enumeration` không tạo alert được trong thực tế** (MR18) dù luật tự nó khớp đúng — trọng số hybrid
-   0,05 mặc định (chưa có dữ liệu val để hiệu chỉnh) không đủ một mình, và đây là hành vi DUY NHẤT trong nhóm "đoán/dò
-   mật khẩu" không có luật tầng 1 dự phòng.
-2. **`distributed_bruteforce` có trọng số hybrid = 0,0** (mẫu val chỉ 2 dòng khi hiệu chỉnh, MR11) — một botnet dùng
-   hạ tầng CÙNG khu vực địa lý (không kích hoạt `impossible_travel` "tình cờ") nhiều khả năng không bị phát hiện.
-3. **ATO ở tài khoản CHƯA CÓ lịch sử: 0% recall ở mọi mô hình** (35% số ATO thật của RBA rơi vào nhóm này,
-   `ml-evaluation-v2.md` mục 4) — khoảng trống lớn nhất của toàn hệ thống, chưa có hướng giải quyết ngoài "cần dữ
-   liệu/luật khác".
-4. **`rapid_fire` (tầng 3) yếu** — recall 0-43% tuỳ lần chạy, luôn là một trong hai kiểu yếu nhất từ Tuần 7.
-5. **Kẻ tấn công bắt chước hoàn hảo (Targeted, cả IP)** nằm ngoài phạm vi chấm điểm theo thuộc tính đăng nhập —
-   giới hạn kiến trúc đã biết từ MR6, không phải thiếu sót có thể vá bằng tinh chỉnh.
-6. **5 luật ở chế độ `shadow`** (`regular_rhythm`, `country_hop`, `rare_network_login`, `datacenter_ip`, `vpn_ip`)
-   chưa được kiểm chứng đủ trên log thật để bật `enforce` — vẫn là bằng chứng cho hybrid nhưng không tự báo alert
-   riêng.
-7. **7/9 kịch bản MR18 không dịch được sang dữ liệu tầng 3** (không có đặc trưng IP/ASN/tốc độ ở `ml/features.py`) —
-   tầng 3 chỉ "thấy" được phần hành vi địa lý/thời gian của một cuộc tấn công, không thấy phần hạ tầng/tốc độ.
+## Bảng — 21 hành vi đo qua pipeline
 
-## Nguồn dữ liệu
+| # | Hành vi tấn công | Detector | Milestone | Trạng thái | TP/20 | FP âm tính | Recall | Quy kết | Báo nhầm lưu lượng bình thường |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | Dò mật khẩu một tài khoản | `brute_force` | baseline | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 2 | Nhồi thông tin đăng nhập | `credential_stuffing` | baseline | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 3 | Nguồn trong blocklist | `blocklist_hit` | baseline | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 4 | Di chuyển bất khả thi | `impossible_travel` | baseline | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 5 | Dò danh sách tài khoản | `username_enumeration` | A | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 6 | Rải mật khẩu chậm | `password_spray_slow` | A | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 7 | Dò mật khẩu phân tán (botnet) | `distributed_bruteforce` | A | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 8 | Thành công sau chuỗi sai | `success_after_failures` | A | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 9 | Tài khoản ngủ đông đăng nhập lại | `dormant_account_login` | A | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 10 | Tor exit node | `tor_exit` | A | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 11 | Tài khoản bị thử từ nhiều quốc gia | `country_hop` | B | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 12 | Xoay User-Agent | `ua_rotation` | B | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 13 | Client kịch bản (curl, python-requests…) | `scripted_client` | B | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 14 | Bot User-Agent | `bot_user_agent` | B | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 15 | Thiết bị lạ | `unusual_device` | B | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 |
+| 16 | Vị trí (quốc gia) lạ | `unusual_location` | C | ✅ VERIFIED | 19 | 0/20 | 0,95 | 1,00 | 0 |
+| 17 | Đăng nhập thành công dồn dập | `login_velocity_spike` | C | ✅ VERIFIED | 19 | 0/20 | 0,95 | 1,00 | 0 |
+| 18 | Giờ đăng nhập lạ | `unusual_hour` | C / C.1 | 🌓 **PARTIAL** | 20* | 0/20* | 1,00* | 1,00* | **4*** |
+| 19 | Nhịp thử đều như máy | `regular_rhythm` | C+ | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 † |
+| 20 | Nhà mạng (ASN) cực hiếm | `rare_network_login` | C+ | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 † |
+| 21 | Đăng nhập cùng lúc từ nhiều quốc gia | `multi_context_simultaneous` | C+ | ✅ VERIFIED | 20 | 0/20 | 1,00 | 1,00 | 0 † |
 
-Mọi con số trong bảng lấy TRỰC TIẾP từ tài liệu đã dẫn — không tính lại riêng cho bảng này. `[Đo được thật]` nghĩa là
-có ít nhất một lần chạy qua CHÍNH pipeline thật (không phải suy luận từ thiết kế); ô để trống (`—`) ở cột cuối nghĩa
-là cơ chế tồn tại nhưng chưa có phép đo chuyên biệt bằng kịch bản mô phỏng (khác với luật không được kích hoạt).
+"baseline" = 4 hành vi VERIFIED ở audit Phase 1, đo lại ở Milestone A. Mỗi bộ 20+20 kịch bản dùng seed cố định
+(`verification/scenarios.py`).
+
+\* `unusual_hour` vẫn `experimental` nên ở lần chạy chính thức không tự tạo cảnh báo (`unusual_hour.json` ghi recall 0 —
+do trạng thái, không phải do detector). Số có dấu \* là detector hiện tại (histogram 24 giờ, Milestone C.1) đo ở trạng
+thái ứng viên trên CÙNG bộ đánh giá ([`unusual_hour_comparison.json`](../artifacts/behavior_verification/unusual_hour_comparison.json)):
+detector 3σ cũ báo nhầm 32 lần, histogram còn **4** (cả 4 thuộc nhóm `TAIL_EXTENSION` — đăng nhập muộn hơn mọi lần trước
+2,1–4,1 giờ, [`unusual_hour_fp_analysis.json`](../artifacts/behavior_verification/unusual_hour_fp_analysis.json)) ⇒ chưa
+đạt "0 báo nhầm" ⇒ PARTIAL; không chỉnh ngưỡng để ép VERIFIED.
+
+† Lưu lượng bình thường THỬ THÁCH yếu ba detector C+ — tính thẳng từ dữ liệu sinh ra, ghi ở
+`milestone_cplus_summary.json` → `normal_traffic_exposure`:
+
+| Detector | Tình huống gần ngưỡng trong lưu lượng bình thường | Nghĩa của "0 báo nhầm" |
+|---|---|---|
+| `regular_rhythm` | 22 IP có ≥ 10 lần sai, nhưng khoảng cách trung bình nhỏ nhất trên 10 lần sai liên tiếp là 564 giây (ngưỡng 30 giây) | không có tình huống nào gần ngưỡng |
+| `rare_network_login` | chỉ 3 lần tài khoản trưởng thành đăng nhập từ nhà mạng mới với chính nó; tỉ lệ toàn hệ thống 1,96%, 5,82%, 25,9% (ngưỡng 1%) | bằng chứng yếu (3 ca, ca gần nhất cách ngưỡng ~2 lần) |
+| `multi_context_simultaneous` | 0 cặp đăng nhập thành công ở hai quốc gia trong 1 giờ | không phải bằng chứng — sức nặng nằm ở 20 kịch bản âm tính |
+
+## Quy kết khi nhiều detector cùng khớp — cross-behavior 19/19
+
+Khi nhiều detector khớp cùng một chuỗi sự kiện, cảnh báo quy cho detector đặc hiệu nhất (`attribution.PRIORITY`: đoán/dò
+mật khẩu → ngữ cảnh tài khoản → dồn dập → dấu hiệu hạ tầng/tự động hoá → hồ sơ hành vi), các detector còn lại vẫn nằm trong
+`secondary_signals` (hoặc `superseded_detectors` khi bị tiếp quản), và cả chuỗi là MỘT cảnh báo chiến dịch.
+[`cross_behavior_results.json`](../artifacts/behavior_verification/cross_behavior_results.json): 19/19 ca đúng, gồm 6 ca
+Milestone C+ (`regular_rhythm` + `scripted_client`; `brute_force` + `regular_rhythm`; `rare_network_login` +
+`unusual_location` / `unusual_device`; `impossible_travel` + `multi_context_simultaneous`; `multi_context_simultaneous` +
+`unusual_location` khi thiếu toạ độ).
+
+## Không VERIFIED / ngoài phạm vi (giữ nguyên trạng thái, không làm tiếp)
+
+| Hành vi | Trạng thái | Lý do |
+|---|---|---|
+| Giờ đăng nhập lạ (`unusual_hour`) | 🌓 PARTIAL (`experimental`) | 4 báo nhầm trên lưu lượng bình thường (mục trên) |
+| IP datacenter (`datacenter_ip`) | 🌓 SHADOW | không thuộc 3 hành vi Milestone C+ đã chọn (quyết định của người dùng) — dễ báo nhầm VPN doanh nghiệp |
+| VPN thương mại (`vpn_ip`) | 🌓 SHADOW | như trên |
+| Mô phỏng tinh vi (`targeted_mimic`, MR18) | 🌓 mơ hồ | không có luật phù hợp; chỉ tín hiệu ML yếu — cố ý giữ kết quả mơ hồ |
+| Chiếm tài khoản thật trên bộ RBA | — | đánh giá MÔ HÌNH offline, không còn chạy từ Phase 4.1 (`hybrid_cp2`: recall 36,8% @ FPR 1%, `ml-evaluation-v2.md`), không phải hành vi chạy qua pipeline |
+| Model AI bất thường (Isolation Forest, Phase 4.1) | tín hiệu bổ sung, không phải hành vi | TẮT trong mọi phép đo 20/21 ở trên (Phase 3). Bật lại trên CÙNG harness (`artifacts/ml/rule_ml_overlap.md`): 20 hành vi VERIFIED vẫn đạt; chỉ-ML 10/420 kịch bản (đều `unusual_hour`, 10/20); 49 cảnh báo chỉ-ML trên lưu lượng bình thường — [`ml-anomaly-model.md`](ml-anomaly-model.md). Tầng 3 cũ (`ml_anomaly`, mô hình B) đã gỡ |
+
+## Khoảng trống của bản MR19 — đã xử lý tới đâu
+
+1. `username_enumeration` không tạo được cảnh báo (MR18) → **đã sửa**: luật `enforce` + VERIFIED tạo cảnh báo trực tiếp
+   (`alert_reason="rule_enforced"`), không cần hạ ngưỡng điểm hybrid.
+2. `distributed_bruteforce` trọng số hybrid 0 → **VERIFIED** bằng luật xác định (trọng số giữ nguyên số đã hiệu chỉnh,
+   không sửa cho đẹp); botnet CÙNG khu vực địa lý có trong kịch bản dương tính.
+3. ATO ở tài khoản chưa có lịch sử: 0% recall → **vẫn là khoảng trống** (thuộc mô hình, ngoài phạm vi bổ sung hành vi).
+4. `rapid_fire` (tầng 3) yếu → thay bằng luật `login_velocity_spike` (**VERIFIED**).
+5. Kẻ bắt chước hoàn hảo → **vẫn là giới hạn kiến trúc**.
+6. 5 luật `shadow` → `country_hop`, `regular_rhythm`, `rare_network_login` **đã enforce + VERIFIED**; `datacenter_ip`,
+   `vpn_ip` vẫn `shadow`.
+7. Tầng 3 không thấy hạ tầng/tốc độ → không đổi (tầng 3 ngoài phạm vi Phase 3).
+
+## Giới hạn chung (đọc trước khi trích dẫn)
+
+- **Dữ liệu tổng hợp:** kịch bản và lưu lượng bình thường do chính người viết detector thiết kế, dựa trên ngưỡng đã
+  biết. VERIFIED chứng minh IMPLEMENTATION + PIPELINE + QUY KẾT đúng trên định nghĩa hành vi; KHÔNG chứng minh tỉ lệ phát
+  hiện/báo nhầm trên tấn công và người dùng thật. "0 báo nhầm" là điều kiện CẦN.
+- **Telemetry là TEST FIXTURE:** GeoIP/ASN/threat intel giả lập (dải RFC 5737, 198.18.0.0/24 cho IP GeoIP chỉ biết quốc
+  gia, ASN private). GeoIP thật (GeoLite2) và danh sách thật cũ dần theo thời gian.
+- **Không có múi giờ người dùng:** hồ sơ giờ tính theo UTC; không mô phỏng DST/đổi múi giờ.
+- **Nguồn báo nhầm thật đã biết nhưng không mô phỏng:** VPN trên một thiết bị + thiết bị khác không VPN
+  (`multi_context_simultaneous`), wifi khách sạn/nhà mạng nhỏ (`rare_network_login` ở WARM), dịch vụ cấu hình sai mật khẩu
+  thử lại đều đặn (`regular_rhythm`), IP di động CGNAT định vị sai thành phố (`impossible_travel`).
+- **`rare_network_login`:** chỉ trạng thái WARM (500–20.000 lượt thành công toàn hệ thống) được kiểm chứng bằng kịch bản;
+  MATURE (≥ 20.000) chỉ có test đơn vị.
+- **Alert tầng 1/2 cũ** (`high_risk_score`, `brute_force` tầng 1...) không đi qua gộp chiến dịch: lưu lượng bình thường
+  vẫn sinh 114 `high_risk_score` + 6 `brute_force` tầng 1 — chỉ đo, không refactor
+  ([`alert_noise_final.json`](../artifacts/behavior_verification/alert_noise_final.json)).
+
+## Tái lập
+
+```bash
+cd backend
+python -m scripts.behavior_verification                       # 21 hành vi + cross-behavior + nghiên cứu unusual_hour (~45 phút)
+python -m scripts.behavior_verification --only regular_rhythm  # một hành vi (gộp vào summary.json sẵn có)
+python -m pytest tests/behavior_detection/                     # test hành vi (dương tính, âm tính, biên, quy kết, đầu độc hồ sơ)
+```
+
+Đo một detector chưa VERIFIED ở trạng thái như sau khi nâng cấp (chỉ trong tiến trình đo, không đổi registry):
+`--candidates <rule_id>`. Số đo ứng viên trước khi nâng cấp từng luật: [`artifacts/candidates/`](../artifacts/candidates/).
+Mốc tổng hợp các milestone trước: [`artifacts/milestones/`](../artifacts/milestones/).

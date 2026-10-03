@@ -1,0 +1,81 @@
+{
+  "nature": "TỔNG HỢP — hành vi bình thường từ bộ sinh lưu lượng bình thường v3 (verification/normal_traffic.py), bất thường được chèn",
+  "seed": 41001,
+  "harness_seed_excluded": 20260302,
+  "users": 333,
+  "distinct_usernames": 367,
+  "events": 27573,
+  "successful_events": 24165,
+  "first_event": "2025-10-13T15:09:49.793918+00:00",
+  "last_event": "2026-04-01T11:15:10.934632+00:00",
+  "injected_anomaly_events": {
+    "impossible_travel": 100,
+    "login_burst": 292,
+    "new_device_and_location": 100,
+    "unusual_device": 120,
+    "unusual_hour": 120,
+    "unusual_location": 120
+  },
+  "feature_rows": 19877,
+  "feature_scope": "lần THÀNH CÔNG của hồ sơ trưởng thành (≥10 lần, ≥7 ngày)",
+  "features": [
+    "hour_deviation",
+    "is_new_location",
+    "is_new_device",
+    "log_minutes_since_last_success",
+    "logins_last_24h",
+    "log_distance_km_from_home",
+    "log_travel_speed_kmh"
+  ],
+  "feature_signature": "870bee225d73",
+  "split_rule": "theo thời gian: train < ngày 18 ≤ validation < ngày 24 ≤ test",
+  "splits": {
+    "train": {
+      "rows": 13236,
+      "anomalies": 507,
+      "by_type": {
+        "impossible_travel": 63,
+        "login_burst": 183,
+        "new_device_and_location": 63,
+        "normal": 12729,
+        "unusual_device": 68,
+        "unusual_hour": 61,
+        "unusual_location": 69
+      }
+    },
+    "validation": {
+      "rows": 3349,
+      "anomalies": 187,
+      "by_type": {
+        "impossible_travel": 13,
+        "login_burst": 77,
+        "new_device_and_location": 11,
+        "normal": 3162,
+        "unusual_device": 30,
+        "unusual_hour": 30,
+        "unusual_location": 26
+      }
+    },
+    "test": {
+      "rows": 3292,
+      "anomalies": 143,
+      "by_type": {
+        "impossible_travel": 24,
+        "login_burst": 24,
+        "new_device_and_location": 24,
+        "normal": 3149,
+        "unusual_device": 20,
+        "unusual_hour": 27,
+        "unusual_location": 24
+      }
+    }
+  },
+  "sha256": {
+    "events.csv": "2ca65dab9e09942bc12386821c79d9f7527cb44c49ec26bd287d2a9f61af0c83",
+    "labels.csv": "a7d544f08284c3926b516164f0f283d36ea648de8fff4721c3f632579008fe4a",
+    "features.csv": "1551c51feff0ca7bf4d04432ae01b74f1c711f16774c60734a01dccceeba53bb",
+    "splits/train.csv": "03b956139da4bcb7a5e9c7f2bf70109a9285a93ce5607b613d203bbae0d141a1",
+    "splits/validation.csv": "ba72be3e00dc9ab4c700cf92ca62c4a31e553fdca1a6dcdbb662a13408600ee0",
+    "splits/test.csv": "53a36efc7daabd979539b0767d3f522b61242efa796ebedbf464de67e9244bd6"
+  }
+}

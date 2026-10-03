@@ -1,0 +1,905 @@
+{
+  "generated_at": "2026-10-02T15:51:40.945588+00:00",
+  "git": {
+    "commit": "75743d8d8c365a1bf39bb1171d5447c11b1d959a",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [
+    "rare_network_login"
+  ],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "behavior": "rare_network_login",
+  "detector": "rare_network_login",
+  "status": "VERIFIED",
+  "failed_criteria": [],
+  "scenario_count": {
+    "positive": 20,
+    "negative": 20
+  },
+  "tp": 20,
+  "fp": 0,
+  "tn": 20,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "attribution_accuracy": 1.0,
+  "attribution_correct": 20,
+  "attribution_total": 20,
+  "normal_traffic_false_alerts": 0,
+  "cross_detector_alerts_in_positives": {
+    "rare_network_login": 20
+  },
+  "alert_noise_positive_scenarios": {
+    "total_alerts": 20,
+    "detection_alerts": 20,
+    "legacy_alerts": 0,
+    "secondary_signals": 31,
+    "duplicate_suppressed": 0,
+    "superseded_detectors": 0,
+    "campaigns": 20,
+    "alerts_per_attack_campaign": 1.0,
+    "all_alert_rows_per_attack_campaign": 1.0
+  },
+  "example_alert": {
+    "id": 1,
+    "login_event_id": 1344,
+    "user_id": 34,
+    "alert_type": "hybrid_risk",
+    "rule_id": "rare_network_login",
+    "severity": "medium",
+    "risk_score": 10,
+    "message": "[rare_network_login] Tài khoản 'alice' đăng nhập từ nhà mạng AS64530 chưa từng dùng (2 nhà mạng quen) và hiếm toàn hệ thống: 1/1,344 lượt thành công (0.07%; ngưỡng 1%). Hybrid risk engine: điểm 10/100, đề xuất 'allow' — Tài khoản 'alice' đăng nhập thành công từ quốc gia chưa từng thấy JP (Tokyo); lịch sử: VN qua 15 lần trong 15 ngày. (5%); Tài khoản 'alice' đăng nhập từ nhà mạng AS64530 chưa từng dùng (2 nhà mạng quen) và hiếm toàn hệ thống: 1/1,344 lượt thành công (0.07%; ngưỡng 1%). (5%). Lần đầu quốc gia này (JP), trước đó dùng VN 15 lần. Họ tấn công gợi ý: Ngữ cảnh tài khoản (5%).",
+    "explanation": {
+      "contributions": [
+        {
+          "source": "unusual_location",
+          "label": "Tài khoản 'alice' đăng nhập thành công từ quốc gia chưa từng thấy JP (Tokyo); lịch sử: VN qua 15 lần trong 15 ngày.",
+          "weight": 0.05,
+          "group": "rule"
+        },
+        {
+          "source": "rare_network_login",
+          "label": "Tài khoản 'alice' đăng nhập từ nhà mạng AS64530 chưa từng dùng (2 nhà mạng quen) và hiếm toàn hệ thống: 1/1,344 lượt thành công (0.07%; ngưỡng 1%).",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "action": "allow",
+      "behavior": "rare_network_login",
+      "primary_detector": "rare_network_login",
+      "matched_rules": [
+        "unusual_location",
+        "rare_network_login"
+      ],
+      "secondary_signals": [
+        "unusual_location"
+      ],
+      "enforced_rules": [
+        "unusual_location",
+        "rare_network_login"
+      ],
+      "standalone_rules": [
+        "unusual_location",
+        "rare_network_login"
+      ],
+      "experimental_rules": [],
+      "shadow_rules": [],
+      "contributing_rules": [
+        {
+          "rule": "unusual_location",
+          "weight": 0.05,
+          "group": "rule"
+        },
+        {
+          "rule": "rare_network_login",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "risk_score": 10,
+      "ml_probability": null,
+      "alert_reason": "rule_enforced",
+      "evidence": {
+        "asn": 64530,
+        "asn_successes": 1,
+        "total_successes": 1344,
+        "share": 0.000744047619047619,
+        "never_seen": false,
+        "data_state": "WARM",
+        "share_threshold": 0.01,
+        "known_asns": [
+          64512,
+          64513
+        ],
+        "new_for_account": true,
+        "successful_login_count": 15,
+        "profile_age_days": 15.1
+      },
+      "superseded_detectors": [],
+      "consolidated_events": 1,
+      "telemetry_gaps": []
+    },
+    "occurrence_count": 1
+  },
+  "scenarios": [
+    {
+      "kind": "positive",
+      "variant": "JP dân cư (64530), nền 1328 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "US dân cư (64523), nền 1222 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "US dân cư (64523), nền 925 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "NL datacenter (64521), nền 573 lượt, ASN chiếm ~0.4%",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "SG VPN (64522), nền 967 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "VN Đà Nẵng (ASN 64515, cùng quốc gia), nền 2356 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "JP dân cư (64530), nền 1295 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "NL datacenter (64521), nền 1958 lượt, ASN chiếm ~0.6%",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 3,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "SG VPN (64522), nền 1607 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "FR dân cư (64531), nền 1821 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "US dân cư (64523), nền 2082 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "US dân cư (64523), nền 2259 lượt, ASN chiếm ~0.5%",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "FR dân cư (64531), nền 857 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "NL datacenter (64521), nền 880 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "BR dân cư (64532), nền 735 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "FR dân cư (64531), nền 1457 lượt, ASN chiếm ~0.5%",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "US dân cư (64523), nền 1947 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "NL datacenter (64521), nền 1026 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "JP dân cư (64530), nền 2127 lượt, ASN chưa ai dùng",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "VN Đà Nẵng (ASN 64515, cùng quốc gia), nền 1998 lượt, ASN chiếm ~0.5%",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "rare_network_login": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "BR dân cư (64532): hiếm toàn hệ thống nhưng tài khoản đã từng dùng",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "nhà mạng mới với tài khoản nhưng phổ biến (HCM/NAT văn phòng)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "NL datacenter (64521): mới với tài khoản, chiếm ~1.3% (> 1%)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_location": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "NL datacenter (64521): COLD_START (nền 379 lượt < 500)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_location": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 2,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "US dân cư (64523): tài khoản mới (< 10 lần / < 7 ngày)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "SG VPN (64522): chỉ thử SAI",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "IP không có trong GeoIP/ASN (thiếu telemetry)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "VN Đà Nẵng (ASN 64515, cùng quốc gia): hiếm toàn hệ thống nhưng tài khoản đã từng dùng",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "nhà mạng mới với tài khoản nhưng phổ biến (HCM/NAT văn phòng)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "FR dân cư (64531): mới với tài khoản, chiếm ~2.1% (> 1%)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_location": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "SG VPN (64522): COLD_START (nền 250 lượt < 500)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_location": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "VN Đà Nẵng (ASN 64515, cùng quốc gia): tài khoản mới (< 10 lần / < 7 ngày)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "FR dân cư (64531): chỉ thử SAI",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "IP không có trong GeoIP/ASN (thiếu telemetry)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "JP dân cư (64530): hiếm toàn hệ thống nhưng tài khoản đã từng dùng",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "nhà mạng mới với tài khoản nhưng phổ biến (HCM/NAT văn phòng)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "US dân cư (64523): mới với tài khoản, chiếm ~1.9% (> 1%)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "unusual_location": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "VN Đà Nẵng (ASN 64515, cùng quốc gia): COLD_START (nền 418 lượt < 500)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "SG VPN (64522): tài khoản mới (< 10 lần / < 7 ngày)",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "VN Đà Nẵng (ASN 64515, cùng quốc gia): chỉ thử SAI",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    }
+  ]
+}

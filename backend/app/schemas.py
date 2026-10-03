@@ -22,6 +22,10 @@ class LoginResponse(BaseModel):
     demo_otp_code: str | None = None
     # MR16 — tài khoản hoặc IP đang bị khoá tạm (Blocklist, app/detection/engine/intel.py).
     locked: bool = False
+    # Trang đăng nhập GỘP: cùng một form cho cả người dùng web app mẫu lẫn quản trị viên — backend tự phân quyền theo
+    # tài khoản. `role="admin"` kèm `access_token` (JWT như POST /admin/login) để frontend chuyển thẳng vào /dashboard.
+    role: str = "user"
+    access_token: str | None = None
 
 
 class OtpVerifyRequest(BaseModel):
@@ -65,6 +69,13 @@ class LoginEventOut(BaseModel):
     device_type: str | None = None
     hybrid_risk_score: int | None = None
     hybrid_action: str | None = None
+
+    # Phase 4.1: model bất thường (app/detection/ml_runtime.py) — giá trị THẬT ghi lúc chấm, NULL = không có điểm
+    # (model chưa nạp hoặc lần thử ngoài phạm vi chấm — lý do ở ml_details.reason)
+    ml_is_anomaly: bool | None = None
+    ml_threshold: float | None = None
+    ml_model_version: str | None = None
+    ml_details: dict | None = None
 
 
 class PaginatedLoginEvents(BaseModel):

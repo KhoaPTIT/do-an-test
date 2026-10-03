@@ -12,7 +12,7 @@ Dùng:
 Danh mục luật (tự sinh từ sổ đăng ký): docs/rule-catalog.md.
 """
 
-from app.detection.engine import rules_auth, rules_automation, rules_context, rules_reputation  # noqa: F401 — nạp module để các luật tự đăng ký vào REGISTRY
+from app.detection.engine import rules_auth, rules_automation, rules_behavior, rules_context, rules_reputation  # noqa: F401 — nạp module để các luật tự đăng ký vào REGISTRY
 from app.detection.engine.context import MemoryGlobalStats, MemoryHistory
 from app.detection.engine.engine import RuleEngine
 from app.detection.engine.intel import Blocklist, CidrSet, ThreatIntel

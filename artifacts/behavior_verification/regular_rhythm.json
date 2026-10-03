@@ -1,0 +1,914 @@
+{
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
+  "git": {
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "behavior": "regular_rhythm",
+  "detector": "regular_rhythm",
+  "status": "VERIFIED",
+  "failed_criteria": [],
+  "scenario_count": {
+    "positive": 20,
+    "negative": 20
+  },
+  "tp": 20,
+  "fp": 0,
+  "tn": 20,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "attribution_accuracy": 1.0,
+  "attribution_correct": 20,
+  "attribution_total": 20,
+  "normal_traffic_false_alerts": 0,
+  "cross_detector_alerts_in_positives": {
+    "regular_rhythm": 20
+  },
+  "alert_noise_positive_scenarios": {
+    "total_alerts": 20,
+    "detection_alerts": 20,
+    "legacy_alerts": 0,
+    "secondary_signals": 2,
+    "duplicate_suppressed": 42,
+    "superseded_detectors": 2,
+    "campaigns": 20,
+    "alerts_per_attack_campaign": 1.0,
+    "all_alert_rows_per_attack_campaign": 1.0
+  },
+  "example_alert": {
+    "id": 1,
+    "login_event_id": 10,
+    "user_id": 1,
+    "alert_type": "hybrid_risk",
+    "rule_id": "regular_rhythm",
+    "severity": "medium",
+    "risk_score": 10,
+    "message": "[machine_like_timing] IP 203.0.113.11: 10 lần sai gần nhất cách nhau đều ~2.84s (lệch 0%) — nhịp của máy. Hybrid risk engine: điểm 10/100, đề xuất 'allow' — Client kịch bản/công cụ 'python-requests': python-requests/2.31.0. (5%); IP 203.0.113.11: 10 lần sai gần nhất cách nhau đều ~2.84s (lệch 0%) — nhịp của máy. (5%). Lần đầu quốc gia này (JP), trước đó dùng VN 3 lần. Họ tấn công gợi ý: Tự động hoá (5%). Đã lặp lại 12 lần trong 15 phút gần đây.",
+    "explanation": {
+      "contributions": [
+        {
+          "source": "scripted_client",
+          "label": "Client kịch bản/công cụ 'python-requests': python-requests/2.31.0.",
+          "weight": 0.05,
+          "group": "rule"
+        },
+        {
+          "source": "regular_rhythm",
+          "label": "IP 203.0.113.11: 10 lần sai gần nhất cách nhau đều ~2.84s (lệch 0%) — nhịp của máy.",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "action": "allow",
+      "behavior": "machine_like_timing",
+      "primary_detector": "regular_rhythm",
+      "matched_rules": [
+        "scripted_client",
+        "regular_rhythm"
+      ],
+      "secondary_signals": [
+        "scripted_client"
+      ],
+      "enforced_rules": [
+        "scripted_client",
+        "regular_rhythm"
+      ],
+      "standalone_rules": [
+        "scripted_client",
+        "regular_rhythm"
+      ],
+      "experimental_rules": [],
+      "shadow_rules": [],
+      "contributing_rules": [
+        {
+          "rule": "scripted_client",
+          "weight": 0.05,
+          "group": "rule"
+        },
+        {
+          "rule": "regular_rhythm",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "risk_score": 10,
+      "ml_probability": null,
+      "alert_reason": "rule_enforced",
+      "evidence": {
+        "ip": "203.0.113.11",
+        "samples": 10,
+        "mean_interval_s": 2.842,
+        "cv": 0.002
+      },
+      "superseded_detectors": [
+        "scripted_client"
+      ],
+      "consolidated_events": 12,
+      "telemetry_gaps": []
+    },
+    "occurrence_count": 12
+  },
+  "scenarios": [
+    {
+      "kind": "positive",
+      "variant": "12 lần sai cách đều ~2.8s (±0%), 3 tài khoản",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 11,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai cách đều ~15.5s (±4%), 3 tài khoản (không tồn tại)",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "11 lần sai cách đều ~4.9s (±12%), 3 tài khoản (không tồn tại)",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12 lần sai cách đều ~23.5s (±8%), 3 tài khoản (không tồn tại)",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "11 lần sai cách đều ~6.2s (±2%), 3 tài khoản (không tồn tại)",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "11 lần sai cách đều ~18.1s (±4%), 3 tài khoản",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai cách đều ~18.9s (±1%), 3 tài khoản",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12 lần sai cách đều ~18.3s (±7%), 3 tài khoản (không tồn tại)",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12 lần sai cách đều ~7.7s (±7%), 3 tài khoản (không tồn tại)",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 11,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai cách đều ~21.4s (±4%), 3 tài khoản (không tồn tại)",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai cách đều ~18.8s (±11%), 3 tài khoản (không tồn tại)",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai cách đều ~16.1s (±10%), 3 tài khoản (không tồn tại)",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "14 lần sai cách đều ~14.3s (±6%), 4 tài khoản",
+      "steps": 14,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai cách đều ~9.9s (±5%), 3 tài khoản",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai cách đều ~15.1s (±7%), 3 tài khoản",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "11 lần sai cách đều ~14.8s (±4%), 3 tài khoản (không tồn tại)",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai cách đều ~12.9s (±11%), 3 tài khoản",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai cách đều ~8.5s (±9%), 3 tài khoản (không tồn tại)",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12 lần sai cách đều ~19.9s (±2%), 4 tài khoản (không tồn tại)",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "16 lần sai cách đều ~10.0s (±12%), 4 tài khoản (không tồn tại)",
+      "steps": 16,
+      "detected": true,
+      "attribution_events": 7,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "regular_rhythm": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 6,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "12 lần sai, khoảng cách ngẫu nhiên kiểu người (TB 17s, CV≈0,6)",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "12 lần sai đều nhưng chậm (~38s > 30s)",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "9 lần sai cách đều 11s (ngưỡng − 1)",
+      "steps": 9,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "NAT văn phòng: 8 nhân viên gõ sai 1–2 lần rồi đúng",
+      "steps": 21,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "credential_stuffing": 1
+      },
+      "legacy_alerts": {
+        "credential_stuffing": 3
+      },
+      "noise": {
+        "total_alerts": 4,
+        "detection_alerts": 1,
+        "legacy_alerts": 3,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 4 lần rồi đúng",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      },
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 0,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "ứng dụng di động thử lại mật khẩu cũ, backoff luỹ thừa (10 lần)",
+      "steps": 10,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 4
+      },
+      "noise": {
+        "total_alerts": 9,
+        "detection_alerts": 1,
+        "legacy_alerts": 8,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "12 lần sai, khoảng cách ngẫu nhiên kiểu người (TB 18s, CV≈0,6)",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "12 lần sai đều nhưng chậm (~54s > 30s)",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "9 lần sai cách đều 14s (ngưỡng − 1)",
+      "steps": 9,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "NAT văn phòng: 12 nhân viên gõ sai 1–2 lần rồi đúng",
+      "steps": 29,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 4 lần rồi đúng",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      },
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 0,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "ứng dụng di động thử lại mật khẩu cũ, backoff luỹ thừa (10 lần)",
+      "steps": 10,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 3,
+        "high_risk_score": 3
+      },
+      "noise": {
+        "total_alerts": 7,
+        "detection_alerts": 1,
+        "legacy_alerts": 6,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "12 lần sai, khoảng cách ngẫu nhiên kiểu người (TB 12s, CV≈0,6)",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "12 lần sai đều nhưng chậm (~56s > 30s)",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "9 lần sai cách đều 20s (ngưỡng − 1)",
+      "steps": 9,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "NAT văn phòng: 9 nhân viên gõ sai 1–2 lần rồi đúng",
+      "steps": 23,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "credential_stuffing": 1
+      },
+      "legacy_alerts": {
+        "credential_stuffing": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 3 lần rồi đúng",
+      "steps": 4,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      },
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 0,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "ứng dụng di động thử lại mật khẩu cũ, backoff luỹ thừa (10 lần)",
+      "steps": 10,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "brute_force": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 4,
+        "high_risk_score": 4
+      },
+      "noise": {
+        "total_alerts": 9,
+        "detection_alerts": 1,
+        "legacy_alerts": 8,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "12 lần sai, khoảng cách ngẫu nhiên kiểu người (TB 12s, CV≈0,6)",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "12 lần sai đều nhưng chậm (~51s > 30s)",
+      "steps": 12,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    }
+  ]
+}

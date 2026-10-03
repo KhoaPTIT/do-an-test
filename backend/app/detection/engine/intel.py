@@ -21,6 +21,9 @@ from app.detection.engine.types import LoginAttempt
 
 DEFAULT_DIR = Path(__file__).resolve().parents[3] / "threat_intel"
 TOR_FILE, DATACENTER_FILE, VPN_FILE = "tor_exit_ips.txt", "datacenter_cidrs.txt", "vpn_cidrs.txt"
+# Tệp đánh dấu loại dữ liệu trong thư mục danh sách — để trạng thái/log nói rõ đang chạy bằng DỮ LIỆU DEMO hay FIXTURE
+# kiểm thử (không phải threat intelligence thật). Thư mục không có tệp nào trong hai tệp này = dữ liệu thật (runtime).
+DEMO_MARKER, FIXTURE_MARKER = "DEMO_DATA.txt", "TEST_FIXTURE.txt"
 
 
 class CidrSet:
@@ -66,6 +69,8 @@ class ThreatIntel:
     vpn: CidrSet = field(default_factory=CidrSet)
     loaded: dict[str, bool] = field(default_factory=lambda: {"tor": False, "datacenter": False, "vpn": False})
     fetched_at: datetime | None = None  # thời điểm tải bản mới nhất (từ sources.json), nếu có
+    source_dir: str | None = None
+    data_kind: str = "none"  # none (chưa nạp gì) | real | demo | fixture
 
     @classmethod
     def load(cls, directory: Path | str | None = None) -> "ThreatIntel":
@@ -85,7 +90,19 @@ class ThreatIntel:
             vpn=CidrSet(vpn or ()),
             loaded={"tor": tor is not None, "datacenter": datacenter is not None, "vpn": vpn is not None},
             fetched_at=fetched_at,
+            source_dir=str(folder),
+            data_kind=cls._kind_of(folder, any(x is not None for x in (tor, datacenter, vpn))),
         )
+
+    @staticmethod
+    def _kind_of(folder: Path, any_loaded: bool) -> str:
+        if not any_loaded:
+            return "none"
+        if (folder / FIXTURE_MARKER).is_file():
+            return "fixture"
+        if (folder / DEMO_MARKER).is_file():
+            return "demo"
+        return "real"
 
     def is_tor(self, ip: str) -> bool:
         return ip in self.tor
@@ -101,6 +118,8 @@ class ThreatIntel:
             "loaded": dict(self.loaded),
             "entries": {"tor": len(self.tor), "datacenter": len(self.datacenter), "vpn": len(self.vpn)},
             "fetched_at": None if self.fetched_at is None else self.fetched_at.isoformat(),
+            "source_dir": self.source_dir,
+            "data_kind": self.data_kind,
         }
 
 

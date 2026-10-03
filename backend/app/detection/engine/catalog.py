@@ -71,13 +71,13 @@ def render(registry: Mapping[str, RuleSpec] | None = None) -> str:
         f"**{len(specs)} luật** trong {len(by_category)} nhóm; {len(specs) - len(shadow)} luật mặc định ở chế độ `enforce`, {len(shadow)} ở chế độ `shadow` "
         f"({', '.join(f'`{i}`' for i in shadow)}) vì chưa được kiểm chứng trên log thật hoặc dễ báo nhầm.",
         "",
-        "| Mã | Tên | Nhóm | Mức | Chế độ mặc định | MITRE ATT&CK |",
-        "|---|---|---|---|---|---|",
+        "| Mã | Tên | Nhóm | Mức | Chế độ mặc định | Kiểm chứng | MITRE ATT&CK |",
+        "|---|---|---|---|---|---|---|",
     ]
     for category in CATEGORIES:
         for spec in by_category.get(category, []):
             techniques = ", ".join(spec.techniques) if spec.techniques else "—"
-            lines.append(f"| [`{spec.id}`](#{spec.id}) | {spec.title} | {spec.category} | {SEVERITY_VI[spec.severity]} | {spec.default_mode} | {techniques} |")
+            lines.append(f"| [`{spec.id}`](#{spec.id}) | {spec.title} | {spec.category} | {SEVERITY_VI[spec.severity]} | {spec.default_mode} | {spec.verification} | {techniques} |")
 
     lines += [
         "",
@@ -87,6 +87,7 @@ def render(registry: Mapping[str, RuleSpec] | None = None) -> str:
         "- **Thời gian là thời gian của sự kiện**, không phải giờ hệ thống: replay log năm 2020 cho đúng kết quả của năm 2020. Cửa sổ là (đầu, hiện tại] — sự kiện đúng bằng đầu cửa sổ không được tính.",
         "- **Trạng thái cửa sổ thời gian** (đếm lần sai, đếm tên/IP/User-Agent khác nhau...) nằm ở `WindowStore`: `MemoryStore` cho replay và test, `RedisStore` cho luồng thật; một bộ test chung chứng minh hai cài đặt cùng hợp đồng và cho cùng kết quả trên lưu lượng ngẫu nhiên. Chi phí mỗi sự kiện bị chặn bởi ngưỡng, không tăng theo độ dài cửa sổ.",
         "- **Ba chế độ** cho mỗi luật: `enforce` (khớp thì tạo cảnh báo), `shadow` (vẫn chạy và ghi nhận để đo tỉ lệ khớp/báo nhầm nhưng KHÔNG tạo cảnh báo), `off` (không chạy).",
+        "- **Kiểm chứng** (Phase 3): chỉ luật `enforce` + `verified` (đã qua `scripts/behavior_verification.py`, bằng chứng ở `artifacts/behavior_verification/`) TỰ tạo cảnh báo; luật `experimental` vẫn chạy, ghi `matched_rules`/`secondary_signals` và góp điểm hybrid nhưng không tự cảnh báo. Không luật nào tự step_up/lock — hành động do điểm hybrid quyết định.",
         "- **Thiếu dữ liệu ≠ báo động:** luật cần dữ liệu mà lần thử không có (ví dụ chưa có file GeoLite2-ASN) bị **bỏ qua** và `Evaluation.skipped` ghi lý do; luật gặp lỗi được ghi ở `Evaluation.errors` và không ảnh hưởng luật khác hay luồng đăng nhập.",
         "- **Thông điệp** ngắn tiếng Việt cùng phong cách chuỗi cảnh báo hiện có; ba luật gốc (`brute_force`, `credential_stuffing`, `impossible_travel`) giữ đúng chuỗi và ngưỡng mặc định của luật tầng 1 cũ.",
         "- ⚠️ Ánh xạ MITRE ATT&CK là **gần đúng**: ATT&CK mô tả kỹ thuật của kẻ tấn công, còn luật nhận diện dấu hiệu của chúng trong log đăng nhập.",

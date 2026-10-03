@@ -1,0 +1,897 @@
+{
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
+  "git": {
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "behavior": "distributed_bruteforce",
+  "detector": "distributed_bruteforce",
+  "status": "VERIFIED",
+  "failed_criteria": [],
+  "scenario_count": {
+    "positive": 20,
+    "negative": 20
+  },
+  "tp": 20,
+  "fp": 0,
+  "tn": 20,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "attribution_accuracy": 1.0,
+  "attribution_correct": 20,
+  "attribution_total": 20,
+  "normal_traffic_false_alerts": 0,
+  "cross_detector_alerts_in_positives": {
+    "distributed_bruteforce": 20
+  },
+  "alert_noise_positive_scenarios": {
+    "total_alerts": 126,
+    "detection_alerts": 20,
+    "legacy_alerts": 106,
+    "secondary_signals": 8,
+    "duplicate_suppressed": 73,
+    "superseded_detectors": 8,
+    "campaigns": 20,
+    "alerts_per_attack_campaign": 1.0,
+    "all_alert_rows_per_attack_campaign": 6.3
+  },
+  "example_alert": {
+    "id": 1,
+    "login_event_id": 15,
+    "user_id": 1,
+    "alert_type": "hybrid_risk",
+    "rule_id": "distributed_bruteforce",
+    "severity": "high",
+    "risk_score": 5,
+    "message": "[distributed_brute_force] Tài khoản 'victim' bị 13 lần sai từ 5 IP khác nhau/60 phút (dò phân tán; ngưỡng 5 IP / 8 lần). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Tài khoản 'victim' bị 13 lần sai từ 5 IP khác nhau/60 phút (dò phân tán; ngưỡng 5 IP / 8 lần). (5%). Lần đầu thiết bị này (di động). Họ tấn công gợi ý: Đoán và dò mật khẩu (5%). Đã lặp lại 6 lần trong 15 phút gần đây.",
+    "explanation": {
+      "contributions": [
+        {
+          "source": "distributed_bruteforce",
+          "label": "Tài khoản 'victim' bị 13 lần sai từ 5 IP khác nhau/60 phút (dò phân tán; ngưỡng 5 IP / 8 lần).",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "action": "allow",
+      "behavior": "distributed_brute_force",
+      "primary_detector": "distributed_bruteforce",
+      "matched_rules": [
+        "distributed_bruteforce"
+      ],
+      "secondary_signals": [],
+      "enforced_rules": [
+        "distributed_bruteforce"
+      ],
+      "standalone_rules": [
+        "distributed_bruteforce"
+      ],
+      "experimental_rules": [],
+      "shadow_rules": [],
+      "contributing_rules": [
+        {
+          "rule": "distributed_bruteforce",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "risk_score": 5,
+      "ml_probability": null,
+      "alert_reason": "rule_enforced",
+      "evidence": {
+        "username": "victim",
+        "fails": 13,
+        "distinct_ips": 5,
+        "window_s": 3600
+      },
+      "superseded_detectors": [],
+      "consolidated_events": 6,
+      "telemetry_gaps": []
+    },
+    "occurrence_count": 6
+  },
+  "scenarios": [
+    {
+      "kind": "positive",
+      "variant": "13 lần sai từ 5 IP cùng khu vực, cách 93s",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "13 lần sai từ 8 IP cùng khu vực, cách 25s (nhanh: brute_force cũng khớp)",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 9,
+        "high_risk_score": 9
+      },
+      "noise": {
+        "total_alerts": 19,
+        "detection_alerts": 1,
+        "legacy_alerts": 18,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 8,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai từ 9 IP cùng khu vực, cách 17s (nhanh: brute_force cũng khớp)",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 5
+      },
+      "noise": {
+        "total_alerts": 11,
+        "detection_alerts": 1,
+        "legacy_alerts": 10,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai từ 7 IP cùng khu vực, cách 22s (nhanh: brute_force cũng khớp)",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 5
+      },
+      "noise": {
+        "total_alerts": 11,
+        "detection_alerts": 1,
+        "legacy_alerts": 10,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai từ 5 IP cùng khu vực, cách 196s",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai từ 6 IP cùng khu vực, cách 246s",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "11 lần sai từ 7 IP cùng khu vực, cách 160s",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12 lần sai từ 11 IP cùng khu vực, cách 127s",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai từ 5 IP cùng khu vực, cách 180s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12 lần sai từ 6 IP cùng khu vực, cách 123s",
+      "steps": 12,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "13 lần sai từ 12 IP cùng khu vực, cách 25s (nhanh: brute_force cũng khớp)",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 9,
+        "high_risk_score": 9
+      },
+      "noise": {
+        "total_alerts": 19,
+        "detection_alerts": 1,
+        "legacy_alerts": 18,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 8,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai từ 10 IP cùng khu vực, cách 37s (nhanh: brute_force cũng khớp)",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 6,
+        "high_risk_score": 6
+      },
+      "noise": {
+        "total_alerts": 13,
+        "detection_alerts": 1,
+        "legacy_alerts": 12,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "13 lần sai từ 8 IP cùng khu vực, cách 23s (nhanh: brute_force cũng khớp)",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 9,
+        "high_risk_score": 9
+      },
+      "noise": {
+        "total_alerts": 19,
+        "detection_alerts": 1,
+        "legacy_alerts": 18,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 8,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "11 lần sai từ 9 IP cùng khu vực, cách 245s",
+      "steps": 11,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "10 lần sai từ 8 IP cùng khu vực, cách 150s",
+      "steps": 10,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai từ 7 IP cùng khu vực, cách 20s (nhanh: brute_force cũng khớp)",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 5
+      },
+      "noise": {
+        "total_alerts": 11,
+        "detection_alerts": 1,
+        "legacy_alerts": 10,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "13 lần sai từ 9 IP cùng khu vực, cách 234s",
+      "steps": 13,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai từ 8 IP cùng khu vực, cách 224s",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai từ 8 IP cùng khu vực, cách 85s",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9 lần sai từ 6 IP cùng khu vực, cách 39s (nhanh: brute_force cũng khớp)",
+      "steps": 9,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "distributed_bruteforce": 1
+      },
+      "legacy_alerts": {
+        "brute_force": 5,
+        "high_risk_score": 5
+      },
+      "noise": {
+        "total_alerts": 11,
+        "detection_alerts": 1,
+        "legacy_alerts": 10,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần sai từ nhiều IP (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai nhưng chỉ 4 IP",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 2 lần (nhà + di động) rồi đúng",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai từ 8 IP, cách 23 phút (vượt cửa sổ 1h)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần sai từ nhiều IP (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "10 lần sai nhưng chỉ 4 IP",
+      "steps": 10,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 3 lần (nhà + di động) rồi đúng",
+      "steps": 4,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      },
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 0,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai từ 8 IP, cách 24 phút (vượt cửa sổ 1h)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần sai từ nhiều IP (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "10 lần sai nhưng chỉ 4 IP",
+      "steps": 10,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 3 lần (nhà + di động) rồi đúng",
+      "steps": 4,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      },
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 0,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai từ 8 IP, cách 23 phút (vượt cửa sổ 1h)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần sai từ nhiều IP (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai nhưng chỉ 4 IP",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 2 lần (nhà + di động) rồi đúng",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai từ 8 IP, cách 24 phút (vượt cửa sổ 1h)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần sai từ nhiều IP (ngưỡng − 1)",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai nhưng chỉ 4 IP",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "chủ tài khoản gõ sai 3 lần (nhà + di động) rồi đúng",
+      "steps": 4,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {
+        "high_risk_score": 1
+      },
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 0,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần sai từ 8 IP, cách 24 phút (vượt cửa sổ 1h)",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    }
+  ]
+}

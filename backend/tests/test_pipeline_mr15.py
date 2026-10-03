@@ -33,9 +33,9 @@ def _spy_on_evaluate(monkeypatch):
     original = engine.evaluate
     captured = {}
 
-    def spy(features, hits, *, bands=None):
+    def spy(ml_prediction, hits, *, bands=None):  # Phase 4.1: đối số đầu là MLPrediction (trước đây đặc trưng RBA)
         captured["bands"] = bands
-        return original(features, hits, bands=bands)
+        return original(ml_prediction, hits, bands=bands)
 
     monkeypatch.setattr(engine, "evaluate", spy)
     return captured

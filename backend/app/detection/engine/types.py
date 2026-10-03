@@ -27,6 +27,16 @@ def ua_hash(user_agent: str | None) -> str:
     return hashlib.sha1(user_agent.encode("utf-8")).hexdigest()[:12] if user_agent else ""
 
 
+def device_family_of(user_agent: str | None, device_type: str | None, os: str | None, browser: str | None) -> str:
+    """Khoá họ thiết bị dùng chung cho `LoginAttempt` và lịch sử dựng từ DB (cùng `parse_user_agent`). Không nhận ra cả HĐH
+    lẫn trình duyệt thì không chuẩn hoá được: dùng chính chuỗi UA (băm) làm họ riêng. Rỗng nếu không có UA."""
+    if not user_agent:
+        return ""
+    if not os and not browser:
+        return f"raw:{ua_hash(user_agent)}"
+    return f"{device_type or 'unknown'}|{os or '?'}|{browser or '?'}"
+
+
 @dataclass(frozen=True)
 class LoginAttempt:
     """MỘT lần thử đăng nhập — đầu vào duy nhất của mọi luật."""
@@ -56,6 +66,12 @@ class LoginAttempt:
     def ua_hash(self) -> str:
         """Dấu vân tay ngắn của chuỗi User-Agent (rỗng nếu thiếu UA) — dùng để đếm UA khác nhau. Tính một lần cho mỗi lần thử."""
         return ua_hash(self.user_agent)
+
+    @property
+    def device_family(self) -> str:
+        """Định danh thiết bị CHUẨN HOÁ (loại thiết bị | hệ điều hành | trình duyệt), BỎ phiên bản: Chrome 120 và Chrome 121
+        trên cùng Windows là CÙNG một họ. Rỗng nếu không có User-Agent (xem `device_family_of`)."""
+        return device_family_of(self.user_agent, self.device_type, self.os, self.browser)
 
     @property
     def has_geo(self) -> bool:
@@ -99,6 +115,9 @@ class LoginAttempt:
         )
 
 
+VELOCITY_WINDOW_S = 600.0  # cửa sổ của login_velocity_spike — đỉnh lịch sử (`peak_success_in_window`) đo trên CÙNG cửa sổ này
+
+
 @dataclass(slots=True)  # slots: replay giữ hàng triệu tài khoản, bỏ `__dict__` từng đối tượng tiết kiệm hàng trăm MB
 class AccountHistory:
     """Quá khứ của một tài khoản mà luật cần: dựng từ DB ở luồng thật, từ luồng sự kiện đã phát ở replay."""
@@ -107,6 +126,85 @@ class AccountHistory:
     last_event_lat: float | None = None
     last_event_lon: float | None = None
     last_success_ts: float | None = None  # lần THÀNH CÔNG gần nhất — cho tài khoản ngủ đông
+    # Toạ độ của lần THÀNH CÔNG gần nhất — cho impossible travel (Phase 3: chỉ tính THÀNH CÔNG → THÀNH CÔNG; một lần
+    # thử sai từ nơi xa không chứng minh chủ tài khoản đã ở đó). Để CUỐI lớp: không đổi thứ tự các trường sẵn có.
+    last_success_lat: float | None = None
+    last_success_lon: float | None = None
+    # Hồ sơ hành vi (Milestone B, `unusual_device`): lần thành công ĐẦU TIÊN và các HỌ thiết bị chuẩn hoá đã từng đăng
+    # nhập thành công (`device_family_of` — bỏ phiên bản trình duyệt), kèm thời điểm thấy lần đầu của từng họ.
+    first_success_ts: float | None = None
+    known_device_families: tuple[str, ...] = ()
+    device_family_first_seen: tuple[float, ...] = ()  # song song với known_device_families
+    # Milestone C — cùng hồ sơ hành vi, CHỈ học từ lần THÀNH CÔNG (`record_success`; lần thất bại không bao giờ chạm vào
+    # đây — chống đầu độc hồ sơ): giờ đăng nhập dạng thống kê vòng tròn (tổng sin/cos, O(1) bộ nhớ mỗi tài khoản), các vị
+    # trí "quốc gia|thành phố" kèm số lần/thấy lần đầu/thấy lần cuối, và đỉnh số lần thành công trong cửa sổ vận tốc.
+    hour_sin_sum: float = 0.0
+    hour_cos_sum: float = 0.0
+    # Milestone C.1 — histogram giờ (24 ô theo giờ UTC) của các lần THÀNH CÔNG; () = chưa có lần nào (tiết kiệm bộ nhớ ở replay)
+    hour_counts: tuple[int, ...] = ()
+    # Milestone C+ — các ASN (nhà mạng) mà tài khoản đã từng đăng nhập THÀNH CÔNG (cho `rare_network_login` ở trạng thái WARM)
+    known_asns: tuple[int, ...] = ()
+    known_locations: tuple[str, ...] = ()
+    location_counts: tuple[int, ...] = ()
+    location_first_seen: tuple[float, ...] = ()
+    location_last_seen: tuple[float, ...] = ()
+    first_location: str | None = None
+    recent_success_ts: tuple[float, ...] = ()  # các lần thành công trong VELOCITY_WINDOW_S gần nhất (để tính đỉnh)
+    # Đỉnh số lần thành công trong một cửa sổ VELOCITY_WINDOW_S: `settled_peak` = các cửa sổ đã KẾT THÚC đủ lâu (không
+    # thể chồng lên cửa sổ đang chấm), `recent_window_counts` = (thời điểm kết thúc, số lần) của các cửa sổ gần đây — xem
+    # `baseline_peak`: nền KHÔNG được gồm chính đợt dồn dập đang diễn ra.
+    settled_peak: int = 0
+    recent_window_counts: tuple[tuple[float, int], ...] = ()
+
+    def baseline_peak(self, now_ts: float) -> int:
+        """Đỉnh lịch sử của các cửa sổ kết thúc TRƯỚC cửa sổ hiện tại (≤ now − VELOCITY_WINDOW_S)."""
+        cutoff = now_ts - VELOCITY_WINDOW_S
+        return max([self.settled_peak] + [c for t, c in self.recent_window_counts if t <= cutoff])
+
+    def record_success(self, ts: float, *, lat: float | None, lon: float | None, country: str | None, city: str | None, device_family: str, agent_hash: str, asn: int | None = None) -> None:
+        """Cập nhật hồ sơ bằng MỘT lần đăng nhập THÀNH CÔNG — điểm cập nhật DUY NHẤT, dùng chung cho lịch sử dựng từ DB
+        (`rule_engine_runtime.DbAccountHistory`) và từ luồng sự kiện (`context.MemoryHistory`)."""
+        import math
+        import sys
+
+        if self.first_success_ts is None:
+            self.first_success_ts = ts
+        if device_family and device_family not in self.known_device_families:
+            self.known_device_families += (sys.intern(device_family),)
+            self.device_family_first_seen += (ts,)
+        self.last_success_ts = ts
+        self.last_success_lat, self.last_success_lon = lat, lon
+        self.n_success += 1
+        if country and country not in self.known_countries:
+            self.known_countries += (sys.intern(country),)
+        if agent_hash and agent_hash not in self.known_devices:
+            self.known_devices += (sys.intern(agent_hash),)
+        angle = 2 * math.pi * ((ts % 86_400) / 3600) / 24
+        self.hour_sin_sum += math.sin(angle)
+        self.hour_cos_sum += math.cos(angle)
+        if asn is not None and asn not in self.known_asns:
+            self.known_asns += (asn,)
+        counts = list(self.hour_counts or (0,) * 24)
+        counts[int((ts % 86_400) // 3600)] += 1
+        self.hour_counts = tuple(counts)
+        if country:
+            location = sys.intern(f"{country}|{city or '?'}")
+            if self.first_location is None:
+                self.first_location = location
+            if location in self.known_locations:
+                i = self.known_locations.index(location)
+                self.location_counts = self.location_counts[:i] + (self.location_counts[i] + 1,) + self.location_counts[i + 1:]
+                self.location_last_seen = self.location_last_seen[:i] + (ts,) + self.location_last_seen[i + 1:]
+            else:
+                self.known_locations += (location,)
+                self.location_counts += (1,)
+                self.location_first_seen += (ts,)
+                self.location_last_seen += (ts,)
+        self.recent_success_ts = tuple(t for t in self.recent_success_ts if t > ts - VELOCITY_WINDOW_S) + (ts,)
+        settled = [c for t, c in self.recent_window_counts if t <= ts - VELOCITY_WINDOW_S]  # mọi truy vấn sau này đều thấy chúng là lịch sử
+        if settled:
+            self.settled_peak = max([self.settled_peak] + settled)
+        self.recent_window_counts = tuple((t, c) for t, c in self.recent_window_counts if t > ts - VELOCITY_WINDOW_S) + ((ts, len(self.recent_success_ts)),)
     n_success: int = 0
     # Hai tập nhỏ của MỘT tài khoản, chỉ dùng phép `in`: tuple nhẹ hơn frozenset ~4 lần khi có hàng triệu tài khoản (replay giai đoạn train RBA có 2,5 triệu).
     known_countries: tuple[str, ...] = ()  # quốc gia đã từng đăng nhập thành công

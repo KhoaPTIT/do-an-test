@@ -1,0 +1,865 @@
+{
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
+  "git": {
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "behavior": "scripted_client",
+  "detector": "scripted_client",
+  "status": "VERIFIED",
+  "failed_criteria": [],
+  "scenario_count": {
+    "positive": 20,
+    "negative": 20
+  },
+  "tp": 20,
+  "fp": 0,
+  "tn": 20,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "attribution_accuracy": 1.0,
+  "attribution_correct": 20,
+  "attribution_total": 20,
+  "normal_traffic_false_alerts": 0,
+  "cross_detector_alerts_in_positives": {
+    "scripted_client": 20
+  },
+  "alert_noise_positive_scenarios": {
+    "total_alerts": 20,
+    "detection_alerts": 20,
+    "legacy_alerts": 0,
+    "secondary_signals": 2,
+    "duplicate_suppressed": 11,
+    "superseded_detectors": 0,
+    "campaigns": 20,
+    "alerts_per_attack_campaign": 1.0,
+    "all_alert_rows_per_attack_campaign": 1.0
+  },
+  "example_alert": {
+    "id": 1,
+    "login_event_id": 1,
+    "user_id": null,
+    "alert_type": "hybrid_risk",
+    "rule_id": "scripted_client",
+    "severity": "low",
+    "risk_score": 5,
+    "message": "[scripted_client] Client kịch bản/công cụ 'python-requests': python-requests/2.31.0. Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Client kịch bản/công cụ 'python-requests': python-requests/2.31.0. (5%). Họ tấn công gợi ý: Tự động hoá (5%).",
+    "explanation": {
+      "contributions": [
+        {
+          "source": "scripted_client",
+          "label": "Client kịch bản/công cụ 'python-requests': python-requests/2.31.0.",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "action": "allow",
+      "behavior": "scripted_client",
+      "primary_detector": "scripted_client",
+      "matched_rules": [
+        "scripted_client"
+      ],
+      "secondary_signals": [],
+      "enforced_rules": [
+        "scripted_client"
+      ],
+      "standalone_rules": [
+        "scripted_client"
+      ],
+      "experimental_rules": [],
+      "shadow_rules": [],
+      "contributing_rules": [
+        {
+          "rule": "scripted_client",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "risk_score": 5,
+      "ml_probability": null,
+      "alert_reason": "rule_enforced",
+      "evidence": {
+        "marker": "python-requests",
+        "user_agent": "python-requests/2.31.0"
+      },
+      "superseded_detectors": [],
+      "consolidated_events": 1,
+      "telemetry_gaps": []
+    },
+    "occurrence_count": 1
+  },
+  "scenarios": [
+    {
+      "kind": "positive",
+      "variant": "tên không tồn tại, python-requests/2.31.0",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "tên không tồn tại, curl/8.7.1",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "tên không tồn tại, Wget/1.21.4",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "đăng nhập thành công bằng HTTPie/3.2.2",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "đăng nhập thành công bằng Go-http-client/1.1",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "đăng nhập thành công bằng python-httpx/0.27.0",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "2 lần thử sai bằng Python/3.11 aiohttp/3.9.3",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3 lần thử sai bằng libwww-perl/6.72",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "1 lần thử sai bằng Java/17.0.9",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "tên không tồn tại, Apache-HttpClient/4.5.14 (Java/17.0.9)",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3 lần thử sai bằng python-requests/2.31.0",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3 lần thử sai bằng curl/8.7.1",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3 lần thử sai bằng Wget/1.21.4",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3 lần thử sai bằng HTTPie/3.2.2",
+      "steps": 3,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "đăng nhập thành công bằng Go-http-client/1.1",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "đăng nhập thành công bằng python-httpx/0.27.0",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "tên không tồn tại, Python/3.11 aiohttp/3.9.3",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "tên không tồn tại, libwww-perl/6.72",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "tên không tồn tại, Java/17.0.9",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "tên không tồn tại, Apache-HttpClient/4.5.14 (Java/17.0.9)",
+      "steps": 1,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (Macintosh; Intel Mac OS X 1",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (Linux; Android 14; SM-S911B",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 ",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA okhttp/4.12.0",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA trống",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA trống",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (Macintosh; Intel Mac OS X 1",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (Linux; Android 14; SM-S911B",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 ",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA okhttp/4.12.0",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA trống",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA trống",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (Windows NT 10.0; Win64; x64",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "UA Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ",
+      "steps": 1,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    }
+  ]
+}

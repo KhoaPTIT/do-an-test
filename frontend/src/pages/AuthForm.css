@@ -77,9 +77,3 @@
   border: 1px solid var(--border);
 }
 
-.auth-hint {
-  margin-top: 1rem;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  text-align: center;
-}

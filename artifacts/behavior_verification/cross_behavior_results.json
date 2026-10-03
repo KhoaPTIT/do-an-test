@@ -1,0 +1,363 @@
+{
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
+  "git": {
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "cases": [
+    {
+      "case": "distributed_bruteforce + brute_force + scripted_client",
+      "expected_primary": "distributed_bruteforce",
+      "expected_secondary": [
+        "brute_force",
+        "scripted_client"
+      ],
+      "detection_alerts": [
+        "distributed_bruteforce"
+      ],
+      "secondary_signals": [
+        "brute_force",
+        "scripted_client"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "scripted_client",
+        "brute_force"
+      ],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "credential_stuffing + username_enumeration",
+      "expected_primary": "credential_stuffing",
+      "expected_secondary": [
+        "username_enumeration"
+      ],
+      "detection_alerts": [
+        "credential_stuffing"
+      ],
+      "secondary_signals": [
+        "regular_rhythm",
+        "username_enumeration"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "username_enumeration"
+      ],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "password_spray_slow + scripted_client",
+      "expected_primary": "password_spray_slow",
+      "expected_secondary": [
+        "scripted_client"
+      ],
+      "detection_alerts": [
+        "password_spray_slow"
+      ],
+      "secondary_signals": [
+        "scripted_client"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "scripted_client"
+      ],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "brute_force + bot_user_agent",
+      "expected_primary": "brute_force",
+      "expected_secondary": [
+        "bot_user_agent"
+      ],
+      "detection_alerts": [
+        "brute_force"
+      ],
+      "secondary_signals": [
+        "bot_user_agent"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "bot_user_agent"
+      ],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "ua_rotation + credential_stuffing",
+      "expected_primary": "credential_stuffing",
+      "expected_secondary": [
+        "ua_rotation"
+      ],
+      "detection_alerts": [
+        "credential_stuffing"
+      ],
+      "secondary_signals": [
+        "regular_rhythm",
+        "ua_rotation"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_device + impossible_travel",
+      "expected_primary": "impossible_travel",
+      "expected_secondary": [
+        "unusual_device"
+      ],
+      "detection_alerts": [
+        "impossible_travel"
+      ],
+      "secondary_signals": [
+        "unusual_device",
+        "unusual_location"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_device + scripted_client",
+      "expected_primary": "scripted_client",
+      "expected_secondary": [
+        "unusual_device"
+      ],
+      "detection_alerts": [
+        "scripted_client"
+      ],
+      "secondary_signals": [
+        "unusual_device"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_location + impossible_travel",
+      "expected_primary": "impossible_travel",
+      "expected_secondary": [
+        "unusual_location"
+      ],
+      "detection_alerts": [
+        "impossible_travel"
+      ],
+      "secondary_signals": [
+        "multi_context_simultaneous",
+        "unusual_location"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_location + unusual_device",
+      "expected_primary": "unusual_location",
+      "expected_secondary": [
+        "unusual_device"
+      ],
+      "detection_alerts": [
+        "unusual_location"
+      ],
+      "secondary_signals": [
+        "unusual_device"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_hour + unusual_device",
+      "expected_primary": "unusual_device",
+      "expected_secondary": [
+        "unusual_hour"
+      ],
+      "detection_alerts": [
+        "unusual_device"
+      ],
+      "secondary_signals": [
+        "unusual_hour"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "unusual_hour + unusual_location",
+      "expected_primary": "unusual_location",
+      "expected_secondary": [
+        "unusual_hour"
+      ],
+      "detection_alerts": [
+        "unusual_location"
+      ],
+      "secondary_signals": [
+        "unusual_hour"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "login_velocity_spike + scripted_client",
+      "expected_primary": "login_velocity_spike",
+      "expected_secondary": [
+        "scripted_client"
+      ],
+      "detection_alerts": [
+        "login_velocity_spike"
+      ],
+      "secondary_signals": [
+        "scripted_client",
+        "unusual_device"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "scripted_client"
+      ],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "rapid failed logins -> brute_force, not login_velocity_spike",
+      "expected_primary": "brute_force",
+      "expected_secondary": [],
+      "detection_alerts": [
+        "brute_force"
+      ],
+      "secondary_signals": [
+        "regular_rhythm"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "regular_rhythm + scripted_client",
+      "expected_primary": "regular_rhythm",
+      "expected_secondary": [
+        "scripted_client"
+      ],
+      "detection_alerts": [
+        "regular_rhythm"
+      ],
+      "secondary_signals": [
+        "scripted_client"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [
+        "scripted_client"
+      ],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "brute_force + regular_rhythm",
+      "expected_primary": "brute_force",
+      "expected_secondary": [
+        "regular_rhythm"
+      ],
+      "detection_alerts": [
+        "brute_force"
+      ],
+      "secondary_signals": [
+        "regular_rhythm"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "rare_network_login + unusual_location",
+      "expected_primary": "rare_network_login",
+      "expected_secondary": [
+        "unusual_location"
+      ],
+      "detection_alerts": [
+        "rare_network_login"
+      ],
+      "secondary_signals": [
+        "unusual_location"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "rare_network_login + unusual_device",
+      "expected_primary": "rare_network_login",
+      "expected_secondary": [
+        "unusual_device"
+      ],
+      "detection_alerts": [
+        "rare_network_login"
+      ],
+      "secondary_signals": [
+        "unusual_device"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "impossible_travel + multi_context_simultaneous",
+      "expected_primary": "impossible_travel",
+      "expected_secondary": [
+        "multi_context_simultaneous"
+      ],
+      "detection_alerts": [
+        "impossible_travel"
+      ],
+      "secondary_signals": [
+        "multi_context_simultaneous",
+        "unusual_location"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    },
+    {
+      "case": "multi_context_simultaneous + unusual_location (thiếu toạ độ)",
+      "expected_primary": "multi_context_simultaneous",
+      "expected_secondary": [
+        "unusual_location"
+      ],
+      "detection_alerts": [
+        "multi_context_simultaneous"
+      ],
+      "secondary_signals": [
+        "unusual_location"
+      ],
+      "missing_secondary": [],
+      "superseded_detectors": [],
+      "forbidden_matched": [],
+      "passed": true
+    }
+  ],
+  "passed": 19,
+  "total": 19
+}

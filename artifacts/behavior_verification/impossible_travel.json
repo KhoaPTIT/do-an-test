@@ -1,0 +1,908 @@
+{
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
+  "git": {
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "behavior": "impossible_travel",
+  "detector": "impossible_travel",
+  "status": "VERIFIED",
+  "failed_criteria": [],
+  "scenario_count": {
+    "positive": 20,
+    "negative": 20
+  },
+  "tp": 20,
+  "fp": 0,
+  "tn": 20,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "attribution_accuracy": 1.0,
+  "attribution_correct": 20,
+  "attribution_total": 20,
+  "normal_traffic_false_alerts": 0,
+  "cross_detector_alerts_in_positives": {
+    "impossible_travel": 20
+  },
+  "alert_noise_positive_scenarios": {
+    "total_alerts": 40,
+    "detection_alerts": 20,
+    "legacy_alerts": 20,
+    "secondary_signals": 0,
+    "duplicate_suppressed": 0,
+    "superseded_detectors": 0,
+    "campaigns": 20,
+    "alerts_per_attack_campaign": 1.0,
+    "all_alert_rows_per_attack_campaign": 2.0
+  },
+  "example_alert": {
+    "id": 2,
+    "login_event_id": 9,
+    "user_id": 1,
+    "alert_type": "hybrid_risk",
+    "rule_id": "impossible_travel",
+    "severity": "high",
+    "risk_score": 5,
+    "message": "[impossible_travel] Cách 17175km chỉ sau 953.5 phút (~1,081 km/h, ngưỡng 900). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Cách 17175km chỉ sau 953.5 phút (~1,081 km/h, ngưỡng 900). (5%). Lần đầu quốc gia này (BR), trước đó dùng VN 8 lần. Họ tấn công gợi ý: Ngữ cảnh tài khoản (5%).",
+    "explanation": {
+      "contributions": [
+        {
+          "source": "impossible_travel",
+          "label": "Cách 17175km chỉ sau 953.5 phút (~1,081 km/h, ngưỡng 900).",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "action": "allow",
+      "behavior": "impossible_travel",
+      "primary_detector": "impossible_travel",
+      "matched_rules": [
+        "impossible_travel"
+      ],
+      "secondary_signals": [],
+      "enforced_rules": [
+        "impossible_travel"
+      ],
+      "standalone_rules": [
+        "impossible_travel"
+      ],
+      "experimental_rules": [],
+      "shadow_rules": [],
+      "contributing_rules": [
+        {
+          "rule": "impossible_travel",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "risk_score": 5,
+      "ml_probability": null,
+      "alert_reason": "rule_enforced",
+      "evidence": {
+        "distance_km": 17174.9,
+        "elapsed_minutes": 953.49,
+        "speed_kmh": 1080.8,
+        "previous_latitude": 21.0285,
+        "previous_longitude": 105.8542
+      },
+      "superseded_detectors": [],
+      "consolidated_events": 1,
+      "telemetry_gaps": []
+    },
+    "occurrence_count": 1
+  },
+  "scenarios": [
+    {
+      "kind": "positive",
+      "variant": "17175km trong 953 phút (~1,081 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9197km trong 98 phút (~5,643 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3661km trong 65 phút (~3,374 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12316km trong 468 phút (~1,577 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12316km trong 341 phút (~2,168 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "13150km trong 264 phút (~2,987 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "13150km trong 492 phút (~1,603 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9197km trong 224 phút (~2,459 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3661km trong 208 phút (~1,057 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9197km trong 58 phút (~9,575 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3661km trong 58 phút (~3,767 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9197km trong 273 phút (~2,023 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "3661km trong 105 phút (~2,088 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "17175km trong 677 phút (~1,521 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12316km trong 252 phút (~2,931 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "17175km trong 198 phút (~5,212 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9197km trong 212 phút (~2,597 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "9197km trong 224 phút (~2,468 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12316km trong 122 phút (~6,040 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "12316km trong 45 phút (~16,313 km/h)",
+      "steps": 2,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "impossible_travel": 1
+      },
+      "legacy_alerts": {
+        "impossible_travel": 1
+      },
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 1,
+        "legacy_alerts": 1,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "trong nước 89km sau 0.6h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "bay thật 13150km sau 16.8h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thành công ở nhà rồi THỬ SAI từ nước ngoài",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thử sai từ nước ngoài rồi chủ tài khoản đăng nhập ở nhà",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "trong nước 606km sau 1.9h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "bay thật 9197km sau 12.1h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thành công ở nhà rồi THỬ SAI từ nước ngoài",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thử sai từ nước ngoài rồi chủ tài khoản đăng nhập ở nhà",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "trong nước 89km sau 0.6h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "bay thật 17175km sau 34.5h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thành công ở nhà rồi THỬ SAI từ nước ngoài",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thử sai từ nước ngoài rồi chủ tài khoản đăng nhập ở nhà",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "trong nước 1138km sau 4.0h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "bay thật 17175km sau 31.0h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thành công ở nhà rồi THỬ SAI từ nước ngoài",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thử sai từ nước ngoài rồi chủ tài khoản đăng nhập ở nhà",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "trong nước 606km sau 1.0h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "bay thật 3661km sau 5.2h",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thành công ở nhà rồi THỬ SAI từ nước ngoài",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "thử sai từ nước ngoài rồi chủ tài khoản đăng nhập ở nhà",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+# TEST FIXTURE — chỉ dùng cho pytest/verification runner. Dải tài liệu RFC 5737 (198.51.100.0/24, TEST-NET-2).
+198.51.100.128/26

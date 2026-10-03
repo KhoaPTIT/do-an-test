@@ -1,5 +1,7 @@
 # Data card — bộ dữ liệu RBA
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Bộ RBA chỉ còn dùng cho nghiên cứu offline (`ml/rba/`); từ Phase 4.1 không model nào train trên RBA chạy trong `/login`. Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 **Login Data Set for Risk-Based Authentication** — dùng cho giai đoạn mở rộng AI (MR1–MR19, xem [`checklist.md`](checklist.md)).
 
 ## 1. Nguồn, giấy phép, trích dẫn

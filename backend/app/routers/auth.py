@@ -16,6 +16,11 @@ MR16 "Phản ứng tự động (mô phỏng)" đổi đường đi cho HAI trư
      thêm khi đã từ chối rồi — OTP chỉ có ý nghĩa SAU KHI mật khẩu đã đúng).
 
 `POST /login/verify-otp` hoàn tất bước xác thực thêm ở (2).
+
+Trang đăng nhập GỘP (một form duy nhất cho mọi tài khoản): nếu username/mật khẩu khớp một tài khoản trong bảng `admins`
+thì trả luôn JWT quản trị (`role="admin"`, như `POST /admin/login`) — luồng quản trị vẫn KHÔNG đi qua detection/log
+login_events. Không khớp admin thì đi tiếp luồng người dùng web app mẫu như cũ (sai mật khẩu admin cũng được ghi nhận
+như một lần thử thất bại bình thường).
 """
 
 from datetime import datetime, timezone
@@ -29,9 +34,9 @@ from app.detection.engine.types import LoginAttempt
 from app.detection.pipeline import run_detection_pipeline
 from app.detection.response_execution import OTP_MAX_ATTEMPTS, OTP_TTL, generate_otp_code, hash_otp_code, otp_code_matches
 from app.detection.rule_engine_runtime import refresh_blocklist
-from app.models import AuditLog, OtpChallenge, ResponseAction, User
+from app.models import Admin, AuditLog, OtpChallenge, ResponseAction, User
 from app.schemas import LoginRequest, LoginResponse, OtpVerifyRequest
-from app.security import verify_password
+from app.security import create_admin_access_token, verify_password
 from app.utils.network import resolve_client_ip
 from app.utils.time import ensure_utc
 
@@ -50,6 +55,12 @@ async def login(payload: LoginRequest, request: Request, background_tasks: Backg
     ip = resolve_client_ip(request)
     user_agent = request.headers.get("user-agent")
     now = datetime.now(timezone.utc)
+
+    # Tài khoản quản trị -> trả JWT ngay, không qua detection (backend office, không phải mục tiêu giám sát).
+    admin = db.query(Admin).filter(Admin.username == payload.username).first()
+    if admin is not None and verify_password(payload.password, admin.password_hash):
+        token = create_admin_access_token(admin.id, admin.username)
+        return LoginResponse(success=True, message="Login successful", role="admin", access_token=token)
 
     # --- MR16 (1): chặn NGAY nếu tài khoản hoặc IP đang bị khoá — TRƯỚC CẢ khi xác thực mật khẩu (không tốn bcrypt
     # cho một request chắc chắn bị từ chối, không lộ mật khẩu đúng/sai qua thời gian phản hồi khi đã bị khoá). Không

@@ -1,5 +1,7 @@
 # So sánh mô hình trên bộ RBA (MR5–MR6) — bảng đầy đủ
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Nghiên cứu OFFLINE trên bộ RBA (cần file 9GB ngoài repo). Từ Phase 4.1 `hybrid_cp2` KHÔNG còn chạy trong `/login`; số liệu dưới đây không phải hiệu năng của hệ thống đang chạy. Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 Sinh bằng `cd backend && venv\Scripts\python.exe -m ml.rba.report all --n-boot 300` ngày 21/09/2026: **13 mô hình × 11 bài**. Mỗi ô là `giá trị [khoảng tin cậy 95%]`.
 > ⚠️ **Cập nhật CP2 (26/09/2026):** bảng này là của 13 mô hình MR6. Bản chốt (`hybrid_cp2` và ba thành phần `_cp2`) được so với bản MR6 trên các bài chính ở [`ml-model-selection.md`](ml-model-selection.md) mục 5; báo cáo đầy đủ của chúng: `python -m ml.rba.report gbm_attack_ip_cp2 gbm_attacker_sim_cp2 isolation_forest_cp2 hybrid_cp2`.
 

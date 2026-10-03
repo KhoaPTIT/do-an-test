@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { apiClient } from "../services/api";
 import "./LogTablePanel.css";
+import "./AlertListPanel.css"; // dùng chung .ml-badge
 
 const PAGE_SIZE = 15;
 
@@ -15,6 +16,21 @@ function riskClassName(riskScore) {
   if (riskScore > 70) return "risk-row--high";
   if (riskScore >= 40) return "risk-row--medium";
   return "risk-row--low";
+}
+
+// Phase 4.1: ô AI/ML — giá trị THẬT backend ghi lúc chấm (điểm, ngưỡng, kết luận) hoặc lý do không chấm.
+function mlCell(event) {
+  if (event.ml_anomaly_score != null && event.ml_threshold != null) {
+    return (
+      <span title={`model ${event.ml_model_version} — điểm ${event.ml_anomaly_score.toFixed(4)} / ngưỡng ${event.ml_threshold.toFixed(4)}`}>
+        {event.ml_anomaly_score.toFixed(2)} {event.ml_is_anomaly ? <span className="ml-badge ml-badge--anomaly">Anomaly</span> : <span className="ml-badge ml-badge--normal">Normal</span>}
+      </span>
+    );
+  }
+  const reason = event.ml_details?.reason;
+  if (reason === "model_not_loaded") return <span title="AI model: Not loaded">Not loaded</span>;
+  if (reason === "out_of_scope") return <span title="Ngoài phạm vi chấm: lần thất bại, tài khoản mới hoặc hồ sơ chưa trưởng thành">ngoài phạm vi</span>;
+  return "-";
 }
 
 // Chuyển filter UI (chuỗi rỗng = "tất cả") thành query param gửi backend.
@@ -148,8 +164,8 @@ export default function LogTablePanel({ refreshKey = 0 }) {
                   <th>Username</th>
                   <th>Kết quả</th>
                   <th>Risk</th>
-                  <th title="Điểm bất thường từ ML tầng 3 (Isolation Forest) — tham khảo, xem docs/ml-evaluation.md">
-                    ML
+                  <th title="Model bất thường Isolation Forest (Phase 4.1, docs/ml-anomaly-model.md): điểm / ngưỡng, chỉ chấm lần thành công của hồ sơ trưởng thành">
+                    AI/ML
                   </th>
                   <th>Vị trí</th>
                 </tr>
@@ -161,7 +177,7 @@ export default function LogTablePanel({ refreshKey = 0 }) {
                     <td>{event.user_id ? <Link to={`/dashboard/users/${event.user_id}`}>{event.attempted_username}</Link> : event.attempted_username}</td>
                     <td>{event.success ? "✅" : "❌"}</td>
                     <td>{event.risk_score ?? "-"}</td>
-                    <td>{event.ml_anomaly_score != null ? event.ml_anomaly_score.toFixed(2) : "-"}</td>
+                    <td>{mlCell(event)}</td>
                     <td>{event.city ? `${event.city}, ${event.country}` : "-"}</td>
                   </tr>
                 ))}

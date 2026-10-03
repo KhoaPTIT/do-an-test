@@ -16,15 +16,18 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.detection import rate_counter
 from app.detection.engine import Blocklist, RedisStore, RuleConfig, RuleEngine, ThreatIntel
 from app.detection.engine.intel import BlockEntry
-from app.detection.engine.types import AccountHistory, LoginAttempt, ua_hash
+from app.detection.engine.types import AccountHistory, LoginAttempt, device_family_of, ua_hash
 from app.models import BlocklistEntry, LoginEvent, RuleOverride
+from app.utils.device import parse_user_agent
 from app.utils.time import ensure_utc
 
 logger = logging.getLogger("rule_engine_runtime")
@@ -32,13 +35,27 @@ logger = logging.getLogger("rule_engine_runtime")
 BLOCKLIST_CACHE_TTL_SECONDS = 15.0
 RULE_CONFIG_CACHE_TTL_SECONDS = 15.0  # cùng lý do/độ dài với blocklist — đổi qua GET/PUT/DELETE /rules (MR17), cần thấy tương đối nhanh
 _THREAT_INTEL: ThreatIntel | None = None
+_BACKEND_DIR = Path(__file__).resolve().parents[2]
+
+
+def threat_intel_directory() -> Path | None:
+    """Thư mục danh sách theo cấu hình `THREAT_INTEL_DIR` (tương đối tính từ `backend/`); None = mặc định của
+    `ThreatIntel.load` (`backend/threat_intel/`, dữ liệu thật)."""
+    configured = get_settings().threat_intel_dir.strip()
+    if not configured:
+        return None
+    path = Path(configured)
+    return path if path.is_absolute() else _BACKEND_DIR / path
 
 
 def load_threat_intel_at_startup() -> ThreatIntel:
     global _THREAT_INTEL
     try:
-        _THREAT_INTEL = ThreatIntel.load()
-        logger.info("đã nạp threat intel: %s", _THREAT_INTEL.status())
+        _THREAT_INTEL = ThreatIntel.load(threat_intel_directory())
+        status = _THREAT_INTEL.status()
+        logger.info("đã nạp threat intel: %s", status)
+        if status["data_kind"] in ("demo", "fixture"):
+            logger.warning("threat intel đang dùng DỮ LIỆU %s (%s) — KHÔNG phải threat intelligence thực tế", status["data_kind"].upper(), status["source_dir"])
     except Exception:  # noqa: BLE001 — danh sách lỗi/thiếu không được chặn khởi động; luật liên quan tự bỏ qua (Evaluation.skipped)
         logger.exception("lỗi khi nạp threat intel — luật Tor/datacenter/VPN sẽ bị bỏ qua")
         _THREAT_INTEL = ThreatIntel()
@@ -70,24 +87,22 @@ class DbAccountHistory:
         except ValueError:
             return None
         rows = self.db.execute(
-            select(LoginEvent.created_at, LoginEvent.latitude, LoginEvent.longitude, LoginEvent.success, LoginEvent.country, LoginEvent.user_agent)
+            select(LoginEvent.created_at, LoginEvent.latitude, LoginEvent.longitude, LoginEvent.success, LoginEvent.country, LoginEvent.city, LoginEvent.user_agent, LoginEvent.asn)
             .where(LoginEvent.user_id == user_id, LoginEvent.created_at < self.before)
             .order_by(LoginEvent.created_at)
         ).all()
         if not rows:
             return None
         history = AccountHistory()
-        for created_at, lat, lon, success, country, agent in rows:
+        for created_at, lat, lon, success, country, city, agent, asn in rows:
             history.last_event_ts = ensure_utc(created_at).timestamp()
             history.last_event_lat, history.last_event_lon = lat, lon
-            if success:
-                history.last_success_ts = ensure_utc(created_at).timestamp()
-                history.n_success += 1
-                if country and country not in history.known_countries:
-                    history.known_countries += (country,)
-                hashed = ua_hash(agent)
-                if hashed and hashed not in history.known_devices:
-                    history.known_devices += (hashed,)
+            if success:  # hồ sơ CHỈ học từ lần thành công (AccountHistory.record_success) — cùng mã với MemoryHistory
+                parsed = parse_user_agent(agent)
+                history.record_success(
+                    ensure_utc(created_at).timestamp(), lat=lat, lon=lon, country=country, city=city,
+                    device_family=device_family_of(agent, parsed.device_type, parsed.os, parsed.browser), agent_hash=ua_hash(agent), asn=asn,
+                )
         return history
 
     def update(self, attempt: LoginAttempt) -> None:

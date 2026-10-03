@@ -158,6 +158,7 @@ def test_verify_otp_with_the_correct_code_completes_the_login(client, db_session
     assert response.json() == {
         "success": True, "message": "Login successful",
         "step_up_required": False, "challenge_id": None, "demo_otp_code": None, "locked": False,
+        "role": "user", "access_token": None,
     }
     challenge = db_session.query(OtpChallenge).one()
     assert challenge.verified_at is not None

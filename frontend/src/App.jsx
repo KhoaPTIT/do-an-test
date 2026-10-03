@@ -1,7 +1,6 @@
-import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import "./App.css";
-import AdminLoginPage from "./pages/AdminLoginPage";
 import CampaignDetailPage from "./pages/CampaignDetailPage";
 import CampaignsPage from "./pages/CampaignsPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -9,15 +8,15 @@ import LoginPage from "./pages/LoginPage";
 import ModelHealthPage from "./pages/ModelHealthPage";
 import RulesPage from "./pages/RulesPage";
 import UserProfilePage from "./pages/UserProfilePage";
-import { getAdminToken } from "./services/auth";
+import { clearAdminToken, getAdminToken } from "./services/auth";
 
-// Route quản trị (nhiệm vụ 5.1) — chưa có token thì đá về /admin/login.
+// Route quản trị (nhiệm vụ 5.1) — chưa có token thì đá về trang đăng nhập chung /login.
 // Không xác thực chữ ký JWT phía client (không cần thiết — backend luôn
 // kiểm tra lại), chỉ chặn UI khi rõ ràng chưa đăng nhập.
 function RequireAdmin({ children }) {
   const token = getAdminToken();
   if (!token) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
   return children;
 }
@@ -26,28 +25,27 @@ function navLinkClass({ isActive }) {
   return isActive ? "active" : undefined;
 }
 
-// Web app mẫu (nhiệm vụ 2.2) là MỤC TIÊU bị giám sát — người dùng cuối thật sự sẽ gặp trang này, không phải nhân
-// viên quản trị. Header riêng, tối giản, KHÔNG lẫn với nav quản trị (Dashboard/Luật/Mô hình...) — giống một site
-// thật: trang đăng nhập khách hàng không bao giờ trưng bảng điều hướng của công cụ giám sát nội bộ ra ngoài, chỉ có
-// một lối nhỏ, kín đáo để nhân viên vào khu vực quản trị.
+// Trang đăng nhập chung (/login) dùng cho mọi tài khoản — backend tự phân quyền user/admin. Header riêng, tối giản,
+// KHÔNG lẫn với nav quản trị (Dashboard/Luật/Mô hình...): nav quản trị chỉ hiện sau khi admin đã đăng nhập.
 function SiteHeader() {
   return (
     <header className="site-header">
       <span className="site-header__brand">Anomaly Login Detection</span>
-      <NavLink to="/admin/login" className="site-header__admin-link">
-        Khu vực quản trị
-      </NavLink>
     </header>
   );
 }
 
 function AdminNav() {
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    clearAdminToken();
+    navigate("/login", { replace: true });
+  }
+
   return (
     <nav className="app-nav">
       <span className="app-nav__brand">🛡️ Anomaly Login Detection</span>
-      <NavLink to="/admin/login" className={navLinkClass}>
-        Đăng nhập quản trị
-      </NavLink>
       <NavLink to="/dashboard" className={navLinkClass}>
         Dashboard
       </NavLink>
@@ -60,13 +58,17 @@ function AdminNav() {
       <NavLink to="/dashboard/model-health" className={navLinkClass}>
         Mô hình
       </NavLink>
+      <button type="button" className="app-nav__logout" onClick={handleLogout}>
+        Đăng xuất
+      </button>
     </nav>
   );
 }
 
 export default function App() {
   const { pathname } = useLocation();
-  const isSiteRoute = pathname === "/login";
+  // Chưa vào khu quản trị (trang đăng nhập + các đường dẫn chỉ để chuyển hướng về đó) -> header tối giản.
+  const isSiteRoute = ["/", "/login", "/admin/login"].includes(pathname);
 
   return (
     <div>
@@ -75,7 +77,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/admin/login" element={<AdminLoginPage />} />
+          {/* Giữ đường dẫn cũ để bookmark/link cũ không bị gãy — nay dùng chung trang /login. */}
+          <Route path="/admin/login" element={<Navigate to="/login" replace />} />
           <Route
             path="/dashboard"
             element={

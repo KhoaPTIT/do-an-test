@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from app.detection.engine import indexes as K
 from app.detection.engine.messages import window_text
+from app.detection.engine.profile import MATURITY_PARAMS, maturity
 from app.detection.engine.registry import Param, RuleContext, rule
 from app.detection.engine.types import Finding
 from app.detection.rules import IMPOSSIBLE_TRAVEL_SPEED_KMH, haversine_distance
@@ -17,23 +18,27 @@ _DAY = 86_400
 
 @rule(
     id="impossible_travel",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/impossible_travel.json
     title="Di chuyển bất khả thi",
     category=CATEGORY,
     severity="high",
     techniques=("T1078",),
-    description="Hai lần đăng nhập liên tiếp của một tài khoản cách nhau quá xa so với thời gian trôi qua (tốc độ vượt ngưỡng của máy bay).",
+    description=(
+        "Hai lần đăng nhập THÀNH CÔNG liên tiếp của một tài khoản cách nhau quá xa so với thời gian trôi qua (tốc độ vượt ngưỡng của máy bay). "
+        "Lần thử SAI không được tính: nó không chứng minh chủ tài khoản đã ở nơi đó (thử sai từ nhiều nước là việc của country_hop/brute_force)."
+    ),
     params=(Param("max_speed_kmh", IMPOSSIBLE_TRAVEL_SPEED_KMH, "tốc độ di chuyển tối đa hợp lý", "km/h", 100.0, 20_000.0),),
     needs=("account", "geo", "history"),
     notes="Luật tầng 1 gốc (ngưỡng 900 km/h lấy nguyên văn từ checklist). Bỏ qua khi thiếu GeoIP ở một trong hai lần. VPN/proxy làm sai lệch vị trí. Không chạy được trên RBA (không có toạ độ).",
 )
 def impossible_travel(ctx: RuleContext) -> Finding | None:
     a, h, p = ctx.attempt, ctx.history, ctx.p
-    if h is None or h.last_event_ts is None or h.last_event_lat is None or h.last_event_lon is None:
+    if not a.success or h is None or h.last_success_ts is None or h.last_success_lat is None or h.last_success_lon is None:
         return None
-    elapsed_hours = (a.ts - h.last_event_ts) / 3600
+    elapsed_hours = (a.ts - h.last_success_ts) / 3600
     if elapsed_hours <= 0:
         return None  # timestamp trùng/không hợp lệ: không kết luận được
-    distance = haversine_distance(h.last_event_lat, h.last_event_lon, a.latitude, a.longitude)
+    distance = haversine_distance(h.last_success_lat, h.last_success_lon, a.latitude, a.longitude)
     speed = distance / elapsed_hours
     if speed <= p.max_speed_kmh:
         return None
@@ -41,13 +46,14 @@ def impossible_travel(ctx: RuleContext) -> Finding | None:
         f"Cách {distance:.0f}km chỉ sau {elapsed_hours * 60:.1f} phút (~{speed:,.0f} km/h, ngưỡng {p.max_speed_kmh:.0f}).",
         {
             "distance_km": round(distance, 1), "elapsed_minutes": round(elapsed_hours * 60, 2), "speed_kmh": round(speed, 1),
-            "previous_latitude": h.last_event_lat, "previous_longitude": h.last_event_lon,  # frontend vẽ đường nối hai điểm trên bản đồ
+            "previous_latitude": h.last_success_lat, "previous_longitude": h.last_success_lon,  # frontend vẽ đường nối hai điểm trên bản đồ
         },
     )
 
 
 @rule(
     id="multi_context_simultaneous",
+    verification="verified",  # Milestone C+ — artifacts/behavior_verification/multi_context_simultaneous.json
     title="Đăng nhập cùng lúc từ nhiều quốc gia",
     category=CATEGORY,
     severity="high",
@@ -58,7 +64,11 @@ def impossible_travel(ctx: RuleContext) -> Finding | None:
         Param("min_countries", 2, "số quốc gia khác nhau tối thiểu", "nước", 2, 50),
     ),
     needs=("account", "country"),
-    notes="Người dùng thật dùng VPN trên một thiết bị và đăng nhập thiết bị khác không VPN sẽ khớp; cần đối chiếu thiết bị ở MR11.",
+    notes=(
+        "Người dùng thật dùng VPN trên một thiết bị và đăng nhập thiết bị khác không VPN sẽ khớp (chưa đối chiếu thiết bị). Milestone C+: kiểm chứng ở phần "
+        "impossible_travel không làm được — GeoIP chỉ biết quốc gia, không toạ độ; khi cả hai bên có toạ độ, impossible_travel làm detector chính. Lưu lượng "
+        "bình thường v3 không có cặp thành công ở hai quốc gia trong 1 giờ, nên 0 báo nhầm ở đó không phải bằng chứng — sức nặng nằm ở kịch bản âm tính."
+    ),
 )
 def multi_context_simultaneous(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p
@@ -76,32 +86,44 @@ def multi_context_simultaneous(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="country_hop",
+    verification="verified",  # Milestone B — artifacts/behavior_verification/country_hop.json
     title="Tài khoản bị thử từ nhiều quốc gia",
     category=CATEGORY,
     severity="medium",
     techniques=("T1078", "T1090"),
-    description="Một tên đăng nhập bị thử (thành công hoặc thất bại) từ nhiều quốc gia khác nhau trong 24 giờ — proxy xoay vòng theo nước hoặc botnet toàn cầu.",
+    description=(
+        "Một tên đăng nhập bị thử SAI từ nhiều quốc gia khác nhau trong 24 giờ — proxy xoay vòng theo nước hoặc botnet toàn cầu. "
+        "Mặc định chỉ đếm lần THẤT BẠI: người đi công tác đăng nhập ĐÚNG ở nhiều nước không phải dấu hiệu tấn công."
+    ),
     params=(
         Param("window_s", _DAY, "độ dài cửa sổ", "giây", 600, 7 * _DAY),
         Param("min_countries", 3, "số quốc gia khác nhau tối thiểu", "nước", 2, 50),
+        Param("failures_only", True, "chỉ đếm quốc gia của các lần thử THẤT BẠI (false = mọi lần thử, hành vi trước Milestone B)"),
     ),
     needs=("country",),
-    default_mode="shadow",
-    notes="Người hay đi công tác/dùng VPN đổi nước hợp lệ; chưa đo tỉ lệ báo nhầm nên mặc định shadow.",
+    default_mode="enforce",  # Milestone B: shadow -> enforce sau khi qua kiểm chứng (chỉ tạo cảnh báo, không tự step_up/lock)
+    notes=(
+        "Milestone B: chỉ khớp ở lần thử THẤT BẠI và chỉ đếm quốc gia của lần thất bại (`failures_only`) — trước đó đếm cả lần thành công nên "
+        "khách du lịch hợp lệ có thể khớp. Người dùng VPN đổi nước liên tục vẫn có thể khớp nếu gõ sai nhiều lần."
+    ),
 )
 def country_hop(ctx: RuleContext) -> Finding | None:
     a, p = ctx.attempt, ctx.p
-    countries = ctx.store.set_count(K.countries_of_username(a.username), ctx.since(p.window_s), K.CAP)
-    if countries < p.min_countries:
+    if p.failures_only and a.success:
+        return None
+    key = K.fail_countries_of_username(a.username) if p.failures_only else K.countries_of_username(a.username)
+    values = ctx.store.set_values(key, ctx.since(p.window_s), limit=K.CAP)
+    if len(values) < p.min_countries:
         return None
     return Finding(
-        f"Tài khoản '{a.username}' bị thử từ {countries} quốc gia trong {window_text(p.window_s)} (ngưỡng {p.min_countries}).",
-        {"username": a.username, "distinct_countries": countries, "window_s": p.window_s},
+        f"Tài khoản '{a.username}' bị thử {'sai ' if p.failures_only else ''}từ {len(values)} quốc gia ({', '.join(sorted(values))}) trong {window_text(p.window_s)} (ngưỡng {p.min_countries}).",
+        {"username": a.username, "distinct_countries": len(values), "countries": sorted(values), "window_s": p.window_s, "failures_only": p.failures_only},
     )
 
 
 @rule(
     id="dormant_account_login",
+    verification="verified",  # Milestone A — artifacts/behavior_verification/dormant_account_login.json
     title="Tài khoản ngủ đông đăng nhập lại",
     category=CATEGORY,
     severity="medium",
@@ -112,7 +134,10 @@ def country_hop(ctx: RuleContext) -> Finding | None:
         Param("require_change", True, "chỉ báo khi lần này có quốc gia hoặc thiết bị mới so với lịch sử"),
     ),
     needs=("account", "history"),
-    notes="Người dùng thật quay lại sau kỳ nghỉ là chuyện thường: mặc định phải kèm dấu hiệu 'mới' để giảm báo nhầm.",
+    notes=(
+        "Người dùng thật quay lại sau kỳ nghỉ là chuyện thường: mặc định phải kèm dấu hiệu 'mới' để giảm báo nhầm. Thiết bị so theo HỌ chuẩn hoá "
+        "(Milestone C, cùng unusual_device): chỉ cập nhật phiên bản trình duyệt không phải thiết bị mới."
+    ),
 )
 def dormant_account_login(ctx: RuleContext) -> Finding | None:
     a, h, p = ctx.attempt, ctx.history, ctx.p
@@ -122,7 +147,9 @@ def dormant_account_login(ctx: RuleContext) -> Finding | None:
     if idle_days < p.dormant_days:
         return None
     new_country = bool(a.country) and a.country not in h.known_countries
-    new_device = bool(a.ua_hash) and a.ua_hash not in h.known_devices
+    # Milestone C (C11): CÙNG định danh thiết bị chuẩn hoá với unusual_device (họ: loại | HĐH | trình duyệt, bỏ phiên bản) —
+    # trước đây so chuỗi UA thô nên Chrome tự cập nhật phiên bản trong lúc ngủ đông bị tính là "thiết bị mới".
+    new_device = bool(a.device_family) and a.device_family not in h.known_device_families
     if p.require_change and not (new_country or new_device):
         return None
     changes = [label for flag, label in ((new_country, f"quốc gia mới {a.country}"), (new_device, "thiết bị mới")) if flag]
@@ -134,21 +161,30 @@ def dormant_account_login(ctx: RuleContext) -> Finding | None:
 
 @rule(
     id="rare_network_login",
+    verification="verified",  # Milestone C+ — artifacts/behavior_verification/rare_network_login.json
     title="Đăng nhập từ nhà mạng cực hiếm",
     category=CATEGORY,
     severity="medium",
     techniques=("T1078",),
-    description="Đăng nhập thành công từ một ASN mà tỉ lệ đăng nhập thành công của CẢ HỆ THỐNG từ ASN đó cực nhỏ (hoặc chưa từng có) — nhà mạng lạ so với mọi người dùng khác.",
-    params=(
-        Param("max_share", 2e-5, "tỉ lệ đăng nhập thành công của cả hệ thống từ ASN này (bằng hoặc thấp hơn thì báo)", "", 0.0, 0.01),
-        Param("min_total", 20_000, "số đăng nhập thành công toàn hệ thống tối thiểu trước khi luật có hiệu lực (thống kê quá ít thì ASN nào cũng 'hiếm')", "lần", 100, 100_000_000),
+    description=(
+        "Đăng nhập THÀNH CÔNG từ một ASN (nhà mạng) hiếm so với toàn hệ thống, theo mức trưởng thành của dữ liệu: COLD_START (quá ít "
+        "lượt thành công toàn hệ thống) không chấm; WARM: ASN chưa từng có trong lịch sử thành công của CHÍNH tài khoản (hồ sơ đã trưởng "
+        "thành) VÀ chiếm ≤ `warm_max_share` lượt thành công toàn hệ thống; MATURE: tỉ lệ toàn hệ thống ≤ `max_share` (luật gốc)."
+    ),
+    params=MATURITY_PARAMS + (
+        Param("warm_min_total", 500, "số đăng nhập thành công toàn hệ thống tối thiểu để thoát COLD_START (ít hơn thì không chấm)", "lần", 10, 100_000_000),
+        Param("warm_max_share", 0.01, "WARM: tỉ lệ đăng nhập thành công toàn hệ thống từ ASN này (bằng hoặc thấp hơn thì coi là hiếm)", "", 0.0, 0.5),
+        Param("max_share", 2e-5, "MATURE: tỉ lệ đăng nhập thành công của cả hệ thống từ ASN này (bằng hoặc thấp hơn thì báo)", "", 0.0, 0.01),
+        Param("min_total", 20_000, "số đăng nhập thành công toàn hệ thống tối thiểu để vào MATURE (luật gốc theo tỉ lệ toàn hệ thống)", "lần", 100, 100_000_000),
     ),
     needs=("account", "asn", "global_stats"),
-    default_mode="shadow",
+    default_mode="enforce",  # Milestone C+: shadow -> enforce sau khi qua kiểm chứng (chỉ tạo cảnh báo, không tự step_up/lock)
     notes=(
         "Thêm theo quyết định D3 ở CP2. Trên RBA, luật một đặc trưng `rare_asn` với ngưỡng ở phân vị 99 của đăng nhập hợp lệ bắt 65,8% trong 38 ATO tương lai (chẩn đoán MR7, chọn sau "
-        "khi đã thấy ATO) nhưng ATO của bộ dữ liệu tổng hợp đến từ nhà mạng hiếm một cách nhân tạo, nên đánh giá luật trên ATO của RBA mang tính vòng tròn; giá trị thật đo bằng kịch bản "
-        "mô phỏng ở MR18. Ngưỡng mặc định 2e-5 ≈ phân vị 99 của đăng nhập hợp lệ ở RBA; chỉnh ở MR10."
+        "khi đã thấy ATO) nhưng ATO của bộ dữ liệu tổng hợp đến từ nhà mạng hiếm một cách nhân tạo, nên đánh giá luật trên ATO của RBA mang tính vòng tròn. Ngưỡng MATURE 2e-5 ≈ phân vị 99 "
+        "của đăng nhập hợp lệ ở RBA. Milestone C+ (thiết kế C7 ở Phase 2): thêm COLD_START/WARM — trước đó luật cần 20.000 lượt thành công nên không bao giờ khớp ở DB demo. Người dùng "
+        "thật đổi sang nhà mạng hiếm (wifi khách sạn, nhà mạng nhỏ) sẽ khớp ở WARM. Kiểm chứng Milestone C+ chỉ ở trạng thái WARM; lưu lượng bình thường v3 "
+        "chỉ có 3 lần tài khoản trưởng thành dùng nhà mạng mới (đều > 1%), nên 0 báo nhầm ở đó là bằng chứng yếu."
     ),
 )
 def rare_network_login(ctx: RuleContext) -> Finding | None:
@@ -156,13 +192,29 @@ def rare_network_login(ctx: RuleContext) -> Finding | None:
     if not a.success:
         return None
     total = stats.total_successes
-    if total < p.min_total:
-        return None
-    seen = stats.asn_successes(a.asn)  # chưa gồm lần này: thống kê được cập nhật SAU khi chấm
+    if total < p.warm_min_total:
+        return None  # COLD_START: thống kê quá ít thì ASN nào cũng "hiếm"
+    # MemoryGlobalStats (replay) chưa gồm lần này; DbGlobalStats (luồng thật) đọc bảng login_events mà sự kiện này ĐÃ được ghi
+    # trước khi chấm, nên ASN chưa ai dùng đếm được 1 — không ảnh hưởng ngưỡng (1/500 = 0,2% ≪ 1%)
+    seen = stats.asn_successes(a.asn)
     share = seen / total
-    if share > p.max_share:
+    evidence = {"asn": a.asn, "asn_successes": seen, "total_successes": total, "share": share, "never_seen": seen == 0}
+    if total >= p.min_total:
+        if share > p.max_share:
+            return None
+        return Finding(
+            f"Đăng nhập từ nhà mạng cực hiếm AS{a.asn}: {seen} lần trong {total:,} lượt thành công ({share:.4%}; ngưỡng {p.max_share:.4%}).",
+            {**evidence, "data_state": "MATURE", "share_threshold": p.max_share},
+        )
+    h = ctx.history
+    m = maturity(h, a.ts, min_successes=p.min_successes, min_profile_days=p.min_profile_days)
+    if not m.mature or a.asn in h.known_asns or share > p.warm_max_share:
         return None
     return Finding(
-        f"Đăng nhập từ nhà mạng cực hiếm AS{a.asn}: {seen} lần trong {total:,} lượt thành công ({share:.4%}; ngưỡng {p.max_share:.4%}).",
-        {"asn": a.asn, "asn_successes": seen, "total_successes": total, "share": share, "never_seen": seen == 0},
+        f"Tài khoản '{a.username}' đăng nhập từ nhà mạng AS{a.asn} chưa từng dùng ({len(h.known_asns)} nhà mạng quen) và hiếm toàn hệ thống: "
+        f"{seen}/{total:,} lượt thành công ({share:.2%}; ngưỡng {p.warm_max_share:.0%}).",
+        {
+            **evidence, "data_state": "WARM", "share_threshold": p.warm_max_share, "known_asns": list(h.known_asns),
+            "new_for_account": True, "successful_login_count": m.successful_login_count, "profile_age_days": round(m.profile_age_days, 1),
+        },
     )

@@ -1,13 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "../services/api";
+import { setAdminToken } from "../services/auth";
 import "./AuthForm.css";
 
-// Form đăng nhập web app mẫu (nhiệm vụ 2.2). Gọi thật POST /login, xử lý
-// cả 2 trường hợp thành công/thất bại theo docs/api-contract.md. Đây là
-// "mục tiêu" bị giám sát — không có trang nào phía sau để điều hướng tới
-// (khác /admin/login dẫn vào /dashboard), nên chỉ hiển thị trạng thái ngay
-// tại chỗ thay vì chuyển trang.
+// Trang đăng nhập DUY NHẤT cho mọi tài khoản. Gọi thật POST /login, backend
+// tự phân quyền theo tài khoản: tài khoản quản trị nhận role="admin" kèm JWT
+// -> lưu token và chuyển vào /dashboard; tài khoản web app mẫu (nhiệm vụ 2.2)
+// là "mục tiêu" bị giám sát — không có trang nào phía sau để điều hướng tới,
+// nên chỉ hiển thị trạng thái ngay tại chỗ thay vì chuyển trang.
 //
 // MR16 "phản ứng tự động (mô phỏng)": rủi ro trung bình -> POST /login trả
 // step_up_required=true (vẫn HTTP 200 — mật khẩu ĐÃ đúng, chỉ chưa đủ) thay
@@ -20,6 +22,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   // Bước OTP giả lập — chỉ có giá trị khi step_up_required=true.
   const [challenge, setChallenge] = useState(null); // { id, demoCode }
@@ -41,7 +44,10 @@ export default function LoginPage() {
 
     try {
       const response = await apiClient.post("/login", { username, password });
-      if (response.data.step_up_required) {
+      if (response.data.role === "admin" && response.data.access_token) {
+        setAdminToken(response.data.access_token);
+        navigate("/dashboard");
+      } else if (response.data.step_up_required) {
         setChallenge({ id: response.data.challenge_id, demoCode: response.data.demo_otp_code });
       } else if (response.data.success) {
         setSuccess(true);
@@ -158,8 +164,6 @@ export default function LoginPage() {
             </button>
           </form>
         )}
-
-        <p className="auth-hint">Web app mẫu — mục tiêu được giám sát, không phải trang quản trị.</p>
       </div>
     </main>
   );

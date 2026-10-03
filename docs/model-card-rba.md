@@ -1,5 +1,7 @@
 # Model card — chấm điểm rủi ro đăng nhập trên bộ RBA (MR6, hoàn thiện ở MR8, mô hình chốt ở CP2/MR8b)
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Nghiên cứu OFFLINE trên bộ RBA (cần file 9GB ngoài repo). Từ Phase 4.1 `hybrid_cp2` KHÔNG còn chạy trong `/login`; số liệu dưới đây không phải hiệu năng của hệ thống đang chạy. Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 Mã: [`backend/ml/rba/`](../backend/ml/rba/) · kết quả đầy đủ và phân tích: [`ml-evaluation-v2.md`](ml-evaluation-v2.md) · kiểm chứng "kiểu tấn công mới", ablation, phân tích lỗi: [`ml-holdout-ablation.md`](ml-holdout-ablation.md) · giải thích cảnh báo và ngưỡng vận hành: [`ml-explanations.md`](ml-explanations.md) · **chọn đặc trưng và chốt mô hình ở CP2: [`ml-model-selection.md`](ml-model-selection.md)** · khung đo: [`rba-evaluation.md`](rba-evaluation.md).
 
 | | |

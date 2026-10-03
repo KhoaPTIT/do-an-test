@@ -1,0 +1,877 @@
+{
+  "generated_at": "2026-10-02T16:22:41.449235+00:00",
+  "git": {
+    "commit": "a465dfb0f2d849087045828c16ae0ef41b75a592",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "criteria": {
+    "min_positive": 20,
+    "min_recall": 0.9,
+    "max_negative_fp": 1,
+    "max_normal_fp": 0,
+    "min_attribution": 0.9
+  },
+  "candidates_promoted_in_runner": [],
+  "environment": "SQLite in-memory + fakeredis; GeoIP/threat intel = TEST FIXTURE (RFC 5737); hybrid ML component disabled (fallback profile)",
+  "behavior": "country_hop",
+  "detector": "country_hop",
+  "status": "VERIFIED",
+  "failed_criteria": [],
+  "scenario_count": {
+    "positive": 20,
+    "negative": 20
+  },
+  "tp": 20,
+  "fp": 0,
+  "tn": 20,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "attribution_accuracy": 1.0,
+  "attribution_correct": 20,
+  "attribution_total": 20,
+  "normal_traffic_false_alerts": 0,
+  "cross_detector_alerts_in_positives": {
+    "country_hop": 20,
+    "scripted_client": 5
+  },
+  "alert_noise_positive_scenarios": {
+    "total_alerts": 25,
+    "detection_alerts": 25,
+    "legacy_alerts": 0,
+    "secondary_signals": 5,
+    "duplicate_suppressed": 71,
+    "superseded_detectors": 5,
+    "campaigns": 20,
+    "alerts_per_attack_campaign": 1.25,
+    "all_alert_rows_per_attack_campaign": 1.25
+  },
+  "example_alert": {
+    "id": 1,
+    "login_event_id": 10,
+    "user_id": 1,
+    "alert_type": "hybrid_risk",
+    "rule_id": "country_hop",
+    "severity": "medium",
+    "risk_score": 5,
+    "message": "[country_hopping] Tài khoản 'victim' bị thử sai từ 3 quốc gia (FR, US, VN) trong 24 giờ (ngưỡng 3). Hybrid risk engine: điểm 5/100, đề xuất 'allow' — Tài khoản 'victim' bị thử sai từ 3 quốc gia (FR, US, VN) trong 24 giờ (ngưỡng 3). (5%). Lần đầu nhà mạng này (AS64514), trước đó dùng AS64512 7 lần. Họ tấn công gợi ý: Ngữ cảnh tài khoản (5%). Đã lặp lại 2 lần trong 15 phút gần đây.",
+    "explanation": {
+      "contributions": [
+        {
+          "source": "country_hop",
+          "label": "Tài khoản 'victim' bị thử sai từ 3 quốc gia (FR, US, VN) trong 24 giờ (ngưỡng 3).",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "action": "allow",
+      "behavior": "country_hopping",
+      "primary_detector": "country_hop",
+      "matched_rules": [
+        "country_hop"
+      ],
+      "secondary_signals": [],
+      "enforced_rules": [
+        "country_hop"
+      ],
+      "standalone_rules": [
+        "country_hop"
+      ],
+      "experimental_rules": [],
+      "shadow_rules": [],
+      "contributing_rules": [
+        {
+          "rule": "country_hop",
+          "weight": 0.05,
+          "group": "rule"
+        }
+      ],
+      "risk_score": 5,
+      "ml_probability": null,
+      "alert_reason": "rule_enforced",
+      "evidence": {
+        "username": "victim",
+        "distinct_countries": 3,
+        "countries": [
+          "FR",
+          "US",
+          "VN"
+        ],
+        "window_s": 86400,
+        "failures_only": true
+      },
+      "superseded_detectors": [],
+      "consolidated_events": 2,
+      "telemetry_gaps": []
+    },
+    "occurrence_count": 2
+  },
+  "scenarios": [
+    {
+      "kind": "positive",
+      "variant": "4 lần sai từ 3 quốc gia (VN, US, FR), cách 4.8h",
+      "steps": 4,
+      "detected": true,
+      "attribution_events": 2,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 1,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai từ 4 quốc gia (VN, FR, BR, JP), cách 2.9h",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai từ 4 quốc gia (US, DE, JP, VN), cách 1.9h",
+      "steps": 6,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "4 lần sai từ 3 quốc gia (JP, FR, BR), cách 1.7h",
+      "steps": 4,
+      "detected": true,
+      "attribution_events": 1,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai từ 5 quốc gia (US, JP, VN, FR, DE), cách 1.3h",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai từ 5 quốc gia (BR, DE, JP, VN, US), cách 3.5h",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 2,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai từ 4 quốc gia (BR, DE, JP, FR), cách 1.7h",
+      "steps": 6,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 2,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "5 lần sai từ 3 quốc gia (VN, DE, US), cách 1.3h",
+      "steps": 5,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai từ 4 quốc gia (JP, VN, US, BR), cách 2.0h",
+      "steps": 6,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai từ 4 quốc gia (BR, VN, JP, US), cách 0.6h",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 6,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai từ 5 quốc gia (BR, FR, JP, VN, DE), cách 3.1h",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 1,
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 2,
+        "detection_alerts": 2,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai từ 5 quốc gia (BR, JP, DE, FR, US), cách 2.4h",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai từ 5 quốc gia (BR, DE, JP, VN, US), cách 3.2h",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "scripted_client": 2,
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 3,
+        "detection_alerts": 3,
+        "legacy_alerts": 0,
+        "secondary_signals": 1,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 1
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai từ 4 quốc gia (US, VN, JP, BR), cách 4.5h",
+      "steps": 6,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai từ 5 quốc gia (VN, FR, US, BR, JP), cách 0.5h",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "6 lần sai từ 4 quốc gia (JP, BR, VN, US), cách 3.1h",
+      "steps": 6,
+      "detected": true,
+      "attribution_events": 4,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 3,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai từ 4 quốc gia (VN, BR, FR, US), cách 1.6h",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "8 lần sai từ 5 quốc gia (FR, JP, DE, VN, BR), cách 2.8h",
+      "steps": 8,
+      "detected": true,
+      "attribution_events": 6,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 5,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "5 lần sai từ 4 quốc gia (BR, VN, DE, JP), cách 0.7h",
+      "steps": 5,
+      "detected": true,
+      "attribution_events": 3,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 2,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "positive",
+      "variant": "7 lần sai từ 5 quốc gia (US, JP, BR, FR, DE), cách 0.5h",
+      "steps": 7,
+      "detected": true,
+      "attribution_events": 5,
+      "misattributed_to": [],
+      "alerts_by_detector": {
+        "country_hop": 1
+      },
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 1,
+        "detection_alerts": 1,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 4,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "6 lần sai từ 2 quốc gia (DE, VN)",
+      "steps": 6,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "3 quốc gia (VN, US, BR) trải hơn 24h",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "7 lần gõ sai, chỉ trong nước",
+      "steps": 7,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "2 lần sai từ 2 quốc gia (FR, VN)",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "3 quốc gia (FR, VN, US) trải hơn 24h",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "6 lần gõ sai, chỉ trong nước",
+      "steps": 6,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "3 lần sai từ 2 quốc gia (VN, DE)",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "3 quốc gia (DE, BR, JP) trải hơn 24h",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "8 lần gõ sai, chỉ trong nước",
+      "steps": 8,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "2 lần sai từ 2 quốc gia (BR, JP)",
+      "steps": 2,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "3 quốc gia (VN, US, DE) trải hơn 24h",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "5 lần gõ sai, chỉ trong nước",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "5 lần sai từ 2 quốc gia (US, VN)",
+      "steps": 5,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "công tác VN → JP → FR, đăng nhập đúng (1 lần gõ sai)",
+      "steps": 4,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "3 quốc gia (BR, FR, US) trải hơn 24h",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    },
+    {
+      "kind": "negative",
+      "variant": "3 lần gõ sai, chỉ trong nước",
+      "steps": 3,
+      "detected": false,
+      "attribution_events": 0,
+      "misattributed_to": [],
+      "alerts_by_detector": {},
+      "legacy_alerts": {},
+      "noise": {
+        "total_alerts": 0,
+        "detection_alerts": 0,
+        "legacy_alerts": 0,
+        "secondary_signals": 0,
+        "duplicate_suppressed": 0,
+        "superseded_detectors": 0
+      }
+    }
+  ]
+}

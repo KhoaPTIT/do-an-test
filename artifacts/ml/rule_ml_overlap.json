@@ -1,0 +1,6454 @@
+{
+  "generated_at": "2026-10-03T14:47:33.470874+00:00",
+  "git": {
+    "commit": "a4d62ef55bfcd5867a0b77b46d4dc29f2f4b68aa",
+    "dirty": false
+  },
+  "seed": 20260302,
+  "model": {
+    "name": "isolation_forest",
+    "version": "v3-870bee225d73-03b95613-s42",
+    "threshold": 0.5905492927428302,
+    "artifact_dir": "/home/user/do-an-test/backend/ml/artifacts/anomaly_iforest"
+  },
+  "definitions": "Thí nghiệm LUẬT vs ML (Phase 4.1 — ML4) trên CÙNG harness kiểm chứng của Phase 3.\n\n    cd backend && python -m verification.rule_ml_experiment     # -> artifacts/ml/rule_ml_overlap.{json,md}\n\nChạy LẠI toàn bộ 21 hành vi × (20 dương tính + 20 âm tính) và lưu lượng bình thường v3 (seed harness 20260302 — dataset huấn\nluyện ML dùng seed khác) qua pipeline /login thật, lần này VỚI model bất thường đã nạp (artifact `ml/artifacts/anomaly_iforest`).\n\nĐịnh nghĩa (chốt TRƯỚC khi chạy lần đầu; không đổi dataset/ngưỡng sau khi xem kết quả):\n  - RULE phát hiện: ít nhất một lần thử của kịch bản có luật ĐỦ TƯ CÁCH TỰ CẢNH BÁO khớp (enforce + verified — 20 detector\n    VERIFIED; `unusual_hour` là experimental nên không tính) — đọc từ verdict thật của pipeline.\n  - ML phát hiện: ít nhất một lần thử của kịch bản được model gắn cờ bất thường (`login_events.ml_is_anomaly`).\n  - A = cả hai · B = chỉ luật · C = chỉ ML · D = không bên nào. Tính theo KỊCH BẢN cho kịch bản tấn công (dương tính); theo\n    TỪNG LẦN THỬ cho lưu lượng bình thường (mọi cờ ở đó là báo nhầm).\n  - Model chỉ chấm lần thành công của hồ sơ trưởng thành: kịch bản chỉ gồm lần thất bại hoặc tài khoản mới nằm ngoài tầm nhìn\n    của ML theo thiết kế (cột `ml_in_scope`).\nKèm kiểm tra hồi quy: 20 hành vi VERIFIED có còn đạt tiêu chí khi BẬT ML không (cùng công thức chấm của runner Phase 3).",
+  "attack_scenarios": {
+    "total": 420,
+    "quadrants": {
+      "A": 86,
+      "B": 314,
+      "C": 10,
+      "D": 10
+    },
+    "ml_in_scope": 120,
+    "ml_only_detections": 10
+  },
+  "ml_only_scenarios": [
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 7.0h±1.8h (12 ngày) → đăng nhập 20.0h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5948,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 3.6h±1.5h (14 ngày) → đăng nhập 15.5h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.604,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 19.1h±2.9h (28 ngày) → đăng nhập 6.3h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6016,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 7.2h±1.8h (19 ngày) → đăng nhập 18.9h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6039,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 10.7h±3.6h (19 ngày) → đăng nhập 0.1h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5916,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 6.1h±3.8h (37 ngày) → đăng nhập 20.0h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5948,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 13.2h±3.7h (33 ngày) → đăng nhập 23.9h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5932,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 3.8h±3.8h (18 ngày) → đăng nhập 16.0h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.604,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 16.2h±1.7h (36 ngày) → đăng nhập 2.8h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5928,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 14.5h±3.8h (36 ngày) → đăng nhập 4.2h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5908,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    }
+  ],
+  "per_behavior": {
+    "username_enumeration": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "password_spray_slow": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "distributed_bruteforce": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "success_after_failures": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 10
+    },
+    "dormant_account_login": {
+      "positives": {
+        "A": 5,
+        "B": 15
+      },
+      "ml_in_scope_positives": 5,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 5
+    },
+    "tor_exit": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "brute_force": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "credential_stuffing": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 5
+    },
+    "blocklist_hit": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "impossible_travel": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "country_hop": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "ua_rotation": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 4
+    },
+    "scripted_client": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "bot_user_agent": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 5
+    },
+    "unusual_device": {
+      "positives": {
+        "A": 19,
+        "B": 1
+      },
+      "ml_in_scope_positives": 20,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "unusual_location": {
+      "positives": {
+        "A": 20
+      },
+      "ml_in_scope_positives": 20,
+      "negatives_ml_flagged": 11,
+      "negatives_rule_detected": 0
+    },
+    "unusual_hour": {
+      "positives": {
+        "C": 10,
+        "D": 10
+      },
+      "ml_in_scope_positives": 20,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 0
+    },
+    "login_velocity_spike": {
+      "positives": {
+        "A": 13,
+        "B": 7
+      },
+      "ml_in_scope_positives": 20,
+      "negatives_ml_flagged": 2,
+      "negatives_rule_detected": 4
+    },
+    "regular_rhythm": {
+      "positives": {
+        "B": 20
+      },
+      "ml_in_scope_positives": 0,
+      "negatives_ml_flagged": 0,
+      "negatives_rule_detected": 5
+    },
+    "rare_network_login": {
+      "positives": {
+        "A": 20
+      },
+      "ml_in_scope_positives": 20,
+      "negatives_ml_flagged": 9,
+      "negatives_rule_detected": 5
+    },
+    "multi_context_simultaneous": {
+      "positives": {
+        "A": 9,
+        "B": 11
+      },
+      "ml_in_scope_positives": 15,
+      "negatives_ml_flagged": 7,
+      "negatives_rule_detected": 14
+    }
+  },
+  "normal_traffic": {
+    "events": 5647,
+    "successful_events": 4604,
+    "ml_scored_events": 4551,
+    "ml_flagged_events": 59,
+    "rule_detected_events": 0,
+    "per_event_quadrants": {
+      "A": 0,
+      "B": 0,
+      "C": 59,
+      "D": 5588
+    },
+    "ml_false_alarm_rate_on_scored": 0.013,
+    "detection_alerts_by_detector": {
+      "hybrid_ml": 49
+    },
+    "legacy_alerts": {
+      "high_risk_score": 114,
+      "brute_force": 6
+    }
+  },
+  "verified_behaviors_with_ml_on": {
+    "username_enumeration": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "password_spray_slow": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "distributed_bruteforce": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "success_after_failures": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "dormant_account_login": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "tor_exit": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "brute_force": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "credential_stuffing": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "blocklist_hit": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "impossible_travel": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "country_hop": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "ua_rotation": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "scripted_client": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "bot_user_agent": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "unusual_device": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "unusual_location": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 19,
+      "fp": 0,
+      "fn": 1,
+      "recall": 0.95,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "unusual_hour": {
+      "status": "FAILED_CRITERIA",
+      "failed_criteria": [
+        "recall 0.50 < 0.9",
+        "quy kết đúng 0.00 < 0.9"
+      ],
+      "tp": 10,
+      "fp": 0,
+      "fn": 10,
+      "recall": 0.5,
+      "attribution_accuracy": 0.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "login_velocity_spike": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 19,
+      "fp": 0,
+      "fn": 1,
+      "recall": 0.95,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "regular_rhythm": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "rare_network_login": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    },
+    "multi_context_simultaneous": {
+      "status": "VERIFIED",
+      "failed_criteria": [],
+      "tp": 20,
+      "fp": 0,
+      "fn": 0,
+      "recall": 1.0,
+      "attribution_accuracy": 1.0,
+      "normal_traffic_false_alerts": 0
+    }
+  },
+  "all_verified_still_verified": true,
+  "rows": [
+    {
+      "behavior": "username_enumeration",
+      "scenario": "12 tên không tồn tại, cách 43s, UA=trình duyệt",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "13 tên không tồn tại, cách 37s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "11 tên không tồn tại, cách 57s, UA=trình duyệt",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "13 tên không tồn tại, cách 42s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "9 tên không tồn tại, cách 62s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "8 tên không tồn tại, cách 47s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "10 tên không tồn tại, cách 38s, UA=trình duyệt",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "9 tên không tồn tại, cách 58s, UA=trình duyệt",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "12 tên không tồn tại, cách 44s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "9 tên không tồn tại, cách 42s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "11 tên không tồn tại, cách 38s, UA=trình duyệt",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "13 tên không tồn tại, cách 48s, UA=trình duyệt",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "11 tên không tồn tại, cách 38s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "12 tên không tồn tại, cách 53s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "13 tên không tồn tại, cách 47s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "13 tên không tồn tại, cách 49s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "13 tên không tồn tại, cách 41s, UA=trình duyệt",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "9 tên không tồn tại, cách 45s, UA=kịch bản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "10 tên không tồn tại, cách 52s, UA=trình duyệt",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "username_enumeration",
+      "scenario": "8 tên không tồn tại, cách 55s, UA=trình duyệt",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "username_enumeration"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "19 tài khoản (27 lần sai), cách 30 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "19 tài khoản (19 lần sai), cách 48 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "19 tài khoản (28 lần sai), cách 25 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "23 tài khoản (23 lần sai), cách 20 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "24 tài khoản (24 lần sai), cách 12 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "22 tài khoản (22 lần sai), cách 30 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "23 tài khoản (32 lần sai), cách 35 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "19 tài khoản (24 lần sai), cách 11 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "20 tài khoản (20 lần sai), cách 32 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "22 tài khoản (22 lần sai), cách 47 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "20 tài khoản (20 lần sai), cách 35 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "21 tài khoản (21 lần sai), cách 42 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "19 tài khoản (19 lần sai), cách 28 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "24 tài khoản (24 lần sai), cách 51 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "23 tài khoản (23 lần sai), cách 18 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "22 tài khoản (22 lần sai), cách 52 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "18 tài khoản (18 lần sai), cách 50 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "24 tài khoản (24 lần sai), cách 32 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "22 tài khoản (33 lần sai), cách 26 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "password_spray_slow",
+      "scenario": "16 tài khoản (24 lần sai), cách 24 phút",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "password_spray_slow"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "13 lần sai từ 5 IP cùng khu vực, cách 93s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "13 lần sai từ 8 IP cùng khu vực, cách 25s (nhanh: brute_force cũng khớp)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "9 lần sai từ 9 IP cùng khu vực, cách 17s (nhanh: brute_force cũng khớp)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "9 lần sai từ 7 IP cùng khu vực, cách 22s (nhanh: brute_force cũng khớp)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "8 lần sai từ 5 IP cùng khu vực, cách 196s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "8 lần sai từ 6 IP cùng khu vực, cách 246s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "11 lần sai từ 7 IP cùng khu vực, cách 160s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "12 lần sai từ 11 IP cùng khu vực, cách 127s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "9 lần sai từ 5 IP cùng khu vực, cách 180s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "12 lần sai từ 6 IP cùng khu vực, cách 123s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "13 lần sai từ 12 IP cùng khu vực, cách 25s (nhanh: brute_force cũng khớp)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "10 lần sai từ 10 IP cùng khu vực, cách 37s (nhanh: brute_force cũng khớp)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "13 lần sai từ 8 IP cùng khu vực, cách 23s (nhanh: brute_force cũng khớp)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "11 lần sai từ 9 IP cùng khu vực, cách 245s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "10 lần sai từ 8 IP cùng khu vực, cách 150s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "9 lần sai từ 7 IP cùng khu vực, cách 20s (nhanh: brute_force cũng khớp)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "13 lần sai từ 9 IP cùng khu vực, cách 234s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "8 lần sai từ 8 IP cùng khu vực, cách 224s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "9 lần sai từ 8 IP cùng khu vực, cách 85s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "distributed_bruteforce",
+      "scenario": "9 lần sai từ 6 IP cùng khu vực, cách 39s (nhanh: brute_force cũng khớp)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "distributed_bruteforce"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "5 lần sai cách 53s rồi đúng sau 7s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "8 lần sai cách 41s rồi đúng sau 54s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "9 lần sai cách 15s rồi đúng sau 19s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "6 lần sai cách 76s rồi đúng sau 52s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "9 lần sai cách 22s rồi đúng sau 38s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "8 lần sai cách 18s rồi đúng sau 57s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "7 lần sai cách 49s rồi đúng sau 51s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "8 lần sai cách 20s rồi đúng sau 56s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "5 lần sai cách 77s rồi đúng sau 10s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "8 lần sai cách 21s rồi đúng sau 22s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "7 lần sai cách 56s rồi đúng sau 21s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "6 lần sai cách 75s rồi đúng sau 8s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "8 lần sai cách 14s rồi đúng sau 25s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "9 lần sai cách 31s rồi đúng sau 46s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "6 lần sai cách 17s rồi đúng sau 54s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "6 lần sai cách 50s rồi đúng sau 41s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "7 lần sai cách 28s rồi đúng sau 7s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "8 lần sai cách 13s rồi đúng sau 44s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "9 lần sai cách 23s rồi đúng sau 19s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "success_after_failures",
+      "scenario": "9 lần sai cách 25s rồi đúng sau 46s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "success_after_failures"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 386 ngày, đổi both",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 273 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 326 ngày, đổi country",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 362 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 179 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 281 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 234 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7165,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 397 ngày, đổi both",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7804,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 261 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7299,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 302 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 315 ngày, đổi country",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 354 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 305 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 144 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 231 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 378 ngày, đổi country",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 255 ngày, đổi country",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 148 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 374 ngày, đổi country",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.762,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "dormant_account_login",
+      "scenario": "ngủ đông 220 ngày, đổi device",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6971,
+      "primary_detectors": [
+        "dormant_account_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "đăng nhập thành công qua Tor (198.51.100.21)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "thử sai một lần qua Tor (198.51.100.6)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "tên không tồn tại qua Tor (198.51.100.14)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "đăng nhập thành công qua Tor (198.51.100.39)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "thử sai một lần qua Tor (198.51.100.30)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "tên không tồn tại qua Tor (198.51.100.33)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "đăng nhập thành công qua Tor (198.51.100.31)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "thử sai một lần qua Tor (198.51.100.13)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "tên không tồn tại qua Tor (198.51.100.23)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "đăng nhập thành công qua Tor (198.51.100.15)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "thử sai một lần qua Tor (198.51.100.23)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "tên không tồn tại qua Tor (198.51.100.12)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "đăng nhập thành công qua Tor (198.51.100.11)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "thử sai một lần qua Tor (198.51.100.33)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "tên không tồn tại qua Tor (198.51.100.3)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "đăng nhập thành công qua Tor (198.51.100.30)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "thử sai một lần qua Tor (198.51.100.13)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "tên không tồn tại qua Tor (198.51.100.4)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "đăng nhập thành công qua Tor (198.51.100.25)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "tor_exit",
+      "scenario": "thử sai một lần qua Tor (198.51.100.19)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "tor_exit"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "11 lần sai cách 58s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "7 lần sai cách 11s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "5 lần sai cách 6s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "9 lần sai cách 4s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "10 lần sai cách 41s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "10 lần sai cách 19s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "7 lần sai cách 8s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "8 lần sai cách 23s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "8 lần sai cách 17s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "5 lần sai cách 18s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "5 lần sai cách 16s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "5 lần sai cách 54s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "8 lần sai cách 17s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "11 lần sai cách 31s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "8 lần sai cách 65s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "10 lần sai cách 55s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "12 lần sai cách 46s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "12 lần sai cách 46s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "11 lần sai cách 29s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "brute_force",
+      "scenario": "12 lần sai cách 67s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "brute_force"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "16 lần sai / 5 tài khoản không tồn tại, cách 15s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "11 lần sai / 6 tài khoản có thật, cách 6s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "10 lần sai / 7 tài khoản có thật, cách 13s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "10 lần sai / 7 tài khoản có thật, cách 16s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "18 lần sai / 7 tài khoản có thật, cách 7s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "12 lần sai / 12 tài khoản có thật, cách 15s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "11 lần sai / 11 tài khoản có thật, cách 25s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "16 lần sai / 12 tài khoản có thật, cách 5s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "15 lần sai / 12 tài khoản không tồn tại, cách 15s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "15 lần sai / 9 tài khoản không tồn tại, cách 15s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "18 lần sai / 12 tài khoản có thật, cách 9s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "19 lần sai / 5 tài khoản có thật, cách 11s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "13 lần sai / 10 tài khoản có thật, cách 12s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "13 lần sai / 7 tài khoản có thật, cách 23s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "12 lần sai / 10 tài khoản không tồn tại, cách 22s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "15 lần sai / 10 tài khoản có thật, cách 3s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "18 lần sai / 6 tài khoản có thật, cách 6s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "19 lần sai / 12 tài khoản không tồn tại, cách 5s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "14 lần sai / 11 tài khoản có thật, cách 20s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "credential_stuffing",
+      "scenario": "11 lần sai / 7 tài khoản có thật, cách 9s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "credential_stuffing"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn ip=203.0.113.214",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn cidr=203.0.113.64/26",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn asn=64533 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn username=victim (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn ip=198.51.100.249 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn cidr=198.51.100.192/26 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn asn=64532 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn username=victim",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn ip=198.51.100.235 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn cidr=198.51.100.192/26 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn asn=64530 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn username=victim",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn ip=203.0.113.189",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn cidr=203.0.113.128/26",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn asn=64533",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn username=victim (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn ip=203.0.113.167 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn cidr=203.0.113.128/26 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn asn=64530 (có hạn)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock (blocklist) + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "blocklist_hit",
+      "scenario": "chặn username=victim",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "blocklist_hit"
+      ],
+      "risk_engine_action": "lock",
+      "final_decision": "lock + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "17175km trong 953 phút (~1,081 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "9197km trong 98 phút (~5,643 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "3661km trong 65 phút (~3,374 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "12316km trong 468 phút (~1,577 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "12316km trong 341 phút (~2,168 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "13150km trong 264 phút (~2,987 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "13150km trong 492 phút (~1,603 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "9197km trong 224 phút (~2,459 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "3661km trong 208 phút (~1,057 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "9197km trong 58 phút (~9,575 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "3661km trong 58 phút (~3,767 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "9197km trong 273 phút (~2,023 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "3661km trong 105 phút (~2,088 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "17175km trong 677 phút (~1,521 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "12316km trong 252 phút (~2,931 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "17175km trong 198 phút (~5,212 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "9197km trong 212 phút (~2,597 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "9197km trong 224 phút (~2,468 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "12316km trong 122 phút (~6,040 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "impossible_travel",
+      "scenario": "12316km trong 45 phút (~16,313 km/h)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "4 lần sai từ 3 quốc gia (VN, US, FR), cách 4.8h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "7 lần sai từ 4 quốc gia (VN, FR, BR, JP), cách 2.9h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "6 lần sai từ 4 quốc gia (US, DE, JP, VN), cách 1.9h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "4 lần sai từ 3 quốc gia (JP, FR, BR), cách 1.7h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "8 lần sai từ 5 quốc gia (US, JP, VN, FR, DE), cách 1.3h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "7 lần sai từ 5 quốc gia (BR, DE, JP, VN, US), cách 3.5h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop",
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "6 lần sai từ 4 quốc gia (BR, DE, JP, FR), cách 1.7h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop",
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "5 lần sai từ 3 quốc gia (VN, DE, US), cách 1.3h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "6 lần sai từ 4 quốc gia (JP, VN, US, BR), cách 2.0h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "7 lần sai từ 4 quốc gia (BR, VN, JP, US), cách 0.6h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "7 lần sai từ 5 quốc gia (BR, FR, JP, VN, DE), cách 3.1h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop",
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "8 lần sai từ 5 quốc gia (BR, JP, DE, FR, US), cách 2.4h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "7 lần sai từ 5 quốc gia (BR, DE, JP, VN, US), cách 3.2h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop",
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "6 lần sai từ 4 quốc gia (US, VN, JP, BR), cách 4.5h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "8 lần sai từ 5 quốc gia (VN, FR, US, BR, JP), cách 0.5h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "6 lần sai từ 4 quốc gia (JP, BR, VN, US), cách 3.1h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "7 lần sai từ 4 quốc gia (VN, BR, FR, US), cách 1.6h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "8 lần sai từ 5 quốc gia (FR, JP, DE, VN, BR), cách 2.8h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "5 lần sai từ 4 quốc gia (BR, VN, DE, JP), cách 0.7h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "country_hop",
+      "scenario": "7 lần sai từ 5 quốc gia (US, JP, BR, FR, DE), cách 0.5h",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "country_hop"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "11 lần sai, 5 họ UA, 4 tài khoản, cách 79s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "10 lần sai, 8 họ UA, 4 tài khoản, cách 81s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "10 lần sai, 7 họ UA, 3 tài khoản, cách 81s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "11 lần sai, 8 họ UA, 3 tài khoản, cách 84s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "12 lần sai, 6 họ UA, 4 tài khoản, cách 85s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "9 lần sai, 6 họ UA, 2 tài khoản, cách 45s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "9 lần sai, 5 họ UA, 4 tài khoản, cách 79s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "8 lần sai, 5 họ UA, 1 tài khoản (không tồn tại), cách 79s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "11 lần sai, 8 họ UA, 2 tài khoản (không tồn tại), cách 64s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "12 lần sai, 7 họ UA, 4 tài khoản (không tồn tại), cách 85s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "11 lần sai, 7 họ UA, 2 tài khoản, cách 57s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "11 lần sai, 6 họ UA, 4 tài khoản, cách 81s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "12 lần sai, 6 họ UA, 1 tài khoản, cách 83s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "10 lần sai, 6 họ UA, 1 tài khoản, cách 78s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "12 lần sai, 8 họ UA, 2 tài khoản (không tồn tại), cách 77s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "12 lần sai, 7 họ UA, 2 tài khoản, cách 82s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "12 lần sai, 5 họ UA, 1 tài khoản, cách 85s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "8 lần sai, 7 họ UA, 2 tài khoản, cách 58s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "8 lần sai, 7 họ UA, 2 tài khoản, cách 78s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "ua_rotation",
+      "scenario": "9 lần sai, 7 họ UA, 4 tài khoản (không tồn tại), cách 83s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "ua_rotation"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "tên không tồn tại, python-requests/2.31.0",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "tên không tồn tại, curl/8.7.1",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "tên không tồn tại, Wget/1.21.4",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "đăng nhập thành công bằng HTTPie/3.2.2",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "đăng nhập thành công bằng Go-http-client/1.1",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "đăng nhập thành công bằng python-httpx/0.27.0",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "2 lần thử sai bằng Python/3.11 aiohttp/3.9.3",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "3 lần thử sai bằng libwww-perl/6.72",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "1 lần thử sai bằng Java/17.0.9",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "tên không tồn tại, Apache-HttpClient/4.5.14 (Java/17.0.9)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "3 lần thử sai bằng python-requests/2.31.0",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "3 lần thử sai bằng curl/8.7.1",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "3 lần thử sai bằng Wget/1.21.4",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "3 lần thử sai bằng HTTPie/3.2.2",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "đăng nhập thành công bằng Go-http-client/1.1",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "đăng nhập thành công bằng python-httpx/0.27.0",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "tên không tồn tại, Python/3.11 aiohttp/3.9.3",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "tên không tồn tại, libwww-perl/6.72",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "tên không tồn tại, Java/17.0.9",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "scripted_client",
+      "scenario": "tên không tồn tại, Apache-HttpClient/4.5.14 (Java/17.0.9)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "scripted_client"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (compatible; Googl)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (compatible; bingb)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (DuckDuckBot/1.1; (+http://duck)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "3 yêu cầu đăng nhập từ crawler (Mozilla/5.0 (compatible; Yande)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (compatible; Ahref)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (facebookexternalhit/1.1 (+http)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "3 yêu cầu đăng nhập từ crawler (Mozilla/5.0 (compatible; Baidu)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (compatible; Semru)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "1 yêu cầu đăng nhập từ crawler (Mozilla/5.0 (compatible; MJ12b)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (Linux; Android 6.)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (compatible; Googl)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (compatible; bingb)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (DuckDuckBot/1.1; (+http://duck)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (compatible; Yande)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (compatible; Ahref)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (facebookexternalhit/1.1 (+http)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "crawler thử tên không tồn tại (Mozilla/5.0 (compatible; Baidu)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "1 yêu cầu đăng nhập từ crawler (Mozilla/5.0 (compatible; Semru)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "1 yêu cầu đăng nhập từ crawler (Mozilla/5.0 (compatible; MJ12b)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "bot_user_agent",
+      "scenario": "3 yêu cầu đăng nhập từ crawler (Mozilla/5.0 (Linux; Android 6.)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "bot_user_agent"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 22 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6504,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 23 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6529,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 32 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5982,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 37 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6997,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 15 ngày, 3 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7896,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 22 ngày, 3 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7688,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 24 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.606,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 34 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7885,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 29 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6529,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 36 ngày, 3 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.59,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 39 ngày, 2 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.769,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 32 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6556,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 22 ngày, 2 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7777,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 19 ngày, 3 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7675,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 28 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6485,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 10 ngày, 2 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7846,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 38 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.791,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 17 ngày, 1 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7571,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 39 ngày, 2 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7894,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_device",
+      "scenario": "hồ sơ 13 ngày, 3 thiết bị quen → thiết bị mới",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6048,
+      "primary_detectors": [
+        "unusual_device"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 31 ngày → lần đầu ở FR",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7664,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 40 ngày → lần đầu ở US",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7608,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 32 ngày (+từng đến JP) → lần đầu ở FR",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7749,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 35 ngày (+từng đến BR) → lần đầu ở JP",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7387,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 25 ngày → lần đầu ở US",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.77,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 39 ngày → lần đầu ở US",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7743,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 19 ngày (+từng đến DE) → lần đầu ở US",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.744,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 37 ngày → lần đầu ở FR",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7836,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 18 ngày (+từng đến US) → lần đầu ở BR",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7456,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 30 ngày → lần đầu ở DE",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7522,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 18 ngày → lần đầu ở FR",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7752,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 14 ngày (+từng đến FR) → lần đầu ở JP",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.763,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 37 ngày (+từng đến DE) → lần đầu ở BR",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7491,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 23 ngày → lần đầu ở US",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7682,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 39 ngày → lần đầu ở JP",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7735,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 30 ngày (+từng đến DE) → lần đầu ở US",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7657,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 20 ngày → lần đầu ở FR",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7641,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 33 ngày → lần đầu ở DE",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7798,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 32 ngày → lần đầu ở FR",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7743,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_location",
+      "scenario": "hồ sơ VN 20 ngày (+từng đến FR) → lần đầu ở US",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7719,
+      "primary_detectors": [
+        "unusual_location"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 7.0h±1.8h (12 ngày) → đăng nhập 20.0h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5948,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 4.4h±1.1h (16 ngày) → đăng nhập 14.6h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5858,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 3.6h±1.5h (14 ngày) → đăng nhập 15.5h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.604,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 19.1h±2.9h (28 ngày) → đăng nhập 6.3h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6016,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 7.2h±1.8h (19 ngày) → đăng nhập 18.9h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6039,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 2.3h±0.6h (28 ngày) → đăng nhập 17.1h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5757,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 9.9h±2.3h (28 ngày) → đăng nhập 0.0h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5831,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 1.6h±1.5h (14 ngày) → đăng nhập 15.3h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5839,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 6.7h±3.1h (37 ngày) → đăng nhập 20.7h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5817,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 10.7h±3.6h (19 ngày) → đăng nhập 0.1h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5916,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 16.0h±2.1h (23 ngày) → đăng nhập 6.9h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5747,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 1.7h±2.2h (35 ngày) → đăng nhập 13.3h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5807,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 6.1h±3.8h (37 ngày) → đăng nhập 20.0h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5948,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 15.0h±1.2h (20 ngày) → đăng nhập 5.4h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5817,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 15.4h±2.5h (19 ngày) → đăng nhập 1.1h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5724,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 13.2h±3.7h (33 ngày) → đăng nhập 23.9h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5932,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 18.8h±1.3h (30 ngày) → đăng nhập 9.3h",
+      "rule_detected": false,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5455,
+      "primary_detectors": [],
+      "risk_engine_action": "allow",
+      "final_decision": "allow",
+      "quadrant": "D"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 3.8h±3.8h (18 ngày) → đăng nhập 16.0h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.604,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 16.2h±1.7h (36 ngày) → đăng nhập 2.8h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5928,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "unusual_hour",
+      "scenario": "quen 14.5h±3.8h (36 ngày) → đăng nhập 4.2h",
+      "rule_detected": false,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5908,
+      "primary_detectors": [
+        "unusual_hour"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "C"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (20 ngày) → 10 lần thành công cách 53s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7818,
+      "primary_detectors": [
+        "impossible_travel"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (27 ngày) → 11 lần thành công cách 37s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7738,
+      "primary_detectors": [
+        "hybrid_ml",
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (30 ngày) → 12 lần thành công cách 15s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5983,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (13 ngày) → 9 lần thành công cách 48s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5593,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (30 ngày) → 9 lần thành công cách 49s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5958,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (35 ngày) → 12 lần thành công cách 43s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7729,
+      "primary_detectors": [
+        "hybrid_ml",
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (38 ngày) → 12 lần thành công cách 24s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7467,
+      "primary_detectors": [
+        "hybrid_ml",
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (21 ngày) → 14 lần thành công cách 42s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7605,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (35 ngày) → 11 lần thành công cách 34s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5601,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (18 ngày) → 15 lần thành công cách 40s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5346,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (36 ngày) → 12 lần thành công cách 40s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5617,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (11 ngày) → 12 lần thành công cách 24s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.774,
+      "primary_detectors": [
+        "hybrid_ml",
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (11 ngày) → 14 lần thành công cách 23s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7759,
+      "primary_detectors": [
+        "hybrid_ml",
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (13 ngày) → 15 lần thành công cách 35s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5313,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (34 ngày) → 10 lần thành công cách 25s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7909,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (16 ngày) → 10 lần thành công cách 60s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5726,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (28 ngày) → 10 lần thành công cách 63s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5694,
+      "primary_detectors": [
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (18 ngày) → 10 lần thành công cách 47s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.756,
+      "primary_detectors": [
+        "hybrid_ml",
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (36 ngày) → 12 lần thành công cách 17s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7234,
+      "primary_detectors": [
+        "hybrid_ml",
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "login_velocity_spike",
+      "scenario": "hồ sơ 1–3 lần/ngày (30 ngày) → 9 lần thành công cách 13s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7559,
+      "primary_detectors": [
+        "hybrid_ml",
+        "login_velocity_spike"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "12 lần sai cách đều ~2.8s (±0%), 3 tài khoản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "10 lần sai cách đều ~15.5s (±4%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "11 lần sai cách đều ~4.9s (±12%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "12 lần sai cách đều ~23.5s (±8%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "11 lần sai cách đều ~6.2s (±2%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "11 lần sai cách đều ~18.1s (±4%), 3 tài khoản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "10 lần sai cách đều ~18.9s (±1%), 3 tài khoản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "12 lần sai cách đều ~18.3s (±7%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "12 lần sai cách đều ~7.7s (±7%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "10 lần sai cách đều ~21.4s (±4%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "10 lần sai cách đều ~18.8s (±11%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "10 lần sai cách đều ~16.1s (±10%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "14 lần sai cách đều ~14.3s (±6%), 4 tài khoản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "10 lần sai cách đều ~9.9s (±5%), 3 tài khoản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "10 lần sai cách đều ~15.1s (±7%), 3 tài khoản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "11 lần sai cách đều ~14.8s (±4%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "10 lần sai cách đều ~12.9s (±11%), 3 tài khoản",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "10 lần sai cách đều ~8.5s (±9%), 3 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "12 lần sai cách đều ~19.9s (±2%), 4 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "regular_rhythm",
+      "scenario": "16 lần sai cách đều ~10.0s (±12%), 4 tài khoản (không tồn tại)",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "regular_rhythm"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "JP dân cư (64530), nền 1328 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7274,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "US dân cư (64523), nền 1222 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7541,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "US dân cư (64523), nền 925 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7431,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "NL datacenter (64521), nền 573 lượt, ASN chiếm ~0.4%",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7376,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "SG VPN (64522), nền 967 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7152,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "VN Đà Nẵng (ASN 64515, cùng quốc gia), nền 2356 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6974,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "JP dân cư (64530), nền 1295 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.76,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "NL datacenter (64521), nền 1958 lượt, ASN chiếm ~0.6%",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7519,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "SG VPN (64522), nền 1607 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7187,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "FR dân cư (64531), nền 1821 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7526,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "US dân cư (64523), nền 2082 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.761,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "US dân cư (64523), nền 2259 lượt, ASN chiếm ~0.5%",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7596,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "FR dân cư (64531), nền 857 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7427,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "NL datacenter (64521), nền 880 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.744,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "BR dân cư (64532), nền 735 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7573,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "FR dân cư (64531), nền 1457 lượt, ASN chiếm ~0.5%",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.753,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "US dân cư (64523), nền 1947 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7603,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "NL datacenter (64521), nền 1026 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7442,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "JP dân cư (64530), nền 2127 lượt, ASN chưa ai dùng",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.727,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "rare_network_login",
+      "scenario": "VN Đà Nẵng (ASN 64515, cùng quốc gia), nền 1998 lượt, ASN chiếm ~0.5%",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6772,
+      "primary_detectors": [
+        "rare_network_login"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nhà VN (có toạ độ) → nước khác (chỉ quốc gia), cách 469s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "VN (chỉ quốc gia) → nước khác (có toạ độ), cách 264s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7737,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nước khác (chỉ quốc gia) → chủ ở nhà VN, cách 330s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.516,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "VN → SG (cả hai chỉ quốc gia), cách 234s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nhà VN (có toạ độ) → nước khác (chỉ quốc gia) + quốc gia thứ ba, cách 225s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5872,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "VN (chỉ quốc gia) → nước khác (có toạ độ) + quốc gia thứ ba, cách 239s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7648,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nước khác (chỉ quốc gia) → chủ ở nhà VN, cách 223s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "VN → SG (cả hai chỉ quốc gia) + quốc gia thứ ba, cách 490s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.591,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nhà VN (có toạ độ) → nước khác (chỉ quốc gia), cách 137s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6955,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "VN (chỉ quốc gia) → nước khác (có toạ độ), cách 95s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7484,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nước khác (chỉ quốc gia) → chủ ở nhà VN, cách 546s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.516,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "SG → KR (cả hai chỉ quốc gia), cách 173s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6964,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nhà VN (có toạ độ) → nước khác (chỉ quốc gia), cách 276s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "VN (chỉ quốc gia) → nước khác (có toạ độ), cách 209s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7744,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nước khác (chỉ quốc gia) → chủ ở nhà VN, cách 271s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.6268,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "US → KR (cả hai chỉ quốc gia), cách 558s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": false,
+      "ml_max_score": null,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nhà VN (có toạ độ) → nước khác (chỉ quốc gia), cách 559s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.539,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "VN (chỉ quốc gia) → nước khác (có toạ độ), cách 585s",
+      "rule_detected": true,
+      "ml_detected": true,
+      "ml_in_scope": true,
+      "ml_max_score": 0.7635,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "alert",
+      "final_decision": "alert",
+      "quadrant": "A"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "nước khác (chỉ quốc gia) → chủ ở nhà VN, cách 346s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.516,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    },
+    {
+      "behavior": "multi_context_simultaneous",
+      "scenario": "SG → VN (cả hai chỉ quốc gia), cách 143s",
+      "rule_detected": true,
+      "ml_detected": false,
+      "ml_in_scope": true,
+      "ml_max_score": 0.5706,
+      "primary_detectors": [
+        "multi_context_simultaneous"
+      ],
+      "risk_engine_action": "allow",
+      "final_decision": "allow + alert",
+      "quadrant": "B"
+    }
+  ]
+}

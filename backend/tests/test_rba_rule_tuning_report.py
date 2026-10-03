@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from app.detection.engine import RuleConfig
+from app.detection.engine import REGISTRY, RuleConfig
 from ml.rba import rule_tuning as RT
 from ml.rba import rule_tuning_report as RP
 from ml.rba.rule_tuning import LADDERS
@@ -109,7 +109,7 @@ def test_a_stricter_budget_never_selects_a_looser_rung(payload):
 
 def test_the_rule_sets_are_unions_of_their_member_ladders(frame, payload):
     parts = {name: RT.Part(frame, name) for name in RT.PARTITIONS}
-    shadow_by_default = {"country_hop", "rare_network_login"}
+    shadow_by_default = {rule_id for rule_id, spec in REGISTRY.items() if spec.default_mode == "shadow"}  # đọc registry (country_hop thành enforce ở Milestone B)
     for key in ("default_enforce", "train_only_enforce", "tuned_enforce", "tuned_all"):
         members = payload["sets"][key]["members"]
         flagged = RP.union_flags(frame, members, parts["test"].index)

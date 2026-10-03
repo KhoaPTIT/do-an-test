@@ -43,10 +43,12 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from sqlalchemy import and_, or_
 
 from app.database import SessionLocal
-from app.detection import alert_intelligence, hybrid_runtime, ml_model, perf
+from app.detection import alert_intelligence, attribution, consolidation, hybrid_runtime, ml_runtime, perf
 from app.detection.adaptive_threshold import apply_delta
 from app.detection.baseline import (
     is_known_location,
@@ -55,6 +57,7 @@ from app.detection.baseline import (
     update_baseline_after_successful_login,
 )
 from app.detection.campaign_correlation import LIVE_CAMPAIGN_WINDOW
+from app.detection.engine.registry import REGISTRY
 from app.detection.engine.types import LoginAttempt
 from app.detection.geoip import lookup_asn, lookup_ip
 from app.detection.rate_counter import check_fail_count, redis_client
@@ -78,7 +81,6 @@ from app.models import Alert, AuditLog, BlocklistEntry, Campaign, LoginEvent, Re
 from app.utils.device import compute_device_fingerprint, parse_user_agent
 from app.utils.time import ensure_utc
 from app.ws_manager import ws_manager
-from ml.features import compute_realtime_features
 
 logger = logging.getLogger("pipeline")
 
@@ -179,10 +181,13 @@ def _run_detection_pipeline_sync(
         # (alert_type, message, extra field cho payload WebSocket)
         triggered: list[tuple[str, str, dict]] = []
 
-        if user is not None:
+        # Phase 3: impossible travel chỉ so hai lần đăng nhập THÀNH CÔNG — một lần thử SAI từ nơi xa không chứng minh chủ
+        # tài khoản đã di chuyển tới đó (kẻ tấn công thử sai từ nước ngoài được quy kết cho country_hop/brute_force/
+        # distributed_bruteforce, không phải di chuyển bất khả thi của chủ tài khoản).
+        if user is not None and success:
             previous_event = (
                 db.query(LoginEvent)
-                .filter(LoginEvent.user_id == user.id, LoginEvent.id != event.id)
+                .filter(LoginEvent.user_id == user.id, LoginEvent.id != event.id, LoginEvent.success.is_(True))
                 .order_by(LoginEvent.created_at.desc())
                 .first()
             )
@@ -262,36 +267,6 @@ def _run_detection_pipeline_sync(
                 db.add(alert_obj)
                 alert_records.append((alert_obj, {}))
 
-            # --- Tầng 3: ML, THAM KHẢO — chạy SONG SONG, không thay thế tầng 1-2 (nhiệm vụ 7.1) ---
-            # Đọc is_known_*/lịch sử TRƯỚC khi record_known_*_if_new() cập nhật
-            # bên dưới, cho đúng ý nghĩa "chưa từng thấy" (giống lúc train offline).
-            ml_features = compute_realtime_features(
-                db,
-                user_id=user.id,
-                baseline=baseline,
-                country=event.country,
-                city=event.city,
-                latitude=event.latitude,
-                longitude=event.longitude,
-                device_fingerprint=device_fingerprint,
-                created_at=event.created_at,
-            )
-            ml_result = ml_model.predict(ml_features)
-            if ml_result is not None:
-                event.ml_anomaly_score = ml_result["anomaly_score"]
-                if ml_result["is_anomaly"]:
-                    ml_explanation = ml_model.explain(ml_features)
-                    alert_obj = Alert(
-                        login_event_id=event.id,
-                        user_id=user.id,
-                        alert_type="ml_anomaly",
-                        severity="medium",
-                        risk_score=risk_score,
-                        message=f"ML bất thường (điểm {ml_result['anomaly_score']:.2f}, tham khảo): {ml_explanation}.",
-                    )
-                    db.add(alert_obj)
-                    alert_records.append((alert_obj, {}))
-
             if success:
                 update_baseline_after_successful_login(db, user, event)
                 record_known_device_if_new(db, user, device_fingerprint, user_agent)
@@ -308,9 +283,19 @@ def _run_detection_pipeline_sync(
                 )
                 with perf.timer("rule_engine"):
                     evaluation = build_rule_engine(db, before=event.created_at).evaluate(attempt)
-                with perf.timer("rba_features"):
+                with perf.timer("rba_features"):  # chỉ còn dùng HistorySummary cho "điều mới lạ" của cảnh báo (MR13)
                     event_record = event_record_for(event)
-                    features, history_summary = build_features_and_summary(db, event_record)
+                    _rba_features, history_summary = build_features_and_summary(db, event_record)
+                # --- Phase 4.1: model bất thường — chấm CÙNG lần thử, cùng lúc với 20 detector luật (không raise; model
+                # chưa nạp hoặc lần thử ngoài phạm vi thì không có điểm và risk engine chỉ dùng luật).
+                with perf.timer("ml"):
+                    ml_prediction = ml_runtime.get_runtime().predict(db, event)
+                event.ml_anomaly_score = ml_prediction.anomaly_score
+                event.ml_is_anomaly = ml_prediction.is_anomaly if ml_prediction.anomaly_score is not None else None
+                event.ml_threshold = ml_prediction.threshold if ml_prediction.anomaly_score is not None else None
+                event.ml_model_version = ml_prediction.model_version
+                event.ml_details = {"model": ml_prediction.model_name, "available": ml_prediction.available, "in_scope": ml_prediction.in_scope,
+                                    "reason": ml_prediction.reason, "top_features": [dict(f) for f in ml_prediction.top_features]}
                 # MR15: ngưỡng THÍCH NGHI riêng cho tài khoản này nếu đã đủ phản hồi (adaptive_threshold.apply_delta),
                 # NHÓM (mặc định) nếu chưa có hàng UserRiskProfile hay user_id là None (tên đăng nhập không tồn tại).
                 user_bands = None
@@ -318,34 +303,66 @@ def _run_detection_pipeline_sync(
                     risk_profile = db.get(UserRiskProfile, user_id)
                     if risk_profile is not None and risk_profile.threshold_delta > 0:
                         user_bands = apply_delta(hybrid_runtime.get_engine().profile.bands, risk_profile.threshold_delta)
-                risk_result = hybrid_runtime.get_engine().evaluate(features, evaluation.hits, bands=user_bands)
+                engine = hybrid_runtime.get_engine()
+                risk_result = engine.evaluate(ml_prediction, evaluation.hits, bands=user_bands)  # ML không bao giờ tự dẫn tới "lock"
+                lock_suppressed = hybrid_runtime.ml_lock_suppressed(risk_result, user_bands or engine.profile.bands)
                 event.hybrid_risk_score = risk_result.score
                 event.hybrid_action = risk_result.action
 
-                if risk_result.action != "allow":
+                # --- Phase 3: quy kết (app/detection/attribution.py). Cảnh báo khi điểm vượt ngưỡng NHƯ CŨ, HOẶC khi một luật
+                # `enforce` khớp (đúng nghĩa ghi ở registry.py — trước đây luồng thật bỏ qua chế độ này). Tạo cảnh báo
+                # KHÔNG đổi hành động: `risk_result.action` (và do đó step_up/lock bên dưới) vẫn chỉ do điểm hybrid quyết định.
+                verdict = attribution.build_verdict(evaluation.hits, risk_result)
+                if verdict.alert:
                     # --- MR13: gán họ tấn công gợi ý, novelty, ưu tiên (app/detection/alert_intelligence.py — thuần, không đụng DB) ---
-                    ml_component = hybrid_runtime.get_engine().ml_component(features)
-                    family, confidence = alert_intelligence.suggest_attack_family(risk_result, ml_component=ml_component)
+                    # Họ tấn công đi cùng DETECTOR CHÍNH (nhóm của luật đó) để không "đá nhau" với rule_id; chỉ ML thì như MR13.
+                    if verdict.is_rule_primary:
+                        spec = REGISTRY.get(verdict.primary_detector)
+                        family, confidence = (spec.category if spec is not None else None), verdict.primary_weight
+                    else:
+                        family, confidence = alert_intelligence.suggest_attack_family(risk_result, ml_component=None)
                     novelty_facts = alert_intelligence.compute_novelty(event_record, history_summary) if history_summary is not None else []
                     importance = user.importance if user is not None else 1.0
                     priority = alert_intelligence.priority_score(novelty_facts, confidence, importance)
-                    top_rule = next((c.source for c in risk_result.contributions if c.source != "ml"), None)
+                    rule_id = verdict.primary_detector if verdict.is_rule_primary else None
+                    severity = attribution.max_severity(_HYBRID_SEVERITY.get(risk_result.action), verdict.severity)
 
-                    # --- MR13: chống trùng lặp — cùng (tài khoản, hoặc IP nếu tài khoản không tồn tại) + họ tấn công,
-                    # trong DEDUP_WINDOW gần nhất và còn "open" thì GỘP vào alert đó thay vì tạo hàng mới.
-                    # ⚠️ Lọc theo THỜI ĐIỂM ĐĂNG NHẬP (LoginEvent.created_at, JOIN), KHÔNG PHẢI lúc hàng Alert được ghi
-                    # (Alert.created_at, server_default=func.now()) — bug thật cùng lớp đã sửa ở MR14 (app/detection/
-                    # campaign_correlation.py): hai mốc trùng nhau khi chấm gần thời gian thực, nhưng lệch hẳn khi nạp
-                    # lại/mô phỏng nhiều "ngày" trong thời gian chạy thật ngắn (lộ ra qua MR15's feedback_loop_sim.py,
-                    # vốn cố tình cách các vòng 1 NGÀY GIẢ trong khi cả script chạy thật chỉ mất vài giây — dedup theo
-                    # Alert.created_at sẽ coi MỌI vòng trước đó là "trong cửa sổ 15 phút" vì đều được GHI gần như cùng
-                    # một thời điểm THẬT, dù các vòng cách nhau cả ngày về mặt "thời điểm đăng nhập"). ---
-                    existing_alert = None
-                    if family is not None:
+                    # --- Chống trùng lặp / gộp CHIẾN DỊCH (Milestone B, B0.3/B0.4 — app/detection/consolidation.py): lần thử
+                    # có detector chính P gộp vào cảnh báo đang mở cùng chiến dịch (cùng tác nhân/mục tiêu, cùng nhóm hành vi
+                    # hoặc tín hiệu đánh dấu chung IP/tài khoản, trong cửa sổ TRƯỢT theo last_seen_at). Detector đặc hiệu hơn
+                    # làm chính, bên kia vào secondary_signals — một đợt rải mật khẩu là MỘT cảnh báo, không phải hàng trăm.
+                    # Chỉ-ML (không có luật): giữ nguyên khoá MR13 (tài khoản/IP + họ tấn công, cửa sổ DEDUP_WINDOW).
+                    # ⚠️ Mốc thời gian là THỜI ĐIỂM ĐĂNG NHẬP (LoginEvent.created_at / Alert.last_seen_at gán từ đó), KHÔNG
+                    # PHẢI lúc hàng Alert được ghi (Alert.created_at = giờ thật) — bug cùng lớp đã sửa ở MR14.
+                    account_key = ("u", user_id) if user_id is not None else ("n", username)
+                    existing_alert, upgraded = None, False
+                    if rule_id is not None:
+                        horizon = event.created_at - timedelta(days=1)
+                        rows = (
+                            db.query(Alert, LoginEvent)
+                            .join(LoginEvent, Alert.login_event_id == LoginEvent.id)
+                            .filter(Alert.alert_type.in_(consolidation.DETECTION_ALERT_TYPES), Alert.status == "open", Alert.rule_id.isnot(None))
+                            .filter(or_(Alert.last_seen_at >= horizon, and_(Alert.last_seen_at.is_(None), LoginEvent.created_at >= horizon)))
+                            .all()
+                        )
+                        candidates = [
+                            consolidation.Candidate(
+                                alert=a, rule_id=a.rule_id, ip=le.ip_address,
+                                account_key=("u", a.user_id) if a.user_id is not None else ("n", le.attempted_username),
+                                last_seen=ensure_utc(a.last_seen_at or le.created_at),
+                            )
+                            for a, le in rows
+                        ]
+                        chosen = consolidation.pick_campaign(rule_id, ip=ip, account_key=account_key, now=ensure_utc(event.created_at), candidates=candidates)
+                        if chosen is not None:
+                            existing_alert = chosen.alert
+                            upgraded = consolidation.more_specific(rule_id, existing_alert.rule_id)
+                    else:
                         dedup_query = (
                             db.query(Alert)
                             .join(LoginEvent, Alert.login_event_id == LoginEvent.id)
-                            .filter(Alert.attack_family == family, Alert.status == "open", LoginEvent.created_at >= event.created_at - alert_intelligence.DEDUP_WINDOW)
+                            .filter(Alert.alert_type == "hybrid_risk", Alert.status == "open", Alert.rule_id.is_(None), Alert.attack_family == family)
+                            .filter(LoginEvent.created_at >= event.created_at - alert_intelligence.DEDUP_WINDOW)
                         )
                         if user_id is not None:
                             dedup_query = dedup_query.filter(Alert.user_id == user_id)
@@ -354,34 +371,69 @@ def _run_detection_pipeline_sync(
                         existing_alert = dedup_query.order_by(Alert.created_at.desc()).first()
 
                     # "action" đã lưu ở lần trước là mức TỆ NHẤT của cả đợt tính đến lúc đó (xem combined_action bên dưới) — không phải riêng lần đó.
-                    previous_action = (existing_alert.explanation or {}).get("action", "alert") if existing_alert is not None else "allow"
+                    previous = (existing_alert.explanation or {}) if existing_alert is not None else {}
+                    previous_action = previous.get("action", "allow") if existing_alert is not None else "allow"
                     escalated = existing_alert is not None and alert_intelligence.action_escalated(previous_action, risk_result.action)
                     combined_action = risk_result.action if existing_alert is None or escalated else previous_action
                     occurrence_count = (existing_alert.occurrence_count + 1) if existing_alert is not None else 1
-                    message = alert_intelligence.build_alert_message(
-                        risk_result, novelty_facts=novelty_facts, family=family, confidence=confidence, occurrence_count=occurrence_count
+                    # Cảnh báo cũ giữ detector chính khi nó ĐẶC HIỆU HƠN detector của lần thử này (lần thử chỉ bổ sung tín hiệu phụ).
+                    keeps_previous_primary = existing_alert is not None and existing_alert.rule_id not in (None, rule_id) and not upgraded
+                    secondary = sorted(
+                        (set(previous.get("secondary_signals", [])) | set(previous.get("matched_rules", [])) | set(verdict.matched_rules)
+                         | ({existing_alert.rule_id} if upgraded else set()))
+                        - {existing_alert.rule_id if keeps_previous_primary else rule_id}
                     )
-                    explanation = {
-                        "contributions": [{"source": c.source, "label": c.label, "weight": round(c.weight, 4), "group": c.group} for c in risk_result.contributions],
-                        "action": combined_action,  # mức TỆ NHẤT tính đến lần này (không phải riêng risk_result.action) — dùng lại ở lần dedup SAU
-                    }
+                    superseded = list(previous.get("superseded_detectors", [])) + ([existing_alert.rule_id] if upgraded else [])
+                    if ml_prediction.is_anomaly and verdict.is_rule_primary:  # ML đồng ý với luật: tín hiệu phụ, không tạo cảnh báo riêng
+                        secondary = sorted(set(secondary) | {attribution.ML_SIGNAL})
+
+                    if keeps_previous_primary:
+                        message = existing_alert.message
+                        explanation = {
+                            **previous, "action": combined_action, "secondary_signals": secondary,
+                            "risk_score": max(previous.get("risk_score", 0), risk_result.score), "consolidated_events": occurrence_count,
+                            "ml": ml_prediction.to_dict(), "ml_lock_suppressed": lock_suppressed,
+                        }
+                    else:
+                        message = alert_intelligence.build_alert_message(
+                            risk_result, novelty_facts=novelty_facts, family=family, confidence=confidence, occurrence_count=occurrence_count
+                        )
+                        if verdict.primary_message:
+                            message = f"[{verdict.behavior}] {verdict.primary_message} {message}"
+                        explanation = {
+                            "contributions": [{"source": c.source, "label": c.label, "weight": round(c.weight, 4), "group": c.group} for c in risk_result.contributions],
+                            "action": combined_action,  # mức TỆ NHẤT tính đến lần này (không phải riêng risk_result.action) — dùng lại ở lần dedup SAU
+                            **verdict.to_explanation(risk_result),
+                            "secondary_signals": secondary,
+                            "superseded_detectors": superseded,
+                            "consolidated_events": occurrence_count,
+                            # thiếu telemetry được ghi RÕ là thiếu (B0.2), không suy diễn thành tín hiệu tấn công
+                            "telemetry_gaps": [] if (user_agent or "").strip() else ["missing_user_agent"],
+                            # Phase 4.1: kết quả model bất thường của CHÍNH lần thử này (lấy từ dữ liệu thật, không suy diễn)
+                            "ml": ml_prediction.to_dict(),
+                            "ml_lock_suppressed": lock_suppressed,
+                        }
 
                     if existing_alert is not None:
                         hybrid_alert = existing_alert
                         hybrid_alert.risk_score = max(hybrid_alert.risk_score, risk_result.score)
-                        hybrid_alert.severity = _HYBRID_SEVERITY[combined_action]
+                        hybrid_alert.severity = attribution.max_severity(hybrid_alert.severity, severity)
                         hybrid_alert.message = message
                         hybrid_alert.explanation = explanation
-                        hybrid_alert.rule_id = risk_result.overridden_by or top_rule or hybrid_alert.rule_id
-                        hybrid_alert.attack_family_confidence = confidence
                         hybrid_alert.occurrence_count = occurrence_count
                         hybrid_alert.last_seen_at = event.created_at
                         hybrid_alert.priority_score = max(hybrid_alert.priority_score or 0.0, priority)
+                        if not keeps_previous_primary:
+                            hybrid_alert.attack_family_confidence = confidence
+                        if upgraded:  # detector đặc hiệu hơn tiếp quản cảnh báo của chiến dịch
+                            hybrid_alert.rule_id = rule_id
+                            hybrid_alert.alert_type = consolidation.alert_type_for(rule_id)
+                            hybrid_alert.attack_family = family
                     else:
                         hybrid_alert = Alert(
-                            login_event_id=event.id, user_id=user_id, alert_type="hybrid_risk",
-                            severity=_HYBRID_SEVERITY[risk_result.action], risk_score=risk_result.score, message=message,
-                            rule_id=risk_result.overridden_by or top_rule, explanation=explanation, attack_family=family,
+                            login_event_id=event.id, user_id=user_id, alert_type=consolidation.alert_type_for(rule_id),
+                            severity=severity, risk_score=risk_result.score, message=message,
+                            rule_id=rule_id, explanation=explanation, attack_family=family,
                             attack_family_confidence=confidence, occurrence_count=1, last_seen_at=event.created_at, priority_score=priority,
                         )
                         db.add(hybrid_alert)
@@ -416,7 +468,9 @@ def _run_detection_pipeline_sync(
                                 db.add(block_entry)
                                 db.flush()
                                 invalidate_blocklist_cache()  # để lần thử NGAY SAU (có thể trong vài mili-giây) đã thấy mục khoá mới, không đợi hết TTL cache 15s
-                            elif block_entry.expires_at is not None and block_entry.expires_at < new_expiry:
+                            # ensure_utc: expires_at đọc lại từ SQLite mất tzinfo (cùng lớp lỗi đã sửa ở MR9/MR12/MR13) — lộ ra
+                            # ở Phase 3 khi verification runner khoá lại một mục CÓ HẠN: TypeError bị nuốt, không gia hạn.
+                            elif block_entry.expires_at is not None and ensure_utc(block_entry.expires_at) < new_expiry:
                                 block_entry.expires_at = new_expiry
                                 invalidate_blocklist_cache()
                             response_action.status = "executed"
@@ -497,6 +551,7 @@ def _run_detection_pipeline_sync(
                     "priority_score": alert_obj.priority_score,
                     "occurrence_count": alert_obj.occurrence_count,
                     "campaign_id": alert_obj.campaign_id,  # MR14 — None nếu chưa thuộc chiến dịch nào
+                    "explanation": alert_obj.explanation,  # Phase 4.1: detector chính, tín hiệu phụ, bằng chứng luật, khối "ml" — cho dashboard
                     "created_at": alert_obj.created_at.isoformat() if alert_obj.created_at else timestamp.isoformat(),
                     **extra,
                 }
