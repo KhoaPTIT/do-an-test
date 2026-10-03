@@ -91,8 +91,8 @@ Milestone C+ (`regular_rhythm` + `scripted_client`; `brute_force` + `regular_rhy
 | IP datacenter (`datacenter_ip`) | 🌓 SHADOW | không thuộc 3 hành vi Milestone C+ đã chọn (quyết định của người dùng) — dễ báo nhầm VPN doanh nghiệp |
 | VPN thương mại (`vpn_ip`) | 🌓 SHADOW | như trên |
 | Mô phỏng tinh vi (`targeted_mimic`, MR18) | 🌓 mơ hồ | không có luật phù hợp; chỉ tín hiệu ML yếu — cố ý giữ kết quả mơ hồ |
-| Chiếm tài khoản thật trên bộ RBA | — | đánh giá MÔ HÌNH offline (`hybrid_cp2`: recall 36,8% @ FPR 1%, `ml-evaluation-v2.md`), không phải hành vi chạy qua pipeline |
-| Tầng 3 ML (`ml_anomaly`, mô hình B) | — | TẮT trong mọi phép đo Phase 3 (harness dùng hồ sơ dự phòng của hybrid) — số đo tầng 3 vẫn ở `ml-evaluation.md` / `model-b-geo-time.md` |
+| Chiếm tài khoản thật trên bộ RBA | — | đánh giá MÔ HÌNH offline, không còn chạy từ Phase 4.1 (`hybrid_cp2`: recall 36,8% @ FPR 1%, `ml-evaluation-v2.md`), không phải hành vi chạy qua pipeline |
+| Model AI bất thường (Isolation Forest, Phase 4.1) | tín hiệu bổ sung, không phải hành vi | TẮT trong mọi phép đo 20/21 ở trên (Phase 3). Bật lại trên CÙNG harness (`artifacts/ml/rule_ml_overlap.md`): 20 hành vi VERIFIED vẫn đạt; chỉ-ML 10/420 kịch bản (đều `unusual_hour`, 10/20); 49 cảnh báo chỉ-ML trên lưu lượng bình thường — [`ml-anomaly-model.md`](ml-anomaly-model.md). Tầng 3 cũ (`ml_anomaly`, mô hình B) đã gỡ |
 
 ## Khoảng trống của bản MR19 — đã xử lý tới đâu
 

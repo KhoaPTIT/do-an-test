@@ -186,7 +186,19 @@ python -m scripts.ml_demo --serve 8000 # + giữ backend chạy; terminal khác:
                                        #   đăng nhập dashboard: demo_admin / DemoAdmin123!
 ```
 
-_(Kết quả demo điền từ `artifacts/ml/runtime_integration.json`.)_
+Kết quả lần chạy ghi trong [`artifacts/ml/runtime_integration.json`](../artifacts/ml/runtime_integration.json) (commit `4adc8f2`; app thật qua
+`TestClient`, SQLite + fakeredis + GeoIP fixture, lịch sử đăng nhập MÔ PHỎNG; log nạp model lúc startup có trong file):
+
+| Demo | Kịch bản | Luật VERIFIED? | ML (điểm / ngưỡng 0,5905) | Detector chính · tín hiệu phụ | Risk → quyết định |
+|---|---|---|---|---|---|
+| 1 | Đăng nhập bình thường | không | 0,386 → normal | — | 0 → allow, không cảnh báo |
+| 2 | Brute force 10 lần sai | **có** (`brute_force`) | không chấm (lần thất bại = ngoài phạm vi) | brute_force · regular_rhythm | cảnh báo `rule_enforced` + tầng 1 cũ |
+| 3 | Đúng nơi/thiết bị, lệch ~12 giờ | không | **0,604 → Anomaly** (`hour_deviation` z=7,9) | unusual_hour (experimental) · **ml_anomaly** | 48 → alert (`score_threshold`) — **ca chỉ-ML (= DEMO 6)** |
+| 4 | Model không nạp được, client `curl` | **có** (`scripted_client`) | "AI model: Not loaded" | scripted_client · unusual_device | cảnh báo `rule_enforced`, đăng nhập vẫn xử lý |
+| 5 | Thiết bị mới + quốc gia mới (JP) | **có** (`unusual_location`, `unusual_device`) | **0,769 → Anomaly** | unusual_location · ml_anomaly, unusual_device | 50 → alert, không khoá |
+
+DEMO 6 (chỉ ML) có thật: thí nghiệm mục 6 tìm thấy 10 ca, DEMO 3 là đúng loại đó. Ảnh dashboard cùng các cảnh báo này:
+[`artifacts/ml/screenshots/`](../artifacts/ml/screenshots/).
 
 ## 9. Train lại từ đầu
 

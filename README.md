@@ -161,4 +161,24 @@ thật ngoài đời — xem giới hạn ở từng tài liệu trước khi tr
 
 Hướng dẫn chạy các phần MR1-19 (rule engine v2, hybrid model, admin config, simulator...): [`docs/getting-started.md`](docs/getting-started.md). Tái lập toàn bộ pipeline nghiên cứu (huấn luyện lại mọi mô hình, kịch bản mô phỏng, từ đầu) theo đúng thứ tự: [`docs/reproduction-guide.md`](docs/reproduction-guide.md).
 
+## ✅ Phase 4.1 — AI/ML thực sự trong hệ thống
+
+`POST /login` → 20 detector luật VERIFIED + **Isolation Forest** (7 đặc trưng hành vi của chính tài khoản) → một điểm rủi ro →
+cảnh báo → dashboard. Chi tiết, số liệu, hạn chế: [`docs/ml-anomaly-model.md`](docs/ml-anomaly-model.md); bằng chứng máy sinh:
+[`artifacts/ml/`](artifacts/ml/).
+
+- **Dataset TỔNG HỢP** sinh tất định trong repo: 19.877 dòng (train 13.236 / validation 3.349 / test 3.292, chia theo thời gian).
+- **Test** (ngưỡng chốt trên validation, FPR 1%): Precision 0,725 · Recall 0,608 · F1 0,662 · FPR 1,05% · ROC-AUC 0,971 · PR-AUC 0,780.
+- **Luật vs ML** trên harness Phase 3: 420 kịch bản tấn công → cả hai 86 · chỉ luật 314 · **chỉ ML 10** (đều giờ đăng nhập lạ) ·
+  không bên nào 10; đổi lại 49 cảnh báo chỉ-ML trên lưu lượng bình thường (luật: 0). 20 hành vi VERIFIED vẫn đạt khi bật ML.
+- **An toàn:** ML chỉ là tín hiệu bổ sung (tối đa mức "alert"), không bao giờ tự khoá; thiếu artifact → chạy bằng 20 luật,
+  dashboard ghi "AI model: Not loaded".
+
+```bash
+cd backend
+python -m ml.pipeline                       # train từ đầu (~1 phút)
+python -m scripts.ml_demo --serve 8000      # demo bảo vệ qua POST /login thật; frontend: npm run dev, đăng nhập demo_admin / DemoAdmin123!
+python -m verification.rule_ml_experiment   # chạy lại thí nghiệm luật vs ML
+```
+
 🚧 Còn lại (ngoài phạm vi MR1-19, chưa làm): mục "Bổ sung tuỳ chọn" ở cuối [`docs/checklist.md`](docs/checklist.md).

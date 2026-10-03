@@ -1,0 +1,256 @@
+{
+  "generated_at": "2026-10-03T14:49:30.474887+00:00",
+  "git_commit": "4adc8f29109ff76e5f77a650cfa07642c1792d13",
+  "environment": "FastAPI app thật (app.main:app) qua TestClient; SQLite trong bộ nhớ + fakeredis + GeoIP/threat intel fixture; lịch sử đăng nhập MÔ PHỎNG",
+  "startup_load_log": [
+    "INFO ml_runtime: đã nạp model bất thường isolation_forest v3-870bee225d73-03b95613-s42 từ /home/user/do-an-test/backend/ml/artifacts/anomaly_iforest (ngưỡng 0.5905)",
+    "INFO model_registry: model_registry: isolation_forest/v3-870bee225d73-03b95613-s42 đang active (/home/user/do-an-test/backend/ml/artifacts/anomaly_iforest)",
+    "WARNING ml_runtime: ML không khả dụng — chỉ dùng 20 detector luật: ModelLoadError: chưa có artifact ở /tmp/claude-0/-home-user-do-an-test/10c2e65d-9afe-5685-9c70-89332ce3ad3f/scratchpad/wt_ml7/backend/ml/artifacts/__khong_ton_tai__ (chạy: cd backend && python -m ml.pipeline)",
+    "INFO ml_runtime: đã nạp model bất thường isolation_forest v3-870bee225d73-03b95613-s42 từ /home/user/do-an-test/backend/ml/artifacts/anomaly_iforest (ngưỡng 0.5905)"
+  ],
+  "ml_status_at_startup": {
+    "ml_available": true,
+    "model_name": "isolation_forest",
+    "model_version": "v3-870bee225d73-03b95613-s42",
+    "threshold": 0.5905492927428302,
+    "trained_at": "2026-10-03T14:03:10.184582+00:00",
+    "feature_signature": "870bee225d73",
+    "code_feature_signature": "870bee225d73",
+    "feature_names": [
+      "hour_deviation",
+      "is_new_location",
+      "is_new_device",
+      "log_minutes_since_last_success",
+      "logins_last_24h",
+      "log_distance_km_from_home",
+      "log_travel_speed_kmh"
+    ],
+    "artifact_dir": "/home/user/do-an-test/backend/ml/artifacts/anomaly_iforest",
+    "artifact_files": {
+      "model.joblib": true,
+      "metadata.json": true
+    },
+    "loaded_at": "2026-10-03T14:49:25.240537+00:00",
+    "last_load_error": null,
+    "risk_weight_when_anomalous": 0.45,
+    "scope": "chỉ lần đăng nhập THÀNH CÔNG của hồ sơ trưởng thành (≥10 lần, ≥7 ngày)",
+    "can_lock": false
+  },
+  "demos": {
+    "demo1_normal_login": {
+      "login": {
+        "http_status": 200,
+        "body": {
+          "success": true,
+          "message": "Login successful",
+          "step_up_required": false,
+          "challenge_id": null,
+          "demo_otp_code": null,
+          "locked": false,
+          "role": "user",
+          "access_token": null
+        }
+      },
+      "summary": {
+        "rule_detected": false,
+        "rule_detectors": [],
+        "experimental_rules_matched": [],
+        "alert_reasons": [],
+        "ml_detected": false,
+        "ml_score": 0.3856930323255327,
+        "ml_threshold": 0.5905492927428302,
+        "ml_reason": null,
+        "primary_detectors": [],
+        "secondary_signals": [],
+        "final_action": "allow",
+        "risk_score": 0,
+        "legacy_alerts": []
+      }
+    },
+    "demo2_rule_attack_brute_force": {
+      "login_statuses": [
+        401,
+        401,
+        401,
+        401,
+        401,
+        401,
+        401,
+        401,
+        401,
+        401
+      ],
+      "summary": {
+        "rule_detected": true,
+        "rule_detectors": [
+          "brute_force",
+          "regular_rhythm"
+        ],
+        "experimental_rules_matched": [],
+        "alert_reasons": [
+          "rule_enforced"
+        ],
+        "ml_detected": false,
+        "ml_score": null,
+        "ml_threshold": null,
+        "ml_reason": "out_of_scope",
+        "primary_detectors": [
+          "brute_force"
+        ],
+        "secondary_signals": [
+          "regular_rhythm"
+        ],
+        "final_action": "allow",
+        "risk_score": 10,
+        "legacy_alerts": [
+          "brute_force",
+          "high_risk_score"
+        ]
+      }
+    },
+    "demo3_behavioral_anomaly": {
+      "login": {
+        "http_status": 200,
+        "body": {
+          "success": true,
+          "message": "Login successful",
+          "step_up_required": false,
+          "challenge_id": null,
+          "demo_otp_code": null,
+          "locked": false,
+          "role": "user",
+          "access_token": null
+        }
+      },
+      "summary": {
+        "rule_detected": false,
+        "rule_detectors": [],
+        "experimental_rules_matched": [
+          "unusual_hour"
+        ],
+        "alert_reasons": [
+          "score_threshold"
+        ],
+        "ml_detected": true,
+        "ml_score": 0.6041604493586085,
+        "ml_threshold": 0.5905492927428302,
+        "ml_reason": null,
+        "primary_detectors": [
+          "unusual_hour"
+        ],
+        "secondary_signals": [
+          "ml_anomaly"
+        ],
+        "final_action": "alert",
+        "risk_score": 48,
+        "legacy_alerts": []
+      },
+      "top_features": [
+        {
+          "feature": "hour_deviation",
+          "label": "giờ đăng nhập lệch thói quen",
+          "value": 12.0,
+          "z": 7.92
+        },
+        {
+          "feature": "log_minutes_since_last_success",
+          "label": "khoảng cách tới lần đăng nhập trước bất thường",
+          "value": 7.6783,
+          "z": 1.06
+        }
+      ]
+    },
+    "demo5_rule_and_ml": {
+      "login": {
+        "http_status": 200,
+        "body": {
+          "success": true,
+          "message": "Login successful",
+          "step_up_required": false,
+          "challenge_id": null,
+          "demo_otp_code": null,
+          "locked": false,
+          "role": "user",
+          "access_token": null
+        }
+      },
+      "summary": {
+        "rule_detected": true,
+        "rule_detectors": [
+          "unusual_device",
+          "unusual_location"
+        ],
+        "experimental_rules_matched": [],
+        "alert_reasons": [
+          "score_threshold"
+        ],
+        "ml_detected": true,
+        "ml_score": 0.7684973593119911,
+        "ml_threshold": 0.5905492927428302,
+        "ml_reason": null,
+        "primary_detectors": [
+          "unusual_location"
+        ],
+        "secondary_signals": [
+          "ml_anomaly",
+          "unusual_device"
+        ],
+        "final_action": "alert",
+        "risk_score": 50,
+        "legacy_alerts": []
+      }
+    },
+    "demo4_ml_unavailable": {
+      "ml_status": {
+        "ml_available": false,
+        "last_load_error": "ModelLoadError: chưa có artifact ở /tmp/claude-0/-home-user-do-an-test/10c2e65d-9afe-5685-9c70-89332ce3ad3f/scratchpad/wt_ml7/backend/ml/artifacts/__khong_ton_tai__ (chạy: cd backend && python -m ml.pipeline)",
+        "artifact_files": {
+          "model.joblib": false,
+          "metadata.json": false
+        }
+      },
+      "login": {
+        "http_status": 200,
+        "body": {
+          "success": true,
+          "message": "Login successful",
+          "step_up_required": false,
+          "challenge_id": null,
+          "demo_otp_code": null,
+          "locked": false,
+          "role": "user",
+          "access_token": null
+        }
+      },
+      "summary": {
+        "rule_detected": true,
+        "rule_detectors": [
+          "scripted_client",
+          "unusual_device"
+        ],
+        "experimental_rules_matched": [],
+        "alert_reasons": [
+          "rule_enforced"
+        ],
+        "ml_detected": false,
+        "ml_score": null,
+        "ml_threshold": null,
+        "ml_reason": "model_not_loaded",
+        "primary_detectors": [
+          "scripted_client"
+        ],
+        "secondary_signals": [
+          "unusual_device"
+        ],
+        "final_action": "allow",
+        "risk_score": 10,
+        "legacy_alerts": []
+      }
+    },
+    "demo6_ml_only": {
+      "experiment_ml_only_detections": 10,
+      "demo3_is_ml_only": true
+    }
+  },
+  "rule_ml_overlap_ml_only_detections": 10
+}

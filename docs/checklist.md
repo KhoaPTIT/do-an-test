@@ -350,6 +350,24 @@ máy sinh: [`artifacts/behavior_verification/`](../artifacts/behavior_verificati
 - Kết quả cuối: **20/21 VERIFIED**, cross-behavior 19/19. Không làm: `datacenter_ip`, `vpn_ip` (vẫn `shadow`). Không mở
   thêm milestone hành vi phát hiện.
 
+## Phase 4.1 — Tích hợp AI/ML thực sự vào hệ thống
+
+Tài liệu: [`ml-anomaly-model.md`](ml-anomaly-model.md) · bằng chứng: [`artifacts/ml/`](../artifacts/ml/).
+
+- [x] **ML0** Một model runtime: Isolation Forest (không giám sát, 7 đặc trưng); gỡ tầng 3 cũ và `hybrid_cp2` khỏi `/login`
+- [x] **ML1** Một đặc tả đặc trưng dùng chung offline/runtime; sửa lỗi "lần trước = chính sự kiện hiện tại", chỉ chấm lần thành
+  công của hồ sơ trưởng thành, họ thiết bị chuẩn hoá, giờ vòng tròn; test parity bắt buộc
+- [x] **ML2** Dataset TỔNG HỢP tất định (seed 41001, khác seed harness): 27.573 lần thử → 19.877 dòng; chia theo thời gian
+  13.236 / 3.349 / 3.292
+- [x] **ML3** Ngưỡng chọn trên validation (FPR 1%) = 0,5905; test: P 0,725 · R 0,608 · F1 0,662 · FPR 1,05% · ROC-AUC 0,971 ·
+  PR-AUC 0,780; `login_burst` recall 0
+- [x] **ML4** Luật vs ML trên harness Phase 3: A 86 · B 314 · C 10 (đều `unusual_hour`) · D 10; 49 cảnh báo chỉ-ML trên lưu lượng
+  bình thường; 20 hành vi VERIFIED vẫn đạt khi bật ML
+- [x] **ML5** Runtime: nạp lúc startup, `GET /ml/status`, cột `login_events.ml_*` (migration `9c4f2a1b7e31`), `explanation.ml`;
+  ML = xác suất 0,45 khi bất thường, KHÔNG BAO GIỜ tự khoá; thiếu model → 20 luật
+- [x] **ML6** Dashboard: chi tiết cảnh báo (detector, tín hiệu phụ, risk, bằng chứng luật, khối AI/ML), cột AI/ML, trạng thái model
+- [x] **ML7** Demo `python -m scripts.ml_demo` (5 kịch bản + ca chỉ-ML thật), `runtime_integration.json`, ảnh dashboard, tài liệu
+
 ## Bổ sung tuỳ chọn (làm sau CP2 nếu còn thời gian)
 
 - [ ] **MR-S1** Nhật ký truy cập sau đăng nhập và phát hiện IDOR/enumeration (module riêng, dữ liệu mô phỏng, ghi rõ ngoài phạm vi "đăng nhập")
