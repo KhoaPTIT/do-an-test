@@ -71,8 +71,34 @@ def _setup(env: VerificationEnv, accounts, history, blocks=()) -> None:
         env.add_block(b.kind, b.value, expires_at=None if b.expires_offset_s is None else T0 + timedelta(seconds=b.expires_offset_s))
 
 
-def run_scenario(sc: Scenario) -> dict:
-    env = VerificationEnv()
+_ACTION_RANK = {None: -1, "allow": 0, "alert": 1, "step_up": 2, "lock": 3}
+
+
+def ml_event_view(env: VerificationEnv) -> list[dict]:
+    """Phase 4.1: mỗi lần thử của kịch bản/lưu lượng (theo thứ tự) — luật có tự đủ tư cách cảnh báo không (enforce + verified
+    khớp, đọc từ verdict THẬT), model bất thường có gắn cờ không, điểm ML, hành động cuối của risk engine."""
+    from app.models import LoginEvent
+
+    db = env.session_factory()
+    try:
+        events = db.query(LoginEvent).filter(LoginEvent.is_synthetic.is_(False)).order_by(LoginEvent.id).all()
+        view = []
+        if len(env.verdicts) != len(events):  # mỗi lần /login thật đúng một verdict — lệch là lỗi harness, không được lặng lẽ bỏ qua
+            raise RuntimeError(f"{len(env.verdicts)} verdict cho {len(events)} lần thử")
+        for event, verdict in zip(events, env.verdicts):
+            view.append({
+                "event_id": event.id, "success": event.success,
+                "rule_detected": bool(verdict.standalone_rules), "rules": list(verdict.standalone_rules),
+                "ml_scored": event.ml_anomaly_score is not None, "ml_detected": bool(event.ml_is_anomaly),
+                "ml_score": event.ml_anomaly_score, "action": event.hybrid_action,
+            })
+        return view
+    finally:
+        db.close()
+
+
+def run_scenario(sc: Scenario, env_factory=VerificationEnv) -> dict:
+    env = env_factory()
     _setup(env, sc.accounts, sc.history, sc.blocks)
     for step in sc.steps:
         env.login(step.username, success=step.success, ip=step.ip, ts=T0 + timedelta(seconds=step.offset_s), user_agent=step.user_agent)
@@ -98,6 +124,35 @@ def run_scenario(sc: Scenario) -> dict:
             "superseded_detectors": sum(len((a.explanation or {}).get("superseded_detectors", [])) for a in detection),
         },
         "example_alert": hits[0].as_dict() if hits else None,
+        "ml": _scenario_ml(env, detection, preexisting_blocks=len(sc.blocks)),
+    }
+
+
+def _final_decision(view: list[dict], detection, blocks_created: int) -> str:
+    """Kết cục của cả kịch bản: có mục chặn mới (khoá — tier-1 cũ hoặc ghi đè) > hành động cao nhất của risk engine; kèm có/không
+    cảnh báo phát hiện (cảnh báo do luật VERIFIED tự đủ tư cách tạo, không phụ thuộc hành động)."""
+    action = max((e["action"] for e in view), key=lambda a: _ACTION_RANK.get(a, -1), default=None)
+    decision = "lock (blocklist)" if blocks_created else (action or "—")
+    return f"{decision} + alert" if detection and "alert" not in decision else decision
+
+
+def _scenario_ml(env: VerificationEnv, detection, preexisting_blocks: int = 0) -> dict:
+    from app.models import BlocklistEntry
+
+    view = ml_event_view(env)
+    scores = [e["ml_score"] for e in view if e["ml_score"] is not None]
+    db = env.session_factory()
+    try:
+        blocks_created = db.query(BlocklistEntry).count() - preexisting_blocks
+    finally:
+        db.close()
+    return {
+        "model_loaded": env.ml_runtime.available,
+        "rule_detected": any(e["rule_detected"] for e in view), "ml_detected": any(e["ml_detected"] for e in view),
+        "ml_scored_events": len(scores), "ml_flagged_events": sum(e["ml_detected"] for e in view), "ml_max_score": max(scores) if scores else None,
+        "final_action": max((e["action"] for e in view), key=lambda a: _ACTION_RANK.get(a, -1), default=None),
+        "blocklist_entries_created": blocks_created, "final_decision": _final_decision(view, detection, blocks_created),
+        "primary_detectors": sorted({(a.explanation or {}).get("primary_detector") or "?" for a in detection}),
     }
 
 
@@ -111,11 +166,11 @@ def _noise_summary(results: list[dict]) -> dict:
     return totals
 
 
-def evaluate_behavior(behavior: str, seed: int, normal_fp: int) -> dict:
+def evaluate_behavior(behavior: str, seed: int, normal_fp: int, env_factory=VerificationEnv) -> dict:
     positive_gen, negative_gen = GENERATORS[behavior]
     rng = random.Random(f"{seed}:{behavior}")
-    positives = [run_scenario(positive_gen(rng, i)) for i in range(N_PER_KIND)]
-    negatives = [run_scenario(negative_gen(rng, i)) for i in range(N_PER_KIND)]
+    positives = [run_scenario(positive_gen(rng, i), env_factory) for i in range(N_PER_KIND)]
+    negatives = [run_scenario(negative_gen(rng, i), env_factory) for i in range(N_PER_KIND)]
 
     tp = sum(r["detected"] for r in positives)
     fn = len(positives) - tp
@@ -155,9 +210,9 @@ def evaluate_behavior(behavior: str, seed: int, normal_fp: int) -> dict:
     }
 
 
-def run_normal_traffic(seed: int) -> dict:
+def run_normal_traffic(seed: int, env_factory=VerificationEnv) -> dict:
     traffic = generate_normal_traffic(seed)
-    env = VerificationEnv()
+    env = env_factory()
     _setup(env, traffic.accounts, traffic.history)
     for step in traffic.steps:
         env.login(step.username, success=step.success, ip=step.ip, ts=T0 + timedelta(seconds=step.offset_s), user_agent=step.user_agent)
@@ -169,6 +224,7 @@ def run_normal_traffic(seed: int) -> dict:
         "hybrid_alerts_by_detector": dict(by_detector),
         "legacy_alerts_by_type": dict(Counter(a.alert_type for a in alerts if a.alert_type not in DETECTION_ALERT_TYPES)),
         "examples": [a.as_dict() for a in detection][:10],
+        "events": ml_event_view(env),
     }
 
 
@@ -331,6 +387,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print("Chạy lưu lượng bình thường (63 người dùng × 30 ngày)...", flush=True)
     normal = run_normal_traffic(args.seed)
+    normal.pop("events")  # chi tiết từng lần thử chỉ dùng cho thí nghiệm luật vs ML (verification/rule_ml_experiment.py)
     (out_dir / "normal_traffic.json").write_text(json.dumps({**meta, **normal}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     print(f"  alert quy kết theo detector: {normal['hybrid_alerts_by_detector'] or 'không có'}")
 
