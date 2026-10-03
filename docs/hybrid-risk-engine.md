@@ -1,5 +1,7 @@
 # Hybrid risk engine — hiệu chỉnh trên RBA (MR11)
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Bộ gộp noisy-OR (`combine.py`) VẪN dùng ở runtime, nhưng hồ sơ hiệu chỉnh RBA (`rba_calibrated.json`) và thành phần `hybrid_cp2` KHÔNG còn nạp từ Phase 4.1 — runtime dùng hồ sơ dự phòng (trọng số luật mặc định, ngưỡng 40/65/85) + tín hiệu Isolation Forest (0,45 khi bất thường, không tự khoá). Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 > Báo cáo TỰ SINH bởi `python -m ml.rba.hybrid_calibrate` — đừng sửa tay. Mã: [`hybrid_calibrate.py`](../backend/ml/rba/hybrid_calibrate.py), bộ gộp dùng lúc chấm điểm: [`app/detection/hybrid/combine.py`](../backend/app/detection/hybrid/combine.py). Hồ sơ: [`profiles/rba_calibrated.json`](../backend/app/detection/hybrid/profiles/rba_calibrated.json).
 
 ## 1. Cách làm

@@ -1,5 +1,7 @@
 # Đánh giá AI v2 trên bộ RBA
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Nghiên cứu OFFLINE trên bộ RBA (cần file 9GB ngoài repo). Từ Phase 4.1 `hybrid_cp2` KHÔNG còn chạy trong `/login`; số liệu dưới đây không phải hiệu năng của hệ thống đang chạy. Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 Tài liệu kết quả cho giai đoạn mở rộng (MR1–MR19). Khung đo và cách đọc số liệu: [`rba-evaluation.md`](rba-evaluation.md). Bản chất dữ liệu (**tổng hợp**, không phải log thật): [`rba-data-card.md`](rba-data-card.md). Mô hình, dữ liệu học và giới hạn: [`model-card-rba.md`](model-card-rba.md). Bảng đầy đủ mọi mô hình × mọi bài, kèm khoảng tin cậy: [`rba-baseline-comparison.md`](rba-baseline-comparison.md).
 
 > ⚠️ **Cập nhật MR19 (28/09/2026):** tài liệu này gồm hai lớp số. Mục "Tóm tắt MR6" và mục 1–2 phần lớn giữ **nguyên bản MR6** (`hybrid`) để so 13 mô hình công bằng trên cùng một cấu hình. Mô hình **vận hành thật hiện nay là `hybrid_cp2`** (chốt ở CP2, [`ml-model-selection.md`](ml-model-selection.md): Isolation Forest bỏ nhóm `infra_ip`, `gbm_attacker_sim` chỉ 28 đặc trưng quan hệ với lịch sử) — số của nó được **thêm vào** mỗi bảng lớn (dòng `hybrid_cp2`, nguồn [`hybrid_cp2.md`](../backend/ml/artifacts/rba_reports/hybrid_cp2.md), không tính lại) thay vì ghi đè số MR6. Đọc nhanh: mục "Tóm tắt vận hành (`hybrid_cp2`)" ngay dưới đây.

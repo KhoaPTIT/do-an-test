@@ -1,5 +1,7 @@
 # Chồng lấn giữa luật và mô hình (MR10)
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Nghiên cứu OFFLINE trên bộ RBA (cần file 9GB ngoài repo). Từ Phase 4.1 `hybrid_cp2` KHÔNG còn chạy trong `/login`; số liệu dưới đây không phải hiệu năng của hệ thống đang chạy. So sánh luật vs ML của hệ thống đang chạy: `artifacts/ml/rule_ml_overlap.md`. Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 > Báo cáo TỰ SINH bởi `python -m ml.rba.rule_overlap` (sau `collect` và `tune` của [`rule_tuning.py`](../backend/ml/rba/rule_tuning.py)) — đừng sửa tay. Mã: [`rule_overlap.py`](../backend/ml/rba/rule_overlap.py).
 
 ## 1. Cách đọc

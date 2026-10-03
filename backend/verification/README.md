@@ -28,7 +28,7 @@ danh sách danh tiếng, lịch sử đăng nhập) — nhãn tấn công (`Scen
 - Kịch bản do chính người viết detector thiết kế dựa trên ngưỡng đã biết → recall cao chứng minh **implementation +
   pipeline + quy kết đúng**, không chứng minh hiệu quả trên tấn công thật.
 - Lưu lượng bình thường là tổng hợp: 0 báo nhầm là điều kiện cần, không phải tỉ lệ báo nhầm ngoài thực tế.
-- Thành phần ML của hybrid (`hybrid_cp2`, cần bộ RBA ~9GB) bị tắt trong môi trường kiểm chứng — kết quả không phụ thuộc nó.
+- Model bất thường (Isolation Forest, Phase 4.1) TẮT mặc định trong môi trường kiểm chứng (`VerificationEnv(ml_model_dir=None)`) — 20 hành vi VERIFIED được đo không phụ thuộc nó. Thí nghiệm luật vs ML (`rule_ml_experiment.py`) chạy lại cùng harness VỚI model đã nạp.
 - Các luật danh tiếng (tor/datacenter/vpn) được kiểm chứng với danh sách **fixture**: chứng minh luật hoạt động khi có
   danh sách, **không** chứng minh độ phủ hay tỉ lệ báo nhầm của danh sách thật.
 

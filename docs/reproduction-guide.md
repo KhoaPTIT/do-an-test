@@ -16,10 +16,13 @@ docker compose up -d                                       # Postgres + Redis
 alembic upgrade head                                        # toàn bộ schema, 15 bảng — docs/db-schema.md
 python -m scripts.create_admin --username admin --password "MatKhauManh123!"
 python -m scripts.generate_labeled_anomalies --reset        # 25 user demo dashboard (Tuần 3)
-python -m ml.generate_dataset --reset                       # 40 user, 7 kiểu bất thường (user101-140, Tuần 7 + MR18)
+# (bộ dữ liệu tầng 3 cũ `ml.generate_dataset` đã gỡ ở Phase 4.1 — model AI đang chạy train theo Giai đoạn 5)
 ```
 
 ## Giai đoạn 1 — Bộ dữ liệu RBA (bắt buộc cho mọi thứ ở Giai đoạn 2-4)
+
+> **Giai đoạn 1-4 là nghiên cứu OFFLINE trên bộ RBA.** Từ Phase 4.1, `hybrid_cp2` KHÔNG còn chạy trong `/login` (lý do:
+> [`ml-anomaly-model.md`](ml-anomaly-model.md) mục 1). Không cần chạy Giai đoạn 1-4 để có hệ thống chạy đầy đủ.
 
 Cần file `rba-dataset.zip` (Kaggle `dasgroup/rba-dataset`, 9GB, **không giải nén**) đặt ở `RBA_ZIP_PATH` hoặc
 `backend/ml/data/rba/` hoặc Downloads. Chi tiết, giấy phép, cảnh báo "dữ liệu tổng hợp": [`rba-data-card.md`](rba-data-card.md).
@@ -62,9 +65,9 @@ python -m ml.rba.errors     # phân tích lỗi theo trường hợp — ml-hold
 python -m ml.rba.explain_eval all --hybrid hybrid   # giải thích + ngưỡng vận hành bản MR6 — ml-explanations.md
 ```
 
-## Giai đoạn 4 — Chốt mô hình CP2 (`hybrid_cp2`, mô hình VẬN HÀNH thật)
+## Giai đoạn 4 — Chốt mô hình CP2 (`hybrid_cp2`) — nghiên cứu offline
 
-Đây là mô hình `/login` thật sự dùng (Giai đoạn 6). Chi tiết cơ chế chọn: [`ml-model-selection.md`](ml-model-selection.md).
+Trước Phase 4.1 đây là mô hình `/login` dùng; từ Phase 4.1 chỉ còn là kết quả nghiên cứu (không nạp ở runtime). Chi tiết cơ chế chọn: [`ml-model-selection.md`](ml-model-selection.md).
 
 ```bash
 python -m ml.rba.selection all     # chọn nhóm đặc trưng (bootstrap ghép cặp) + huấn luyện hybrid_cp2, ~15-20 phút -> ml/artifacts/rba_cp2/
@@ -74,23 +77,32 @@ python -m ml.rba.explain_eval all                   # giải thích + ngưỡng 
 python -m pytest tests/test_rba_selection.py         # 12 test
 ```
 
-## Giai đoạn 5 — Mô hình demo tầng 3 (dữ liệu tự sinh, KHÁC bộ RBA — chạy song song, không thay thế)
+## Giai đoạn 5 — Model AI đang chạy: Isolation Forest (Phase 4.1)
+
+Dataset TỔNG HỢP sinh tất định từ mã trong repo (không tải gì từ ngoài), train + đánh giá + bằng chứng trong một lệnh
+(~1 phút). Chi tiết dataset, đặc trưng, ngưỡng, số liệu: [`ml-anomaly-model.md`](ml-anomaly-model.md).
 
 ```bash
-python -m ml.extract_features    # trích đặc trưng từ dữ liệu Giai đoạn 0 (user101-140), chống rò rỉ tương lai
-python -m ml.train                # huấn luyện Isolation Forest/LOF/Autoencoder -> backend/ml/artifacts/
-python -m ml.evaluate              # so sánh + xuất biểu đồ vào docs/figures/ — ml-evaluation.md, model-b-geo-time.md
+python -m ml.pipeline      # dataset (seed 41001) -> đặc trưng -> chia theo thời gian -> train -> đánh giá trên test
+                           # -> backend/ml/data/v3/ + backend/ml/artifacts/anomaly_iforest/ (không commit)
+                           # -> artifacts/ml/{dataset_summary,training_summary,evaluation,per_anomaly_metrics,confusion_matrix}.*
+# hoặc từng bước:
+python -m ml.dataset && python -m ml.build_features && python -m ml.train && python -m ml.evaluate
+python -m pytest tests/test_ml_*.py tests/test_rule_ml_experiment.py
 ```
 
-## Giai đoạn 6 — Chạy hệ thống (nạp `hybrid_cp2` tự động)
+Cùng seed ⇒ cùng dataset từng byte (sha256 trong `artifacts/ml/dataset_summary.json`).
+
+## Giai đoạn 6 — Chạy hệ thống (tự nạp model AI)
 
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
 
-Khởi động lần đầu SAU khi Giai đoạn 4 đã tạo `ml/artifacts/rba_cp2/hybrid_cp2.joblib`, backend tự đăng ký mô hình
-vào bảng `model_registry` — không có lệnh nạp riêng (xem [`model-card-rba.md`](model-card-rba.md) mục "Trạng thái").
-Thiếu artifact thì hệ thống KHÔNG lỗi, chỉ tắt thành phần ML (rơi về hồ sơ dự phòng chỉ-luật).
+Lúc khởi động, backend nạp `backend/ml/artifacts/anomaly_iforest/` (hoặc thư mục trong biến môi trường `ML_MODEL_DIR`), từ
+chối artifact có chữ ký đặc trưng lệch với mã, ghi phiên bản vào bảng `model_registry`. Kiểm tra: `GET /ml/status` (JWT
+admin) hoặc trang "Sức khoẻ mô hình" của dashboard. Thiếu artifact thì hệ thống KHÔNG lỗi: `ml_available=false`, 20 detector
+luật vẫn chạy, dashboard ghi "AI model: Not loaded". Train lại thì khởi động lại backend để nạp artifact mới.
 
 ## Giai đoạn 7 — Kiểm chứng bằng kịch bản mô phỏng qua HTTP thật (không phải test đơn vị)
 
@@ -130,6 +142,17 @@ python -m scripts.behavior_verification            # ~45 phút: 21 hành vi × (
 
 Kết quả mong đợi (commit `a465dfb`): 20/21 VERIFIED (`unusual_hour` PARTIAL), cross-behavior 19/19, 0 cảnh báo của
 detector trên lưu lượng bình thường. Đọc kết quả: [`behavior-coverage-matrix.md`](behavior-coverage-matrix.md).
+
+## Giai đoạn 10 — Luật vs ML và demo bảo vệ (Phase 4.1)
+
+Cần artifact của Giai đoạn 5.
+
+```bash
+python -m verification.rule_ml_experiment   # chạy lại 21 hành vi + lưu lượng bình thường của Phase 3 VỚI model đã nạp
+                                            # -> artifacts/ml/rule_ml_overlap.{json,md}: A/B/C/D + 20 hành vi còn VERIFIED không
+python -m scripts.ml_demo --evidence        # 5 kịch bản demo qua POST /login thật -> artifacts/ml/runtime_integration.json
+python -m scripts.ml_demo --serve 8000      # như trên rồi giữ backend chạy; `cd frontend && npm run dev` để xem dashboard
+```
 
 ## Tổng thời gian ước tính
 

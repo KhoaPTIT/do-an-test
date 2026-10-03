@@ -39,7 +39,11 @@ Bảng quan trọng nhất — mọi lần thử đăng nhập, thành công l�
 | city | VARCHAR(128) | nullable |
 | latitude / longitude | FLOAT | nullable |
 | risk_score | INTEGER | nullable — điền bởi detection engine Tuần 4 |
-| ml_anomaly_score | FLOAT | nullable — điền bởi ML tầng 3 Tuần 7, CHẠY SONG SONG risk_score, không thay thế |
+| ml_anomaly_score | FLOAT | nullable — điểm bất thường Isolation Forest (Phase 4.1; càng cao càng lạ). NULL nếu ngoài phạm vi chấm (lần thất bại, hồ sơ chưa trưởng thành) hoặc model chưa nạp |
+| ml_is_anomaly | BOOLEAN | nullable — `ml_anomaly_score >= ml_threshold` (Phase 4.1) |
+| ml_threshold | FLOAT | nullable — ngưỡng của model tại thời điểm chấm (Phase 4.1) |
+| ml_model_version | VARCHAR(64) | nullable — phiên bản model đã chấm (Phase 4.1) |
+| ml_details | JSON | nullable — `{model, available, in_scope, reason, top_features}`; `reason` = `model_not_loaded` / `out_of_scope` / `error` khi không chấm (Phase 4.1) |
 | asn | INTEGER | nullable, indexed — tra bằng GeoLite2-ASN (MR12), NULL khi IP riêng/không có trong CSDL |
 | os_name / browser_name | VARCHAR(64) | nullable — parse User-Agent (MR12, `app/utils/device.py`), cùng bộ giá trị RBA |
 | device_type | VARCHAR(16) | nullable — `mobile`\|`desktop`\|`tablet`\|`bot`\|`unknown` (MR12) |
@@ -213,7 +217,7 @@ file, `feature_signature` lệch) thì `app/detection/hybrid_runtime.py` bỏ qu
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
 | id | INTEGER PK | |
-| name | VARCHAR(64) | `"hybrid_cp2"` |
+| name | VARCHAR(64) | `"isolation_forest"` từ Phase 4.1 (trước đó `"hybrid_cp2"`) |
 | version | VARCHAR(64) | `"cp2"` |
 | artifact_path | TEXT | đường dẫn `.joblib` |
 | profile_path | TEXT | nullable — hồ sơ hiệu chỉnh (`app/detection/hybrid/profiles/*.json`, MR11) |

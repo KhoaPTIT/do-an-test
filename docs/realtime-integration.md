@@ -1,5 +1,7 @@
 # Tích hợp realtime — MR12 (CP3)
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Phần `hybrid_cp2`/đặc trưng RBA và tầng 3 cũ trong tài liệu này mô tả kiến trúc TRƯỚC Phase 4.1 — cả hai đã gỡ khỏi `/login`. Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 Nối rule engine v2 (MR9-10) và hybrid risk engine (MR11) vào luồng `/login` thật, thay vì chỉ chạy trên RBA ngoại
 tuyến. Migration schema: [`db-schema.md`](db-schema.md). Không tự sinh từ script như MR9-11 (không có một "lượt chạy
 ngoại tuyến" duy nhất để đo) — tài liệu này viết tay, số liệu dẫn nguồn cụ thể để tự kiểm lại được.

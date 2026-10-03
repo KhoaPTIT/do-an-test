@@ -1,5 +1,7 @@
 # Mô hình B (địa lý-thời gian) — dữ liệu từ thư viện tấn công mô phỏng v2 (MR18)
 
+> ⚠️ **Lỗi thời từ Phase 4.1 (tài liệu lịch sử, giữ để tra cứu).** Bộ dữ liệu và mã tầng 3 cũ (`ml/generate_dataset.py`, `ml/extract_features.py`, `app/detection/ml_model.py`, cảnh báo `ml_anomaly` riêng) đã GỠ ở Phase 4.1; số liệu dưới đây KHÔNG tái lập được trên mã hiện tại. Model AI đang chạy: Isolation Forest trên dataset tổng hợp tái lập được — [`ml-anomaly-model.md`](ml-anomaly-model.md).
+
 `docs/checklist.md` MR6 ghi: "Mô hình B (địa lý-thời gian) chuyển sang MR18: cần thư viện kịch bản tấn công của MR18
 và simulator hiện tại (`ml/generate_dataset.py`) dựa trên DB". "Mô hình B" **không phải một mô hình xây MỚI** — chính
 là tầng 3 đã có từ Tuần 7 (Isolation Forest/LOF/Autoencoder, [`docs/ml-evaluation.md`](ml-evaluation.md)), đặc trưng
