@@ -155,6 +155,7 @@ class RawLogin:
     latitude: float | None
     longitude: float | None
     user_agent: str | None
+    ip: str | None = None  # chỉ để truy vết/demo — không phải đặc trưng
 
 
 def extract_offline(events: Sequence[RawLogin]) -> list[tuple[int, dict[str, float]]]:

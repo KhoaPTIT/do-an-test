@@ -34,3 +34,6 @@ backend/threat_intel/
 .idea/
 .DS_Store
 Thumbs.db
+# Dataset mô hình bất thường v3 (Phase 4.1) — sinh lại tất định: python -m ml.pipeline
+backend/ml/data/v3/
+backend/ml/data/demo_dashboard_labels.csv

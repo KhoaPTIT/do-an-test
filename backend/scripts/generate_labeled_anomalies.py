@@ -5,7 +5,7 @@ Tuần 2 + 5 user mới) từ đầu: log trải dài hơn (60 ngày thay vì 30
 chèn có chủ đích các ca bất thường (giờ lạ / vị trí lạ).
 
 Nhãn ground-truth (is_anomaly) được lưu ở file CSV RIÊNG
-(backend/ml/data/labels.csv) — KHÔNG thêm cột vào login_events, để nhãn
+(backend/ml/data/demo_dashboard_labels.csv) — KHÔNG thêm cột vào login_events, để nhãn
 không "rò rỉ" vào dữ liệu mà detection engine sẽ đọc (tránh cheat khi đánh
 giá precision/recall ở Tuần 7).
 
@@ -41,7 +41,8 @@ FAR_LOCATIONS = [
     ("NG", "Lagos", 6.52, 3.38),
 ]
 
-LABELS_PATH = os.path.join(os.path.dirname(__file__), "..", "ml", "data", "labels.csv")
+# Phase 4.1: tên RIÊNG — trước đây ghi đè cùng ml/data/labels.csv với bộ sinh dữ liệu ML (audit Phase 4.0)
+LABELS_PATH = os.path.join(os.path.dirname(__file__), "..", "ml", "data", "demo_dashboard_labels.csv")
 
 
 def make_user_profile(index: int) -> dict:
