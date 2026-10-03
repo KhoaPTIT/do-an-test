@@ -117,7 +117,38 @@ dồn dập** — trong lưu lượng bình thường v3 người dùng đã đ�
 
 ## 6. Luật vs ML trên harness Phase 3 (ML4)
 
-_(Đang chạy thí nghiệm — mục này điền từ `artifacts/ml/rule_ml_overlap.json` khi có kết quả.)_
+Mã: [`backend/verification/rule_ml_experiment.py`](../backend/verification/rule_ml_experiment.py) · bằng chứng (máy sinh, commit sạch
+`a4d62ef`): [`artifacts/ml/rule_ml_overlap.json`](../artifacts/ml/rule_ml_overlap.json), bảng từng kịch bản
+[`rule_ml_overlap.md`](../artifacts/ml/rule_ml_overlap.md). Chạy lại TOÀN BỘ 21 hành vi × 20 kịch bản dương tính (+ 20 âm tính) và lưu
+lượng bình thường của Phase 3 (seed harness 20260302 — khác seed dataset train) qua pipeline `/login` thật, VỚI model đã nạp.
+
+Định nghĩa chốt TRƯỚC lần chạy đầu: *luật phát hiện* = ít nhất một luật VERIFIED đủ tư cách tự cảnh báo khớp (đọc từ verdict thật;
+`unusual_hour` là experimental nên không tính); *ML phát hiện* = ít nhất một lần thử bị model gắn cờ.
+
+| Nhóm | Kịch bản tấn công (420) |
+|---|---:|
+| A — cả luật và ML | 86 |
+| B — chỉ luật | 314 |
+| **C — chỉ ML** | **10** |
+| D — không bên nào | 10 |
+
+- ML chỉ chấm được 120/420 kịch bản: 14/21 hành vi nằm HOÀN TOÀN ngoài phạm vi model theo thiết kế (chuỗi lần sai mật khẩu, tài
+  khoản/hồ sơ chưa trưởng thành, tín hiệu hạ tầng/UA trên tài khoản mới) — toàn bộ là nhóm B.
+- **Cả 10 ca chỉ-ML đều là `unusual_hour`**: lệch giờ ~10–12 giờ so với nhịp quen; không luật VERIFIED nào khớp; điểm ML (0,59–0,60,
+  sát ngưỡng 0,5905) đưa risk lên 48 ⇒ cảnh báo `score_threshold`, quy kết cho `unusual_hour` (luật experimental cũng khớp). 10 ca
+  `unusual_hour` còn lại cả hai bỏ sót (nhóm D, điểm ML 0,545–0,586). Đây là giá trị bổ sung THẬT nhưng HẸP và mong manh (sát ngưỡng).
+- Ở các hành vi ML cũng thấy (`unusual_location`, `unusual_device`, `rare_network_login`, `login_velocity_spike`,
+  `multi_context_simultaneous`, `dormant_account_login`), ML trùng với luật (nhóm A) — không thêm phát hiện mới.
+- **Chi phí:** trên lưu lượng bình thường (5.647 lần thử, 4.551 được chấm) ML gắn cờ **59 lần (1,30%)** và tạo **49 cảnh báo
+  chỉ-ML** (`hybrid_ml`), trong khi 20 luật tạo **0** cảnh báo. Trên kịch bản âm tính sát ngưỡng, ML gắn cờ 11/20 của
+  `unusual_location`, 9/20 `rare_network_login`, 7/20 `multi_context_simultaneous`, 2/20 `login_velocity_spike` — những ca luật
+  đúng là im lặng. ML không làm luật nào báo nhầm thêm (cảnh báo chỉ-ML mang detector `hybrid_ml`, không mang `rule_id`).
+- **Hồi quy:** cả **20 hành vi VERIFIED vẫn đạt tiêu chí khi bật ML** (`all_verified_still_verified: true`). `unusual_hour` vẫn là
+  PARTIAL (trạng thái chính thức đo ở Phase 3, ML tắt; registry không đổi) — khi bật ML, công thức chấm của runner cho nó
+  `FAILED_CRITERIA` (recall 0,50, quy kết 0,00) vì cảnh báo có được là nhờ ML chứ không phải luật tự đủ tư cách.
+
+Kết luận: với dataset và ngưỡng đã chốt, ML chứng minh được giá trị bổ sung ở MỘT hành vi (giờ đăng nhập lạ, 10/20 kịch bản) với
+cái giá là 49 cảnh báo nhầm trên lưu lượng bình thường 63 người dùng × 30 ngày. Không đổi dataset/ngưỡng sau khi xem kết quả này.
 
 ## 7. Tích hợp runtime (ML5)
 
@@ -169,4 +200,17 @@ python -m verification.rule_ml_experiment   # (tuỳ chọn) chạy lại thí n
 
 ## 10. Hạn chế (phải nói khi bảo vệ)
 
-_(Điền cùng kết quả thí nghiệm luật vs ML.)_
+1. **Dataset tổng hợp.** Mọi số liệu đo trên dữ liệu sinh bằng mã (bình thường từ bộ sinh v3, bất thường chèn theo luật sinh) — không
+   phải người dùng hay tấn công thật. Model và luật được kiểm trên dữ liệu có cùng "họ" bộ sinh: con số có thể lạc quan.
+2. **Kiểu bất thường do chính nhóm định nghĩa.** Recall 100% ở vị trí/di chuyển phản ánh bất thường chèn rất rõ; recall thấp ở giờ lạ
+   (0,26), thiết bị lạ (0,40) và **0 ở đăng nhập dồn dập**.
+3. **Giá trị bổ sung hẹp:** 10/420 kịch bản chỉ-ML, đều là giờ lạ, điểm sát ngưỡng. Phần lớn tấn công (300/420) nằm ngoài phạm vi
+   model (lần sai mật khẩu, tài khoản mới, hạ tầng) — đó là việc của 20 luật.
+4. **Chi phí báo nhầm:** 49 cảnh báo chỉ-ML trên lưu lượng bình thường (luật: 0); FPR test 1,05%. ML chỉ ở mức "alert" (không OTP,
+   không khoá) để giới hạn tác hại.
+5. **Không giám sát, ngưỡng một điểm:** ngưỡng chọn cho FPR 1% trên validation; chưa hiệu chỉnh theo từng người dùng; chưa có
+   cơ chế train lại định kỳ/giám sát trôi cho model mới (trang PSI hiện có thuộc đặc trưng RBA cũ).
+6. **Giải thích là xấp xỉ:** `top_features` = z-score so với trung bình train, không phải đóng góp thật của Isolation Forest.
+7. **Hiệu năng runtime:** mỗi lần chấm đọc toàn bộ lịch sử thành công của tài khoản — ổn ở quy mô đồ án, chưa tối ưu cho tài khoản
+   có lịch sử rất dài.
+8. **`hybrid_cp2` và số liệu RBA (MR1–8)** là nghiên cứu offline, không còn chạy; số liệu tầng 3 cũ (Tuần 7) không tái lập được.

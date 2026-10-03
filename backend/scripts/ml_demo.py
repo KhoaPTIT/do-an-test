@@ -231,8 +231,15 @@ def run(model_dir: Path | None, setattr_fn=setattr) -> tuple[Demo, dict]:
 
         overlap_path = REPO_ROOT / "artifacts" / "ml" / "rule_ml_overlap.json"
         ml_only = json.loads(overlap_path.read_text(encoding="utf-8"))["attack_scenarios"]["ml_only_detections"] if overlap_path.exists() else None
-        print(f"\nDEMO 6 (chỉ ML): thí nghiệm luật vs ML tìm thấy {ml_only} kịch bản chỉ-ML — "
-              + ("không dựng demo chỉ-ML." if not ml_only else "xem artifacts/ml/rule_ml_overlap.md (nhóm C)."))
+        demo3 = results["demo3_behavioral_anomaly"]["summary"]
+        demo3_is_ml_only = demo3["ml_detected"] and not demo3["rule_detected"] and "score_threshold" in demo3["alert_reasons"]
+        if not ml_only:
+            print(f"\nDEMO 6 (chỉ ML): thí nghiệm luật vs ML tìm thấy {ml_only} kịch bản chỉ-ML — không dựng demo chỉ-ML.")
+        else:
+            print(f"\nDEMO 6 (chỉ ML): thí nghiệm luật vs ML tìm thấy {ml_only} kịch bản chỉ-ML (nhóm C, artifacts/ml/rule_ml_overlap.md). "
+                  + ("DEMO 3 ở trên là đúng loại đó: không luật VERIFIED nào khớp, cảnh báo có được nhờ ML." if demo3_is_ml_only
+                     else "Lần chạy demo này DEMO 3 không rơi vào nhóm C — kết quả thật, không chỉnh."))
+        results["demo6_ml_only"] = {"experiment_ml_only_detections": ml_only, "demo3_is_ml_only": demo3_is_ml_only}
 
         evidence = {
             "generated_at": datetime.now(timezone.utc).isoformat(), "git_commit": _git_commit(),
