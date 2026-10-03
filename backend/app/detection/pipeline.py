@@ -48,7 +48,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import and_, or_
 
 from app.database import SessionLocal
-from app.detection import alert_intelligence, attribution, consolidation, hybrid_runtime, perf
+from app.detection import alert_intelligence, attribution, consolidation, hybrid_runtime, ml_runtime, perf
 from app.detection.adaptive_threshold import apply_delta
 from app.detection.baseline import (
     is_known_location,
@@ -283,9 +283,19 @@ def _run_detection_pipeline_sync(
                 )
                 with perf.timer("rule_engine"):
                     evaluation = build_rule_engine(db, before=event.created_at).evaluate(attempt)
-                with perf.timer("rba_features"):
+                with perf.timer("rba_features"):  # chỉ còn dùng HistorySummary cho "điều mới lạ" của cảnh báo (MR13)
                     event_record = event_record_for(event)
-                    features, history_summary = build_features_and_summary(db, event_record)
+                    _rba_features, history_summary = build_features_and_summary(db, event_record)
+                # --- Phase 4.1: model bất thường — chấm CÙNG lần thử, cùng lúc với 20 detector luật (không raise; model
+                # chưa nạp hoặc lần thử ngoài phạm vi thì không có điểm và risk engine chỉ dùng luật).
+                with perf.timer("ml"):
+                    ml_prediction = ml_runtime.get_runtime().predict(db, event)
+                event.ml_anomaly_score = ml_prediction.anomaly_score
+                event.ml_is_anomaly = ml_prediction.is_anomaly if ml_prediction.anomaly_score is not None else None
+                event.ml_threshold = ml_prediction.threshold if ml_prediction.anomaly_score is not None else None
+                event.ml_model_version = ml_prediction.model_version
+                event.ml_details = {"model": ml_prediction.model_name, "available": ml_prediction.available, "in_scope": ml_prediction.in_scope,
+                                    "reason": ml_prediction.reason, "top_features": [dict(f) for f in ml_prediction.top_features]}
                 # MR15: ngưỡng THÍCH NGHI riêng cho tài khoản này nếu đã đủ phản hồi (adaptive_threshold.apply_delta),
                 # NHÓM (mặc định) nếu chưa có hàng UserRiskProfile hay user_id là None (tên đăng nhập không tồn tại).
                 user_bands = None
@@ -293,7 +303,9 @@ def _run_detection_pipeline_sync(
                     risk_profile = db.get(UserRiskProfile, user_id)
                     if risk_profile is not None and risk_profile.threshold_delta > 0:
                         user_bands = apply_delta(hybrid_runtime.get_engine().profile.bands, risk_profile.threshold_delta)
-                risk_result = hybrid_runtime.get_engine().evaluate(features, evaluation.hits, bands=user_bands)
+                engine = hybrid_runtime.get_engine()
+                risk_result = engine.evaluate(ml_prediction, evaluation.hits, bands=user_bands)  # ML không bao giờ tự dẫn tới "lock"
+                lock_suppressed = hybrid_runtime.ml_lock_suppressed(risk_result, user_bands or engine.profile.bands)
                 event.hybrid_risk_score = risk_result.score
                 event.hybrid_action = risk_result.action
 
@@ -308,8 +320,7 @@ def _run_detection_pipeline_sync(
                         spec = REGISTRY.get(verdict.primary_detector)
                         family, confidence = (spec.category if spec is not None else None), verdict.primary_weight
                     else:
-                        ml_component = hybrid_runtime.get_engine().ml_component(features)
-                        family, confidence = alert_intelligence.suggest_attack_family(risk_result, ml_component=ml_component)
+                        family, confidence = alert_intelligence.suggest_attack_family(risk_result, ml_component=None)
                     novelty_facts = alert_intelligence.compute_novelty(event_record, history_summary) if history_summary is not None else []
                     importance = user.importance if user is not None else 1.0
                     priority = alert_intelligence.priority_score(novelty_facts, confidence, importance)
@@ -373,12 +384,15 @@ def _run_detection_pipeline_sync(
                         - {existing_alert.rule_id if keeps_previous_primary else rule_id}
                     )
                     superseded = list(previous.get("superseded_detectors", [])) + ([existing_alert.rule_id] if upgraded else [])
+                    if ml_prediction.is_anomaly and verdict.is_rule_primary:  # ML đồng ý với luật: tín hiệu phụ, không tạo cảnh báo riêng
+                        secondary = sorted(set(secondary) | {attribution.ML_SIGNAL})
 
                     if keeps_previous_primary:
                         message = existing_alert.message
                         explanation = {
                             **previous, "action": combined_action, "secondary_signals": secondary,
                             "risk_score": max(previous.get("risk_score", 0), risk_result.score), "consolidated_events": occurrence_count,
+                            "ml": ml_prediction.to_dict(), "ml_lock_suppressed": lock_suppressed,
                         }
                     else:
                         message = alert_intelligence.build_alert_message(
@@ -395,6 +409,9 @@ def _run_detection_pipeline_sync(
                             "consolidated_events": occurrence_count,
                             # thiếu telemetry được ghi RÕ là thiếu (B0.2), không suy diễn thành tín hiệu tấn công
                             "telemetry_gaps": [] if (user_agent or "").strip() else ["missing_user_agent"],
+                            # Phase 4.1: kết quả model bất thường của CHÍNH lần thử này (lấy từ dữ liệu thật, không suy diễn)
+                            "ml": ml_prediction.to_dict(),
+                            "ml_lock_suppressed": lock_suppressed,
                         }
 
                     if existing_alert is not None:

@@ -92,8 +92,9 @@ BEHAVIOR_OF: dict[str, str] = {
     "datacenter_ip": "datacenter_login",
     "vpn_ip": "vpn_login",
 }
-ML_ONLY_DETECTOR = "hybrid_ml"
+ML_ONLY_DETECTOR = "hybrid_ml"  # cảnh báo CHỈ do model bất thường (Phase 4.1: Isolation Forest) — không luật nào khớp
 ML_ONLY_BEHAVIOR = "ml_anomaly"
+ML_SIGNAL = "ml_anomaly"  # tên tín hiệu phụ khi model bất thường đồng ý với một luật làm detector chính
 
 ALERT_REASON_OVERRIDE = "override"
 ALERT_REASON_SCORE = "score_threshold"

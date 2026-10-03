@@ -70,6 +70,13 @@ class LoginEventOut(BaseModel):
     hybrid_risk_score: int | None = None
     hybrid_action: str | None = None
 
+    # Phase 4.1: model bất thường (app/detection/ml_runtime.py) — giá trị THẬT ghi lúc chấm, NULL = không có điểm
+    # (model chưa nạp hoặc lần thử ngoài phạm vi chấm — lý do ở ml_details.reason)
+    ml_is_anomaly: bool | None = None
+    ml_threshold: float | None = None
+    ml_model_version: str | None = None
+    ml_details: dict | None = None
+
 
 class PaginatedLoginEvents(BaseModel):
     items: list[LoginEventOut]

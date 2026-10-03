@@ -89,15 +89,25 @@ def install_fixture_telemetry(setattr_fn: Callable[[Any, str, Any], None], redis
     setattr_fn(pipeline_module, "lookup_asn", fixture_lookup_asn)
     setattr_fn(runtime_module, "_THREAT_INTEL", fixture_threat_intel())
     hybrid = hybrid_runtime.get_engine()
-    setattr_fn(hybrid, "scorer", None)
     setattr_fn(hybrid, "profile", hybrid_runtime._FALLBACK_PROFILE)
     runtime_module.invalidate_blocklist_cache()
     runtime_module.invalidate_rule_config_cache()
 
 
 class VerificationEnv:
-    def __init__(self, setattr_fn: Callable[[Any, str, Any], None] = setattr) -> None:
+    def __init__(self, setattr_fn: Callable[[Any, str, Any], None] = setattr, ml_model_dir=None) -> None:
+        """`ml_model_dir`: None (mặc định) = model bất thường TẮT — đúng cấu hình đo 20 hành vi luật của Phase 3; một thư mục
+        artifact = nạp model đó cho lần chạy này (thí nghiệm luật vs ML, Phase 4.1)."""
         import app.detection.pipeline as pipeline_module
+        from app.detection import ml_runtime
+
+        runtime = ml_runtime.MLRuntime()
+        if ml_model_dir is None:
+            runtime.disable("tắt trong môi trường kiểm chứng (VerificationEnv(ml_model_dir=None))")
+        else:
+            runtime.load(ml_model_dir)
+        setattr_fn(ml_runtime, "_runtime", runtime)
+        self.ml_runtime = runtime
 
         engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool)
         Base.metadata.create_all(bind=engine)

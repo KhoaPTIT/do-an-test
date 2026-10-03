@@ -75,3 +75,40 @@ def client(db_session):
             yield test_client
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def ml_runtime_off_by_default(monkeypatch, tmp_path_factory):
+    """Phase 4.1: model bất thường TẮT mặc định trong test — kết quả không phụ thuộc máy có artifact `ml/artifacts/` hay
+    không (kể cả khi `TestClient` chạy sự kiện startup). Test cần model dùng fixture `trained_ml_model_dir`."""
+    import ml.anomaly_model
+    from app.detection import ml_runtime
+
+    monkeypatch.setattr(ml.anomaly_model, "ARTIFACT_DIR", tmp_path_factory.mktemp("no_ml_artifact"))
+    runtime = ml_runtime.MLRuntime()
+    runtime.disable("tắt mặc định trong test")
+    monkeypatch.setattr(ml_runtime, "_runtime", runtime)
+
+
+@pytest.fixture(scope="session")
+def trained_ml_model_dir(tmp_path_factory):
+    """Một model THẬT train tại chỗ trên dataset nhỏ sinh bằng CÙNG mã với dataset chính (vài giây)."""
+    from ml import build_features, dataset, train
+
+    root = tmp_path_factory.mktemp("ml_model")
+    raws, labels = dataset.build(dataset.DATASET_SEED, n_users=24, days=dataset.SIM_DAYS)
+    dataset.write(raws, labels, root / "data")
+    build_features.build(root / "data")
+    train.train(root / "data", root / "model")
+    return root / "model"
+
+
+@pytest.fixture()
+def ml_on(monkeypatch, trained_ml_model_dir):
+    """Bật model bất thường (artifact train tại chỗ) cho test này."""
+    from app.detection import ml_runtime
+
+    runtime = ml_runtime.MLRuntime()
+    assert runtime.load(trained_ml_model_dir)
+    monkeypatch.setattr(ml_runtime, "_runtime", runtime)
+    return runtime

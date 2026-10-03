@@ -43,7 +43,7 @@ def test_positive_still_alerts_with_the_calibrated_zero_weight(env, monkeypatch)
     báo vẫn được tạo vì ngưỡng riêng của luật đã thoả (enforce), không phải vì ai đó nâng trọng số."""
     from app.detection import hybrid_runtime
     from app.detection.hybrid import HybridProfile
-    from app.detection.model_registry import _PROFILE_PATH
+    from app.detection.hybrid_runtime import CALIBRATED_PROFILE_PATH as _PROFILE_PATH  # Phase 4.1: hằng số chuyển chỗ
 
     calibrated = HybridProfile.from_file(_PROFILE_PATH)
     assert calibrated.weights.weight_of(RULE) == 0.0

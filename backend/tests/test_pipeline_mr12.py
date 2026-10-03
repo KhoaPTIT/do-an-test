@@ -1,9 +1,8 @@
 """MR12 — tích hợp realtime: parse UA + tra ASN trong pipeline, rule engine v2 (MR9-10) + hybrid risk engine (MR11)
 CHẠY SONG SONG tầng 1-2-3 (KHÔNG THAY THẾ), lỗi ở khối MR12 không được làm mất alert tầng 1-2-3.
 
-`client` fixture (conftest.py) khiến `TestClient(app)` chạy sự kiện "startup" của `app/main.py`, TỰ ĐĂNG KÝ và TỰ NẠP
-mô hình hybrid thật (artifact có sẵn trên đĩa) vào DB TEST (SQLite, nhờ monkeypatch `app.main.SessionLocal`) — nên mọi
-test dùng `client` mặc định CÓ SẴN `hybrid_runtime.get_engine().ml_available is True`, không cần tự đăng ký."""
+Phase 4.1: thành phần ML là model bất thường (app/detection/ml_runtime.py), TẮT mặc định trong test (conftest
+`ml_runtime_off_by_default`); test nào cần model dùng fixture `ml_on` (model thật train tại chỗ trên dataset nhỏ)."""
 
 import asyncio
 from datetime import datetime, timezone
@@ -48,14 +47,17 @@ def test_asn_is_looked_up_for_a_real_public_ip(db_session):
     assert event.asn == 15169
 
 
-def test_login_computes_a_hybrid_score_and_action_using_the_real_model(client, db_session):
-    assert hybrid_runtime.get_engine().ml_available is True  # tự nạp lúc startup của test này (xem docstring module)
+def test_login_computes_a_hybrid_score_and_action_with_the_ml_model_loaded(client, db_session, ml_on):
+    """Phase 4.1 (thay test dùng hybrid_cp2 thật — artifact RBA không có trong repo): model bất thường đã nạp, đăng nhập
+    vẫn ra điểm/hành động hợp lệ; lần đầu của tài khoản mới nằm ngoài phạm vi chấm nên ML ghi rõ lý do, không có điểm."""
+    assert hybrid_runtime.get_engine().ml_available is True
     _create_user(db_session, "alice")
     client.post("/login", json={"username": "alice", "password": PASSWORD}, headers={"user-agent": CHROME_UA})
 
     event = db_session.query(LoginEvent).one()
     assert event.hybrid_risk_score is not None and 0 <= event.hybrid_risk_score <= 100
     assert event.hybrid_action in ACTIONS
+    assert event.ml_anomaly_score is None and event.ml_details["reason"] == "out_of_scope" and event.ml_model_version
 
 
 def test_a_brute_force_burst_computes_a_valid_score_without_crashing(client, db_session):
@@ -130,17 +132,16 @@ def test_a_broken_mr12_block_never_loses_the_tier1_brute_force_alert(client, db_
     assert last_event.hybrid_risk_score is None and last_event.hybrid_action is None  # cột MR12 vẫn NULL, không nửa vời
 
 
-def test_ml_component_degrades_gracefully_when_the_engine_has_no_model_loaded(client, db_session, monkeypatch):
-    """Ép hybrid_runtime CHƯA nạp được mô hình (mô phỏng model_registry rỗng/artifact lỗi) — pipeline vẫn phải chạy hết,
-    action lúc này chỉ còn dựa vào luật (hồ sơ dự phòng nếu chưa nạp lại profile, hoặc profile thật nhưng ml_probability=None)."""
-    engine = hybrid_runtime.get_engine()
-    monkeypatch.setattr(engine, "scorer", None)
+def test_pipeline_degrades_gracefully_when_no_ml_model_is_loaded(client, db_session):
+    """Model bất thường không nạp được (mặc định trong test) — pipeline vẫn chạy hết, điểm chỉ dựa vào luật."""
+    assert hybrid_runtime.get_engine().ml_available is False
     _create_user(db_session, "alice")
 
     response = client.post("/login", json={"username": "alice", "password": PASSWORD}, headers={"user-agent": CHROME_UA})
     assert response.status_code == 200
     event = db_session.query(LoginEvent).one()
     assert event.hybrid_risk_score is not None  # vẫn chấm được (chỉ luật + danh tiếng), không phải None/lỗi
+    assert event.ml_anomaly_score is None and event.ml_details["available"] is False and event.ml_details["reason"] == "model_not_loaded"
 
 
 def test_login_from_a_nonexistent_username_still_runs_the_mr12_block_without_a_user_key(client, db_session):
